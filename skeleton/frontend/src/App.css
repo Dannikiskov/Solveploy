@@ -1,0 +1,22 @@
+/* Add these styles to your CSS */
+
+/* Center the text and set the background to dark blue */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #282c34;
+  font-family: Arial, sans-serif;
+  color: rgb(215, 215, 215);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Style the individual paragraphs */
+p {
+  font-size: calc(10px + 2vmin);
+  margin: 10px 0;
+  text-align: center;
+  color: rgb(166, 166, 166);
+}

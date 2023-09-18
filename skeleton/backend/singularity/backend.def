@@ -1,0 +1,21 @@
+Bootstrap: docker
+From: node:10.11.0-alpine
+
+%environment
+HOSTNAME=127.0.0.1
+PORT=3001
+YARN_VERSION=1.9.4
+export HOSTNAME PORT YARN_VERSION
+
+%setup
+# We make the directory where we will store our NodeJS file
+mkdir -p $SINGULARITY_ROOTFS/running
+
+%files
+# Copy the file in the local directory to the /$SINGULARITY_ROOTFS/running
+. $SINGULARITY_ROOTFS/running
+
+%startscript
+# what is executed with "singularity instance start"
+npm ci
+npm start
