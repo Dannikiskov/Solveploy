@@ -18,7 +18,7 @@
    \begin{center}
        \vspace*{1cm}
 \linespread{1.25}
-       {\doublespacing \Huge\textbf{Cloud deployment of SAT- \& optimisation-solvers using DevSecOps \& microservices with algorithm selection \& expansion of knowledge base.}}
+       {\doublespacing \Huge\textbf{Cloud deployment of SAT- \& CSP-solvers with DevSecOps, microservices, algorithm selection \& knowledge base expansion.}}
 \linespread{1}
        \rule{\linewidth}{1pt}
        {\huge Master Thesis \\
@@ -53,11 +53,9 @@ Supervisor & & Jacopo Mauro\\ \\
 Todo
 \end{abstract}
 
-\begin{center} \bf Keywords \end{center}
+\begin{center} \bf Keywords \\  DevSecOps  \quad Microservices \quad Cloud Engineering \quad SAT- \& CSP-Solvers  \end{center}
 
-\thispagestyle{empty}
-\tableofcontents
-\thispagestyle{empty}
+
 \newpage
 \stepcounter{page}
 
@@ -67,9 +65,45 @@ Traditionally, cloud deploying of solvers for SAT and optimisation tasks involve
 Next,  this  project  will  allow  for  smart  algorithm  selection  using  algorithm  selection  techniques such as Sub-portfolio Nearest Neighbour Lazy algorithm portfolio (SUNNY) \& Algorithm Selection Library (ASlib):  With a multitude of solver algorithms available, each with distinct strengths and weaknesses,  the process of manually selecting the most suitable algorithm can be rise challenges. The goal of this part is to integrate algorithm selection capabilities.\\
 \\
 Finally, the project will foster the training of the artificial intelligence behind the selection of solvers by expanding the knowledge base of solved instances for the algorithm selectors to choose from.
+\section{Architecture}
+\subsection{Tools and technologies}
+\begin{itemize}
+    \item \textbf{Source code repository hosting:} GitHub
+    \item \textbf{Source control management:} Git
+    \item \textbf{CI/CD}: GitHub Actions
+    \item \textbf{Service mesh:} Istio
+    \item \textbf{Database:} Postgres
+    \item \textbf{Monitoring:} Prometheus
+    \item \textbf{Frontend:} React
+    \item \textbf{Programming languages:} Python (backend), TypeScript (frontend)
+    \item \textbf{Containerization:} Docker
+    \item \textbf{Container orchestration:} Kubernetes
+    
+\end{itemize}
+\newpage
+\subsection{Microservices}
+\begin{itemize}
+    \item \textbf{FrontendService}
+    \item \textbf{SolverService}
+    \item \textbf{ServiceMesh}
+    \item \textbf{Database}
+    \item \textbf{MoniteringService}
+    \item \textbf{UserAuthService?}
+    \item \textbf{KnowledgeBaseExpansionService?}
+    \item \textbf{AlgorithmSelectionService?}
+\end{itemize}
+
 \section{Keywords}
 security: docker-in-docker vs singularity\\
-terraform to deploy locally
+terraform to deploy locally AND cloudly\\
+"Can you elaborate on how the knowledge base is constructed and updated over time? What kind of data is collected and stored?"\\
+"Are there any practical considerations or challenges when deploying the SUNNY algorithm in real-world scenarios?"\\
+"Are there any specific extensions or enhancements you plan to explore for the SUNNY algorithm?"\\
+"Where do you believe the pitfalls of the learning lie right now?"\
+"Can you identify any practical considerations or challenges when deploying sunny in real-world scenarios?"\\
+"Are there any extensions or enhancements you plan to explore that you see relevant to consider for this project?"\\
+Evetn-based vs rabbit mq
+
 \bibliography{biblio.bib}
 \bibliographystyle{plain}
 
