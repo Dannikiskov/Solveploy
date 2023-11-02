@@ -1,0 +1,19 @@
+# Vite
+node_modules/
+package-lock.json
+yarn.lock
+
+# React
+dist/
+build/
+public/
+
+# Typescript
+*.tsbuildinfo
+*.js.map
+
+# Python Flask
+*.py[cod]
+*$py.class
+*.so
+__pycache__/
