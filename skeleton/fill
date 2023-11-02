@@ -1,8 +1,0 @@
-  // const [apiResponse, setApiResponse] = useState(""); // Initialize state with an empty string
-
-  // useEffect(() => {
-  //   fetch("http://localhost:9000/users")
-  //     .then((res) => res.text())
-  //     .then((res) => setApiResponse(res))
-  //     .catch((error) => console.error(error));
-  // }, []);w
