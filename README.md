@@ -1,7 +1,9 @@
 # Solveploy
 Easy cloud deployment of solvers
 
-`minikube start eval $(minikube docker-env)`
+`minikube start` 
+
+`eval $(minikube docker-env)`
 
 `docker build -t my-frontend --network host .`
 
