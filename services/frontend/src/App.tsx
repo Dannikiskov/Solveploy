@@ -4,19 +4,25 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
+  //var backend = "http://my-backend-service.default.svc.cluster.local:5000/api/hello";
   const [count, setCount] = useState(0);
   const [message, setMessage] = useState("");
 
   async function fetchData() {
-    const response = await fetch("http://127.0.0.1:5000/api/");
-    const json = await response.json();
-    setMessage(json.message);
+    try {
+      const response = await fetch("/api/hello"); // Relative URL
+      const json = await response.json();
+      setMessage(json.message);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   }
-
   return (
     <>
       <div>
         <a href="https://vitejs.dev" target="_blank">
+          {" "}
+          q
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
         <a href="https://react.dev" target="_blank">

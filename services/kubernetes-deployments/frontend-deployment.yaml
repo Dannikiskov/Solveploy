@@ -16,4 +16,4 @@ spec:
           image: my-frontend:latest
           imagePullPolicy: Never
           ports:
-            - containerPort: 5173
+            - containerPort: 80

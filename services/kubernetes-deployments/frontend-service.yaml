@@ -7,6 +7,5 @@ spec:
     app: my-frontend
   ports:
     - protocol: TCP
-      port: 5173
-      targetPort: 5173
-  type: NodePort
+      port: 80
+  type: LoadBalancer # Use LoadBalancer to expose externally
