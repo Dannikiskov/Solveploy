@@ -4,19 +4,43 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
-  //var backend = "http://my-backend-service.default.svc.cluster.local:5000/api/hello";
   const [count, setCount] = useState(0);
   const [message, setMessage] = useState("");
+  const [modelString, setModelString] = useState("");
 
   async function fetchData() {
     try {
-      const response = await fetch("/api/hello"); // Relative URL
-      const json = await response.json();
-      setMessage(json.message);
+      // Create a new JSON object containing the MiniZinc model string.
+      const jsonData = {
+        model_string: modelString,
+      };
+
+      // Send a POST request to the /api/solver endpoint with the JSON object as the body of the request.
+      const response = await fetch("http://localhost:5000/api/solver", {
+        method: "POST",
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(jsonData),
+      });
+
+      // Check if the response was successful.
+      if (response.status === 200) {
+        // Parse the JSON response to extract the results of the MiniZinc solve.
+        const json = await response.json();
+
+        // Update the state variables with the results of the MiniZinc solve.
+        setMessage(json.message);
+      } else {
+        // Handle the error.
+        console.error("Error fetching data:", response.statusText);
+      }
     } catch (error) {
+      // Handle the error.
       console.error("Error fetching data:", error);
     }
   }
+
   return (
     <>
       <div>
@@ -33,13 +57,18 @@ function App() {
       <h1>Vite + React</h1>
 
       <div className="card">
+        {/* Use a textarea instead of an input for multiline text */}
+        <textarea
+          value={modelString}
+          onChange={(e) => setModelString(e.target.value)}
+        />
         <button
           onClick={() => {
             setCount((count) => count + 1);
             fetchData();
           }}
         >
-          count is {count}
+          Send Model
         </button>
         <p>{message}</p>
       </div>
