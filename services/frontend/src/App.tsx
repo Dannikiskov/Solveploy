@@ -4,7 +4,6 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0);
   const [message, setMessage] = useState("");
   const [modelString, setModelString] = useState("");
 
@@ -16,7 +15,7 @@ function App() {
       };
 
       // Send a POST request to the /api/solver endpoint with the JSON object as the body of the request.
-      const response = await fetch("http://localhost:5000/api/solver", {
+      const response = await fetch("api/solver", {
         method: "POST",
         headers: new Headers({
           "Content-Type": "application/json",
@@ -64,7 +63,6 @@ function App() {
         />
         <button
           onClick={() => {
-            setCount((count) => count + 1);
             fetchData();
           }}
         >

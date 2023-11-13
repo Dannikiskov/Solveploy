@@ -9,7 +9,8 @@ COPY requirements.txt .
 
 # Install app dependencies
 RUN pip install -r requirements.txt
-RUN apt-get update && apt-get install -y dnsutils
+#RUN apt-get update && apt-get install -y dnsutils
+#RUN apt-get install -y minizinc
 
 
 # Copy the entire app into the container
