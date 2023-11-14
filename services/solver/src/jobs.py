@@ -1,75 +1,79 @@
-# main_script.py
-
 import os
+import tempfile
 from kubernetes import client, config
 import time
+import logging
+import uuid
 
-id = 0
-def start_minizinc_job(model_string, solver_name="gecode"):
-    global id
-    id = id + 1
-    print("------------------PRINTING ID:", id, " --------------")
-    # Set environment variables
-    os.environ["MODEL_STRING"] = model_string
-    os.environ["SOLVER_NAME"] = solver_name
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    # Load Kubernetes configuration
-    config.load_incluster_config()
-    jobname= f"minizinc-job-%s" % id
-    # Create a Kubernetes Job object
-    job = client.V1Job(
-    metadata=client.V1ObjectMeta(name=jobname),
-    spec=client.V1JobSpec(
-        template=client.V1PodTemplateSpec(
-            spec=client.V1PodSpec(
-                service_account_name="default",  # Ensure this is set to "default"
-                containers=[
-                    client.V1Container(
-                        name="minizinc-container",
-                        image="minizinc-job-image",
-                        env=[
-                            client.V1EnvVar(name="MODEL_STRING", value=os.environ["MODEL_STRING"]),
-                            client.V1EnvVar(name="SOLVER_NAME", value=os.environ["SOLVER_NAME"]),
-                        ],
-                    )
-                ],
-                restart_policy="Never",
+def start_minizinc_job(model_string, namespace="default"):
+    try:
+        # Load Kubernetes configuration
+        config.load_incluster_config()
+
+        # Create a unique job name
+        job_name = f"minizinc-job-{int(time.time())}-{str(uuid.uuid4())[:8]}"
+
+        logger.info(f"Starting Minizinc job with name: {job_name}")
+
+        # Get the current working directory
+        current_directory = os.path.dirname(__file__)
+
+        # Create a temporary file with the Minizinc model content in the current directory
+        temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=".mzn", dir=current_directory)
+        temp_file.write(model_string)
+        temp_model_path = temp_file.name
+
+        try:
+            # Create Minizinc job
+            minizinc_job = create_minizinc_job(job_name, temp_model_path)
+            batch_api = client.BatchV1Api()
+            batch_api.create_namespaced_job(namespace=namespace, body=minizinc_job)
+
+            # Wait for the Minizinc job to complete
+            wait_for_job_completion(batch_api, job_name, namespace)
+        finally:
+            # Cleanup: Remove the temporary model file
+            os.remove(temp_model_path)
+
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+
+def create_minizinc_job(job_name, model_path):
+    return client.V1Job(
+        metadata=client.V1ObjectMeta(name=job_name),
+        spec=client.V1JobSpec(
+            template=client.V1PodTemplateSpec(
+                spec=client.V1PodSpec(
+                    containers=[
+                        client.V1Container(
+                            name="minizinc-container",
+                            image="minizinc/minizinc:latest",
+                            command=["minizinc"],
+                            args=[
+                                "--help"
+                            ],
+                        )
+                    ],
+                    restart_policy="OnFailure",
+                )
             )
         )
     )
-)
 
-
-    # Create the Job in the cluster
-    batch_api = client.BatchV1Api()
-    batch_api.create_namespaced_job(namespace="default", body=job)
-
+def wait_for_job_completion(api, job_name, namespace):
     while True:
-        print("TRYING JOB STATUS...")
-        job_status = batch_api.read_namespaced_job_status(name=jobname, namespace="default")
+        logger.info(f"Checking status for Minizinc job: {job_name}")
+        job_status = api.read_namespaced_job_status(name=job_name, namespace=namespace)
         if job_status.status.succeeded:
-            print("Job completed successfully.")
+            logger.info("Minizinc job completed successfully.")
             break
         elif job_status.status.failed:
-            print("Job failed.")
+            logger.error("Minizinc job failed.")
             break
         else:
-            print("Waiting for the Job to complete...")
+            logger.info("Waiting for the Minizinc job to complete...")
             time.sleep(2)
 
-    # Get the name of the Pod associated with the Job
-    pod_name = job_status.spec.selector.match_labels['controller-uid']
-
-    # Retrieve the logs of the Pod
-    pod_logs = batch_api.read_namespaced_pod_log(name=pod_name, namespace="default")
-    print("Pod Logs:", pod_logs)
-
-    result_start_marker = "=== RESULT START ==="
-    result_end_marker = "=== RESULT END ==="
-
-    result_start_index = pod_logs.find(result_start_marker)
-    result_end_index = pod_logs.find(result_end_marker)
-
-    if result_start_index != -1 and result_end_index != -1:
-        result_section = pod_logs[result_start_index + len(result_start_marker):result_end_index]
-    print("Extracted Result:", result_section.strip())
