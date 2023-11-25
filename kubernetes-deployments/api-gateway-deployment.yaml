@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-backend
+  name: api-gateway-deployment
 spec:
   selector:
     matchLabels:
-      app: my-backend
+      app: api-gateway
   template:
     metadata:
       labels:
-        app: my-backend
+        app: api-gateway
     spec:
       containers:
-        - name: my-backend
-          image: my-backend:latest
+        - name: api-gateway
+          image: api-gateway:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 5000
