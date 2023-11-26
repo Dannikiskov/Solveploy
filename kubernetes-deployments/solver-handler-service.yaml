@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: solver-handler-service
+spec:
+  selector:
+    app: solver-handler
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: ClusterIP

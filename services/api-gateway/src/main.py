@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restful import Api, Resource
 from flask_cors import CORS
+import mq
 
 app = Flask(__name__)
 api = Api(app)
@@ -8,7 +9,8 @@ CORS(app)
 
 class HelloWorld(Resource):
     def get(self):
-        print("Endpoint GET: /api/hello    <--- HIT")
+        print("Endpoint hit! Calling mq.sendHelloWOrld", flush=True)
+        mq.sendHelloWorld()
         return {'message': 'Hello, World!'}
 
     def post(self):

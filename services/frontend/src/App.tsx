@@ -1,11 +1,6 @@
 import { useState } from "react";
 import "./App.css";
 
-/*interface ApiResponse {
-  message: string;
-  data?: any;
-}*/
-
 function App() {
   const [message, setMessage] = useState<string>("");
 
@@ -17,12 +12,9 @@ function App() {
           "Content-Type": "application/json",
         },
       });
-      console.log("JUST BEFORE APIreSPONEcast");
-      //const data: ApiResponse = await response.text();
+
       const text = await response.text();
-      console.log("JUST BEFORE JSONSTRINGIFY");
       setMessage(text);
-      console.log("JUST AFTER JSONSTRINGIFY");
     } catch (error) {
       console.error("Error fetching data:", error);
       setMessage(`Error fetching data, ${error}`);

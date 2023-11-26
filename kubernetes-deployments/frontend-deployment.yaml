@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-deployment
+  name: frontend
 spec:
   selector:
     matchLabels:
@@ -15,5 +15,12 @@ spec:
         - name: frontend
           image: frontend:latest
           imagePullPolicy: Never
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
           ports:
             - containerPort: 80

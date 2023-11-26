@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: solver-handler
 spec:
   selector:
     matchLabels:
-      app: api-gateway
+      app: solver-handler
   template:
     metadata:
       labels:
-        app: api-gateway
+        app: solver-handler
     spec:
       restartPolicy: Always
       containers:
-        - name: api-gateway
-          image: api-gateway:latest
+        - name: solver-handler
+          image: solver-handler:latest
           imagePullPolicy: Never
           env:
             - name: RABBITMQ_USERNAME
@@ -35,4 +35,4 @@ spec:
               memory: 256Mi
               cpu: "0.2"
           ports:
-            - containerPort: 5000
+            - containerPort: 5001
