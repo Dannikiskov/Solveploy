@@ -1,0 +1,71 @@
+from flask import Flask, request
+from flask_restful import Api, Resource
+from flask_cors import CORS
+import pika
+import json
+import uuid
+
+app = Flask(__name__)
+api = Api(app)
+CORS(app)
+
+# RabbitMQ configuration
+rabbitmq_host = 'rabbitmq'  # Replace with your RabbitMQ server's host
+job_queue_name = 'job_queue'
+result_queue_name = 'result_queue'
+
+def send_job_to_queue(job_id, job_data):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+    channel = connection.channel()
+    channel.queue_declare(queue=job_queue_name)
+
+    # Include job ID in the message
+    job_data['job_id'] = job_id
+    
+    # Send the job to the job queue
+    channel.basic_publish(exchange='', routing_key=job_queue_name, body=json.dumps(job_data))
+    connection.close()
+
+def wait_for_result_from_queue(job_id):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+    channel = connection.channel()
+    channel.queue_declare(queue=result_queue_name)
+
+    while True:
+        # Wait for the result from the result queue
+        method_frame, header_frame, body = channel.basic_get(queue=result_queue_name, auto_ack=True)
+
+        if method_frame:
+            result_data = json.loads(body)
+            
+            # Check if the received result corresponds to the expected job ID
+            if result_data.get('job_id') == job_id:
+                return result_data
+        else:
+            return None
+
+class SolverJob(Resource):
+    def get(self):
+        job_id = str(uuid.uuid4())  # Generate a unique job ID
+        job_data = {'data': 'testdata', 'job_id': job_id}
+        
+        # Send the job to the job queue
+        send_job_to_queue(job_id, job_data)
+
+        # Wait for the result from the result queue for the specific job ID
+        result = wait_for_result_from_queue(job_id)
+
+        return {'result': result}
+
+    def post(self):
+        data = request.get_json()
+        return {'message': 'Data received', 'data': data}
+
+    def put(self):
+        data = request.get_json()
+        return {'message': 'Data updated', 'data': data}
+
+api.add_resource(SolverJob, '/api/solverjob')
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", debug=True)

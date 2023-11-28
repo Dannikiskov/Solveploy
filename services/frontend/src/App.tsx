@@ -26,7 +26,7 @@ function App() {
       <h1>Endpoint test</h1>
       <textarea value={message} onChange={(e) => setMessage(e.target.value)} />
       <br />
-      <button onClick={() => fetchData("/api/hello", "GET")}>
+      <button onClick={() => fetchData("/api/solverjob", "GET")}>
         Fetch Hello GET
       </button>
     </>
