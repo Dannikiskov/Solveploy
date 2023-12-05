@@ -7,16 +7,17 @@ import uuid
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
-job_queue = messageQueue.SolverJobQueue()
+
 class SolverJob(Resource):
     def post(self):
+        job_queue = messageQueue.SolverJobQueue()
         model_meta_data = request.json['message']
         #model_meta_data['job_id'] = "job-"+str(uuid.uuid4())[:8]
         print(model_meta_data, flush=True)
         job_queue.publish(model_meta_data)
         response = job_queue.consume()
         print("REPONSE API:", response, flush=True)
-        return {'result': str(response)}
+        return response
 
 api.add_resource(SolverJob, '/api/solverjob')
 

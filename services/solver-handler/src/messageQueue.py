@@ -16,6 +16,7 @@ class SolverResultQueue(object):
     
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='result-queue')
+        self.channel.queue_declare(queue='job-queue')
         print(f"Queue declared", flush=True)
     
     def respond(self, data):
@@ -23,11 +24,12 @@ class SolverResultQueue(object):
     
     def consume(self):
         def callback(ch, method, properties, body):
-            print(f"Result received: {body}", flush=True)
-            queue_name = solvers.start_solver_job(body)
+            decoded_body = body.decode("utf-8")
+            print(f"Result received: {decoded_body}", flush=True)
+            queue_name = solvers.start_solver_job(decoded_body)
             print(f"Publishing to dynamic queue ({queue_name})..", flush=True)
             ch.queue_declare(queue=queue_name)
-            ch.basic_publish(exchange='', routing_key=queue_name, body=body)
+            ch.basic_publish(exchange='', routing_key=queue_name, body=decoded_body)
             print(f"Success to ({queue_name})..", flush=True)
             threading.Thread(target=self.consume_from_dynamic_queue, args=(queue_name,)).start()
 
@@ -46,9 +48,10 @@ class SolverResultQueue(object):
         )
         
         def callback_dynamic(ch, method, properties, body):
-            print(f"Dynamic queue: result_{queue_name} received: {body}", flush=True)
-            # Publish the original message to result-queue
-            ch.basic_publish(exchange='', routing_key=f"result-queue", body=body)
+            decoded_body = body.decode("utf-8")
+            print(f"Dynamic queue: result_{queue_name} received: {decoded_body}", flush=True)
+            
+            ch.basic_publish(exchange='', routing_key=f"result-queue", body=decoded_body)
             ch.stop_consuming()
             ch.queue_delete(queue=f"result-{queue_name}")
             print("queue deleted", flush=True)

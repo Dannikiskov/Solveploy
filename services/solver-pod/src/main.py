@@ -4,8 +4,9 @@ import os
 import sys
 
 def on_request(ch, method, props, body):
-    print(f" [.] message consumed! Got and {body} attempting reply to: result_{os.getenv('JOB_NAME')}", flush=True)
-    result = f"new {body} who dis"
+    decoded_body = body.decode("utf-8")
+    print(f" [.] message consumed! Got and {decoded_body} attempting reply to: result_{os.getenv('JOB_NAME')}", flush=True)
+    result = f"new {decoded_body} who dis"
     ch.basic_publish(exchange='',
         routing_key=f"result-{os.getenv('JOB_NAME')}",
         body=result)

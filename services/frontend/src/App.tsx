@@ -15,7 +15,7 @@ function App() {
       });
 
       const text = await response.text();
-      setMessage(text);
+      setMessage(text.slice(1, -2));
     } catch (error) {
       console.error("Error fetching data:", error);
       setMessage(`Error fetching data, ${error}`);

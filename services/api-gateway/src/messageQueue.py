@@ -13,6 +13,7 @@ class SolverJobQueue(object):
     
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='job-queue')
+        self.channel.queue_declare(queue='result-queue')
         
     def publish(self, data):
         print("Attempting publish", flush=True)
@@ -22,9 +23,10 @@ class SolverJobQueue(object):
         self.response = None
         def callback(ch, method, properties, body):
             print(f"Result recieved: {body}", flush=True)
-            self.response = body
+            decoded_body = body.decode("utf-8")
+            self.response = decoded_body
             self.channel.stop_consuming()
-            print(f"Stopped consuming, returning body:  {body}", flush=True)
+            print(f"Stopped consuming, returning body:  {decoded_body}", flush=True)
             
 
         self.channel.basic_consume(queue='result-queue', on_message_callback=callback, auto_ack=True)

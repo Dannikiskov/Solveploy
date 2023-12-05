@@ -5,9 +5,6 @@ def start_solver_job(model):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
-    # Convert bytes to string
-    model = model.decode('utf-8')
-
     # Create a unique job name
     job_name = f"minizinc-job-{str(uuid.uuid4())[:8]}"
 
@@ -57,6 +54,7 @@ def create_minizinc_job(job_name):
                     ],
                     restart_policy="Never",
                 )
-            )
+            ),
+            ttl_seconds_after_finished=5,
         )
     )
