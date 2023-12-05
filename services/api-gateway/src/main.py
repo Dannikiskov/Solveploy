@@ -2,24 +2,21 @@ from flask import Flask, request
 from flask_restful import Api, Resource
 from flask_cors import CORS
 import messageQueue
-
+import base64
+import uuid 
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
-mq = messageQueue.MessageQueue()
+job_queue = messageQueue.SolverJobQueue()
 class SolverJob(Resource):
-    def get(self):
-        job_id = mq.sendJob("testdata")
-        result = mq.waitForResult(job_id)
-        return {'result': result}
-
     def post(self):
-        data = request.get_json()
-        return {'message': 'Data received', 'data': data}
-
-    def put(self):
-        data = request.get_json()
-        return {'message': 'Data updated', 'data': data}
+        model_meta_data = request.json['message']
+        #model_meta_data['job_id'] = "job-"+str(uuid.uuid4())[:8]
+        print(model_meta_data, flush=True)
+        job_queue.publish(model_meta_data)
+        response = job_queue.consume()
+        print("REPONSE API:", response, flush=True)
+        return {'result': str(response)}
 
 api.add_resource(SolverJob, '/api/solverjob')
 

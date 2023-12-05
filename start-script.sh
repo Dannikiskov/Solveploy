@@ -7,6 +7,7 @@ eval $(minikube docker-env)
 docker build -t frontend -f services/frontend/Dockerfile services/frontend/
 docker build -t api-gateway -f services/api-gateway/Dockerfile services/api-gateway/
 docker build -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
+docker build -t solver-pod -f services/solver-pod/Dockerfile services/solver-pod/
 
 kubectl apply -f kubernetes-deployments/rabbitmq-operator.yaml
 kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
@@ -20,8 +21,10 @@ kubectl apply -f kubernetes-deployments/frontend-service.yaml
 kubectl apply -f kubernetes-deployments/solver-handler-deployment.yaml
 kubectl apply -f kubernetes-deployments/solver-handler-service.yaml
 
+kubectl apply -f kubernetes-deployments/role-job-creator.yaml
+kubectl apply -f kubernetes-deployments/cluster-role-job-creator.yaml
+kubectl apply -f kubernetes-deployments/clusterrolebinding-job-creator.yaml
+
 end_time=$(date +%s)
 execution_time=$((end_time - start_time))
 echo "Script execution time: $execution_time seconds"
-
-

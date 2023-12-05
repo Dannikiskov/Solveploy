@@ -2,8 +2,7 @@
 FROM python:latest
 
 # Set environment variables
-ENV rabbitmqusername=$rabbitmqusername
-ENV rabbitmqpassword=$rabbitmqpassword
+##ENV rabbitmqpassword=$rabbitmqpassword
 
 # Set the working directory in the container
 WORKDIR /app

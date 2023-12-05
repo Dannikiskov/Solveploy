@@ -11,6 +11,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ message }),
       });
 
       const text = await response.text();
@@ -26,7 +27,7 @@ function App() {
       <h1>Endpoint test</h1>
       <textarea value={message} onChange={(e) => setMessage(e.target.value)} />
       <br />
-      <button onClick={() => fetchData("/api/solverjob", "GET")}>
+      <button onClick={() => fetchData(`/api/solverjob`, "POST")}>
         Fetch Hello GET
       </button>
     </>

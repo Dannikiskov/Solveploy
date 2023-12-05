@@ -1,3 +1,30 @@
+int: nc = 3;
+
+var 1..nc: wa;   var 1..nc: nt;  var 1..nc: sa;   var 1..nc: q;
+var 1..nc: nsw;  var 1..nc: v;   var 1..nc: t;
+
+constraint wa != nt;
+constraint wa != sa;
+constraint nt != sa;
+constraint nt != q;
+constraint sa != q;
+constraint sa != nsw;
+constraint sa != v;
+constraint q != nsw;
+constraint nsw != v;
+solve satisfy;
+
+output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
+        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
+         "t=", show(t),  "\n"];
+
+
+
+
+
+
+
+
 import io
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
@@ -282,7 +309,7 @@ def main():
         'definition.default.svc.cluster.local', 
         5672, 
         '/', 
-        pika.PlainCredentials('default_user_ihJ24uf17gPjMqD-ZW2', 'i_glY8bc4qqzLXp91zWDnclB_aRb7qzf')
+        pika.PlainCredentials('XXXX', 'XXXXX)
     )
 
     connection = pika.BlockingConnection(connection_params)
@@ -337,3 +364,253 @@ def sendHelloWorld():
 
 
 
+#!/bin/bash
+start_time=$(date +%s)
+minikube start --cpus=4 --memory=6000
+
+eval $(minikube docker-env)
+
+docker build -t frontend -f services/frontend/Dockerfile services/frontend/
+docker build -t api-gateway -f services/api-gateway/Dockerfile services/api-gateway/
+docker build -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
+
+kubectl apply -f kubernetes-deployments/rabbitmq-operator.yaml
+kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
+
+kubectl apply -f kubernetes-deployments/api-gateway-deployment.yaml
+kubectl apply -f kubernetes-deployments/api-gateway-service.yaml
+
+kubectl apply -f kubernetes-deployments/frontend-deployment.yaml
+kubectl apply -f kubernetes-deployments/frontend-service.yaml
+
+kubectl apply -f kubernetes-deployments/solver-handler-deployment.yaml
+kubectl apply -f kubernetes-deployments/solver-handler-service.yaml
+
+end_time=$(date +%s)
+execution_time=$((end_time - start_time))
+echo "Script execution time: $execution_time seconds"
+
+
+
+
+
+
+
+
+
+
+
+#!/usr/bin/env python
+import pika
+import uuid
+import os
+
+class SolverHandlerQueue(object):
+    print(f"API mq self-conn.", flush=True)
+    def __init__(self):
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host='message-broker.default.svc.cluster.local', 
+                    credentials=pika.PlainCredentials(
+                        os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
+
+        print(f"API mq con.chan.", flush=True)
+        self.channel = self.connection.channel()
+        print(f"API mq decl. exclu.", flush=True)
+        result = self.channel.queue_declare(queue='', exclusive=True)
+        self.callback_queue = result.method.queue
+
+        self.channel.basic_consume(
+            queue=self.callback_queue,
+            on_message_callback=self.on_response,
+            auto_ack=True)
+        print(f"API mq basic cons. done", flush=True)
+        self.response = None
+        self.corr_id = None
+
+    def on_response(self, ch, method, props, body):
+        print(f"API mq on_response {body}", flush=True)
+        if self.corr_id == props.correlation_id:
+            self.response = body
+
+    def call(self, data):
+        print(f"A-G MQ handler call: {data}", flush=True)
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        print(f"A-G MQ atmpt. basic publish to {self.callback_queue}", flush=True)
+        self.channel.basic_publish(
+            exchange='',
+            routing_key='solver_handler_rpc_queue',
+            properties=pika.BasicProperties(
+                reply_to=self.callback_queue,
+                correlation_id=self.corr_id,
+                content_type='application/json',
+            ),
+            body=data)
+        print(f"A-G MQ handler wait for response", flush=True)
+        self.connection.process_data_events(time_limit=None)
+        print(f"A-G MQ handler got resp. : {self.response}", flush=True)
+        return str(self.response)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        #!/usr/bin/env python
+import pika
+import uuid
+import os
+
+class SolverPodQueue(object):
+    def __init__(self, queue_name):
+        self.queue_name = queue_name
+
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host='message-broker.default.svc.cluster.local',
+                credentials=pika.PlainCredentials(
+                    os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
+
+        self.channel = self.connection.channel()
+        result = self.channel.queue_declare(queue=self.queue_name)
+        self.callback_queue = result.method.queue
+
+        self.channel.basic_consume(
+            queue=self.callback_queue,
+            on_message_callback=self.on_response,
+            auto_ack=True)
+
+        self.response = None
+        self.corr_id = None
+
+    def on_response(self, ch, method, props, body):
+        print(f"So-Ha mq on_response {body}", flush=True)
+        if self.corr_id == props.correlation_id:
+            self.response = body
+
+    def call(self, data):
+        print(f"So-Ha MQ handler call: {data}", flush=True)
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        print(f"So-Ha MQ handler publishing", flush=True)
+        self.channel.basic_publish(
+            exchange='',
+            routing_key=self.queue_name,
+            properties=pika.BasicProperties(
+                reply_to=self.callback_queue,
+                correlation_id=self.corr_id,
+                content_type='application/json',
+            ),
+            body=data)
+        print(f"So-Ha MQ post to {self.queue_name} w8 response from {self.callback_queue}", flush=True)
+        self.connection.process_data_events(time_limit=None)
+        print(f"So-Ha MQ handler returning response: {self.response}", flush=True)
+        return str(self.response)
+
+
+
+
+
+
+
+
+
+        #!/usr/bin/env python
+import pika
+import os
+import sys
+
+def on_request(ch, method, props, body):
+    print(f" [.] solver-pod message consumed! Got and {body} attempting reply to: {os.getenv('JOB_NAME')}", flush=True)
+    result = "returning something new"
+    ch.basic_publish(exchange='',
+        routing_key=os.getenv("JOB_NAME"),
+        properties=pika.BasicProperties(correlation_id = props.correlation_id),
+        body=result)
+    print(f"So-Po main acking", flush=True)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+    sys.exit(0)
+    
+
+
+if __name__ == '__main__':
+    connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(
+                        host='message-broker.default.svc.cluster.local',
+                        credentials=pika.PlainCredentials(
+                            os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
+
+    print(f"So-Po main atmpt. connecting", flush=True)
+    channel = connection.channel()
+    print(f"So-Po main connection established", flush=True)
+
+
+    print(f"So-Po main declare queue", flush=True)
+    channel.queue_declare(queue=os.getenv("JOB_NAME"))
+    print(f"So-Po main queue declared", flush=True)
+
+
+    channel.basic_qos(prefetch_count=1)
+    print(f"So-Po main basic consume", flush=True)
+    channel.basic_consume(os.getenv("JOB_NAME"), on_message_callback=on_request)
+
+    print(f" [x] Solver-pod awaiting RPC requests, from queue {os.getenv('JOB_NAME')}", flush=True)
+    channel.start_consuming()
+    
+
+
+
+
+
+
+    #!/usr/bin/env python
+import pika
+import os
+import solvers
+import messageQueue
+
+def on_request(ch, method, props, body):
+    print(f" [.] start_solver_job(): {body}", flush=True)
+    job_name = solvers.start_solver_job(body)
+    pod_messagequeue = messageQueue.SolverPodQueue(job_name)
+    response = pod_messagequeue.call(body)
+    print(f" [.] response = {response}.. publishing..", flush=True)
+
+    # Respone to handler
+    ch.basic_publish(exchange='',
+        routing_key=props.reply_to,
+        properties=pika.BasicProperties(correlation_id = props.correlation_id),
+        body=str(response))
+    print(f"So-Ha main acking", flush=True)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+
+if __name__ == '__main__':
+    connection = pika.BlockingConnection(
+                pika.ConnectionParameters(
+                    host='message-broker.default.svc.cluster.local', 
+                        credentials=pika.PlainCredentials(
+                            os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
+
+    print(f"So-Ha main atmpt. connecting", flush=True)
+    channel = connection.channel()
+    print(f"So-Ha main declare queue", flush=True)
+    channel.queue_declare(queue='solver_handler_rpc_queue', durable=True)
+    channel.basic_qos(prefetch_count=1)
+    print(f"So-Ha main basic consume", flush=True)
+    channel.basic_consume(queue='solver_handler_rpc_queue', on_message_callback=on_request)
+
+    print(" [x] Solver-handler awaiting RPC requests", flush=True)
+    channel.start_consuming()
