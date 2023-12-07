@@ -1,21 +1,21 @@
 from kubernetes import client, config
 import uuid
 
-def start_solver_job(model):
+def start_solver_job(identifier):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"minizinc-job-{str(uuid.uuid4())[:8]}"
+    job_name = f"solver-job-{identifier}"
 
-    # Create Minizinc job
-    minizinc_job = create_minizinc_job(job_name)
+    # Create solver job
+    solver_job = create_solver_job(job_name)
     batch_api = client.BatchV1Api()
-    batch_api.create_namespaced_job(namespace="default", body=minizinc_job)
+    batch_api.create_namespaced_job(namespace="default", body=solver_job)
     print("JOB NAME:", job_name, flush=True)
     return job_name
 
-def create_minizinc_job(job_name):
+def create_solver_job(job_name):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
@@ -26,7 +26,7 @@ def create_minizinc_job(job_name):
                             name="solver-container",
                             image="solver-pod:latest",
                             image_pull_policy="Never",
-                             env=[
+                            env=[
                                 client.V1EnvVar(
                                     name="JOB_NAME",
                                     value=job_name,
@@ -55,6 +55,6 @@ def create_minizinc_job(job_name):
                     restart_policy="Never",
                 )
             ),
-            ttl_seconds_after_finished=5,
+            ttl_seconds_after_finished=15,
         )
     )

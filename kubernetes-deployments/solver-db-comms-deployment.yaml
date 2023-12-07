@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solver-db-comms
+spec:
+  selector:
+    matchLabels:
+      app: solver-db-comms
+  template:
+    metadata:
+      labels:
+        app: solver-db-comms
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: solver-db-comms
+          image: solver-db-comms:latest
+          imagePullPolicy: Never
+          env:
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: message-broker-default-user
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: message-broker-default-user
+                  key: password
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+          ports:
+            - containerPort: 5003
