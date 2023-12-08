@@ -9,13 +9,13 @@ def start_solver_job(identifier):
     job_name = f"solver-job-{identifier}"
 
     # Create solver job
-    solver_job = create_solver_job(job_name)
+    solver_job = create_solver_job(job_name, identifier)
     batch_api = client.BatchV1Api()
     batch_api.create_namespaced_job(namespace="default", body=solver_job)
     print("JOB NAME:", job_name, flush=True)
     return job_name
 
-def create_solver_job(job_name):
+def create_solver_job(job_name, identifier):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
@@ -29,7 +29,7 @@ def create_solver_job(job_name):
                             env=[
                                 client.V1EnvVar(
                                     name="JOB_NAME",
-                                    value=job_name,
+                                    value=identifier,
                                 ),
                                 client.V1EnvVar(
                                     name="RABBITMQ_USERNAME",

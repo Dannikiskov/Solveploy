@@ -15,19 +15,28 @@ class DBQueue(object):
     
     def consume(self):
         def callback(ch, method, properties, body):
+
             print(f"Result recieved: {body}", flush=True)
+
             decoded_body = body.decode("utf-8")
+
             print(f"decoded body: {body}", flush=True)
+
             message_data = json.loads(decoded_body)
+
             identifier = message_data.get('identifier', "ID ERROR")
+
             print("identifier:", identifier, flush=True)
+
             ch.basic_publish(exchange='',
-                routing_key=f"result-db-queue-{identifier}",
+                routing_key=f"result-queue-{identifier}",
                 body=f"this is from DB: {decoded_body}")
-            print(f"Sent to: result-db-queue-{identifier}", flush=True)
+            
+            print(f"Sent to: result-queue-{identifier}", flush=True)
             
             
         self.channel.basic_consume(queue="db-queue", on_message_callback=callback, auto_ack=True)
+        print("COMSUMING", flush=True)
         self.channel.start_consuming()
 
 if __name__ == '__main__':

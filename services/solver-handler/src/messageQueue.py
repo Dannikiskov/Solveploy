@@ -16,6 +16,7 @@ class SolverResultQueue(object):
     
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='request-queue')
+        self.channel.queue_declare(queue="db-queue")
     
     def consume(self):
         def callback(ch, method, properties, body):
@@ -23,18 +24,22 @@ class SolverResultQueue(object):
             message_data = json.loads(decoded_body)
             instructions = message_data.get('instructions', 'INSTREUCTION ERROR')
             identifier = message_data.get('identifier', "ID ERROR")
-            print(f"sh.mq.consume: {message_data}, {instructions}, {identifier} ", flush=True)
+            print(f"sh.mq.consume: {message_data}", flush=True)
+
+            queue_name = f'queue-{identifier}'
+            ch.queue_declare(queue=queue_name)
+
 
             if instructions == "StartSolver":
                 print("call start_and_pub_solver", flush=True)
-                self.start_and_pub_to_solver(ch, decoded_body, identifier)
+                threading.Thread(target=self.start_and_pub_to_solver, args=(decoded_body, identifier,)).start()
             
             elif instructions == "GetSolverDBData":
-                print("Dead end")
+                print("Dead end", flush=True)
 
             elif instructions == "PostSolverDBData":
                 print("call post_to_db", flush=True)
-                self.post_to_solver_db(ch, decoded_body, identifier)
+                threading.Thread(target=self.post_to_solver_db, args=(decoded_body, identifier,)).start()
 
             else:
                 print("FAILED: ", instructions, flush=True)
@@ -45,75 +50,57 @@ class SolverResultQueue(object):
         print("Starting Consume..", flush=True)
         self.channel.start_consuming()
 
-    def consume_from_db_result_queue(self, db_queue_name, identifier):
-        connection_dynamic = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host='message-broker.default.svc.cluster.local', 
-                credentials=pika.PlainCredentials(
-                    os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
-            )
-        )
 
-        print("conn estab. ", flush=True)
+    def consume_from_dynamic_queue(self, channel, identifier):
 
-        def db_callback_dynamic(ch, method, properties, body):
-            decoded_body = body.decode("utf-8")
-            print(f"Dynamic queue: {db_queue_name} received: {decoded_body}", flush=True)
-            ch.basic_publish(exchange='', routing_key=f"res-queue-{identifier}", body=decoded_body)
-            ch.stop_consuming()
-            ch.queue_delete(queue=f"{db_queue_name}")
-
-        channel_dynamic = connection_dynamic.channel()
-        channel_dynamic.queue_declare(queue=db_queue_name)
-        channel_dynamic.basic_consume(queue=db_queue_name, on_message_callback=db_callback_dynamic, auto_ack=True)
-        print(f"Declared: {db_queue_name}")
-        print(f"Starting Consume from dynamic queue ({db_queue_name})..", flush=True)
-        channel_dynamic.start_consuming()
-
-    
-    def consume_from_solver_result_queue(self, solver_queue_name, identifier):
-        connection_dynamic = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host='message-broker.default.svc.cluster.local', 
-                credentials=pika.PlainCredentials(
-                    os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
-            )
-        )
-
-        print("conn estab. ", flush=True)
+        result_queue_name = f"result-queue-{identifier}"
+        print("RQN ", result_queue_name)
 
         def callback_dynamic(ch, method, properties, body):
-            print("conn estab. ", flush=True)
             decoded_body = body.decode("utf-8")
-            print(f"Dynamic queue: result-{solver_queue_name} received: {decoded_body}", flush=True)
-            ch.basic_publish(exchange='', routing_key=f"res-queue-{identifier}", body=decoded_body)
-            ch.stop_consuming()
-            ch.queue_delete(queue=f"result-{solver_queue_name}")
 
-        channel_dynamic = connection_dynamic.channel()
-        channel_dynamic.queue_declare(queue=f"result-{solver_queue_name}")
-        channel_dynamic.basic_consume(queue=f"result-{solver_queue_name}", on_message_callback=callback_dynamic, auto_ack=True)
-        print(f"Starting Consume from dynamic queue (result-{solver_queue_name})..", flush=True)
-        channel_dynamic.start_consuming()
+            print(f"Dynamic queue: {result_queue_name} received: {decoded_body}", flush=True)
+
+            ch.basic_publish(exchange='', routing_key=f"api-queue-{identifier}", body=decoded_body)
+            ch.stop_consuming()
+            ch.queue_delete(queue=result_queue_name)
+
+        channel.queue_declare(queue=result_queue_name)
+        channel.basic_consume(queue=result_queue_name, on_message_callback=callback_dynamic, auto_ack=True)
+
+        print(f"Starting Consume from dynamic queue ({result_queue_name})..", flush=True)
+
+        channel.start_consuming()
     
 
-    def start_and_pub_to_solver(self, ch, body, identifier):
-        print(f"call solv_star_j", flush=True)
-        solver_queue_name = solvers.start_solver_job(identifier)
-        print(f"sol_q_name: {solver_queue_name}", flush=True)
-        ch.queue_declare(queue=solver_queue_name)
-        ch.basic_publish(exchange='', routing_key=solver_queue_name, body=body)
-        print(f"starting cons_f_sol_res_q", flush=True)
-        threading.Thread(target=self.consume_from_solver_result_queue, args=(solver_queue_name, identifier,)).start()
-        
+    def start_and_pub_to_solver(self, body, identifier):
+        solvers.start_solver_job(identifier)
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host='message-broker.default.svc.cluster.local', 
+                credentials=pika.PlainCredentials(
+                    os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+            )
+        )
+
+        queue_name = f"queue-{identifier}"
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name)
+        channel.queue_declare(queue=f"result-{queue_name}")
+        channel.basic_publish(exchange='', routing_key=queue_name, body=body)
+        self.consume_from_dynamic_queue(channel, identifier)
 
 
-    def post_to_solver_db(self, ch, body, identifier):
-        ch.queue_declare(queue="db-queue")
-        ch.basic_publish(exchange='', routing_key="db-queue", body=body)
-        result_db_queue_name = f"result-db-queue-{identifier}"
-        ch.queue_declare(queue="db-queue")
-        print("ASDASDASD:", body , flush=True)
-        ch.basic_publish(exchange='', routing_key="db-queue", body=body)
-        print(f"Calling async c_f_db_r_q: ({result_db_queue_name})..", flush=True)
-        threading.Thread(target=self.consume_from_db_result_queue, args=(result_db_queue_name, identifier,)).start()
+
+    def post_to_solver_db(self, body, identifier):
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host='message-broker.default.svc.cluster.local', 
+                credentials=pika.PlainCredentials(
+                    os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+            )
+        ) 
+        channel = connection.channel()
+        channel.basic_publish(exchange='', routing_key="db-queue", body=body)
+        channel.queue_declare(queue=f"result-queue-{identifier}")
+        self.consume_from_dynamic_queue(channel, identifier)

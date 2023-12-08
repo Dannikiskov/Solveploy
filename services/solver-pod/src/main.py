@@ -5,13 +5,17 @@ import sys
 
 def on_request(ch, method, props, body):
     decoded_body = body.decode("utf-8")
+
     print(f" [.] message consumed! Got and {decoded_body} attempting reply to: result_{os.getenv('JOB_NAME')}", flush=True)
+
     result = f"new {decoded_body} who dis"
+    
     ch.basic_publish(exchange='',
-        routing_key=f"result-{os.getenv('JOB_NAME')}",
+        routing_key=f"result-queue-{os.getenv('JOB_NAME')}",
         body=result)
+    
     ch.stop_consuming()
-    ch.queue_delete(queue=os.getenv('JOB_NAME'))
+    ch.queue_delete(queue=f"queue-{os.getenv('JOB_NAME')}")
     
 
 
@@ -23,7 +27,9 @@ if __name__ == '__main__':
                             os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
 
     channel = connection.channel()
-    channel.basic_consume(os.getenv("JOB_NAME"), on_message_callback=on_request, auto_ack=True)
-    print(f"Starting Consume from dynamic queue ({os.getenv('JOB_NAME')})..", flush=True)
+    channel.basic_consume(f"queue-{os.getenv('JOB_NAME')}", on_message_callback=on_request, auto_ack=True)
+
+    print(f"Starting Consume from dynamic queue (queue-{os.getenv('JOB_NAME')})..", flush=True)
+    
     channel.start_consuming()
     

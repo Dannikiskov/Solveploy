@@ -12,9 +12,10 @@ class RequestQueue(object):
                         os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
         
         self.identifier = identifier
-        self.res_queue = f'res-queue-{self.identifier}'
+        self.res_queue = f'api-queue-{self.identifier}'
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='request-queue')
+        self.channel.queue_declare(queue="db-queue")
         self.channel.queue_declare(queue=self.res_queue)
 
     def publish(self, data):
