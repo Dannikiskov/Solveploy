@@ -1,18 +1,28 @@
 #!/usr/bin/env python
 import pika
 import os
-import solvers
+import solverK8Job
 import threading
 import json
+import time
 class SolverResultQueue(object):
     def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host='message-broker.default.svc.cluster.local', 
-                credentials=pika.PlainCredentials(
-                    os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
-            )
-        )
+        self.connection = None
+        while not self.connection:
+            try:
+                established = pika.BlockingConnection(
+                    pika.ConnectionParameters(
+                        host='message-broker.default.svc.cluster.local',
+                        credentials=pika.PlainCredentials(
+                            os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+                    )
+                )
+                print("Connection established successfully.", flush=True)
+                self.connection = established
+
+            except pika.exceptions.AMQPConnectionError:
+                print("Connection failed. Retrying in 5 seconds...", flush=True)
+                time.sleep(5)
     
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='request-queue')
@@ -74,7 +84,7 @@ class SolverResultQueue(object):
     
 
     def start_and_pub_to_solver(self, body, identifier):
-        solvers.start_solver_job(identifier)
+        solverK8Job.start_solver_job(identifier)
         connection = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host='message-broker.default.svc.cluster.local', 
@@ -82,13 +92,13 @@ class SolverResultQueue(object):
                     os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
             )
         )
-
         queue_name = f"queue-{identifier}"
         channel = connection.channel()
         channel.queue_declare(queue=queue_name)
         channel.queue_declare(queue=f"result-{queue_name}")
         channel.basic_publish(exchange='', routing_key=queue_name, body=body)
         self.consume_from_dynamic_queue(channel, identifier)
+        connection.close()
 
 
 
@@ -104,3 +114,4 @@ class SolverResultQueue(object):
         channel.basic_publish(exchange='', routing_key="db-queue", body=body)
         channel.queue_declare(queue=f"result-queue-{identifier}")
         self.consume_from_dynamic_queue(channel, identifier)
+        connection.close()

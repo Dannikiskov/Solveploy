@@ -1,14 +1,26 @@
 import pika
 import os
 import json
+import time
 
 class DBQueue(object):
     def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host='message-broker.default.svc.cluster.local', 
-                    credentials=pika.PlainCredentials(
-                        os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))))
+        self.connection = None
+        while not self.connection:
+            try:
+                established = pika.BlockingConnection(
+                    pika.ConnectionParameters(
+                        host='message-broker.default.svc.cluster.local',
+                        credentials=pika.PlainCredentials(
+                            os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+                    )
+                )
+                print("Connection established successfully.", flush=True)
+                self.connection = established
+
+            except pika.exceptions.AMQPConnectionError:
+                print("Connection failed. Retrying in 5 seconds...", flush=True)
+                time.sleep(5)
         
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='db-queue')

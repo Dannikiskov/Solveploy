@@ -35,4 +35,5 @@ class RequestQueue(object):
             
         self.channel.basic_consume(queue=self.res_queue, on_message_callback=callback, auto_ack=True)
         self.channel.start_consuming()
+        self.connection.close()
         return self.response

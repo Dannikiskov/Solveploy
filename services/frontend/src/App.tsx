@@ -17,7 +17,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: setMessage === setMessage1 ? message1 : message2,
+          model: setMessage === setMessage1 ? message1 : message2,
         }),
       });
 

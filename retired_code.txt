@@ -614,3 +614,24 @@ if __name__ == '__main__':
 
     print(" [x] Solver-handler awaiting RPC requests", flush=True)
     channel.start_consuming()
+
+
+
+
+
+
+
+FROM python:latest
+
+#ENV rabbitmqusername=$rabbitmqusername
+#ENV rabbitmqpassword=$rabbitmqpassword
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+
+COPY . .
+
+CMD ["python", "src/main.py"]

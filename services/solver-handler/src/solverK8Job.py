@@ -55,6 +55,6 @@ def create_solver_job(job_name, identifier):
                     restart_policy="Never",
                 )
             ),
-            ttl_seconds_after_finished=15,
+            ttl_seconds_after_finished=120,
         )
     )
