@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import pika
 import os
-import solverK8Job
 import threading
 import json
 import time
+
 class SolverResultQueue(object):
     def __init__(self):
         self.connection = None
