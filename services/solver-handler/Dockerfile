@@ -1,9 +1,6 @@
 # Use an official Python runtime as a base image
 FROM python:latest
 
-# Set environment variables
-##ENV rabbitmqpassword=$rabbitmqpassword
-
 # Set the working directory in the container
 WORKDIR /app
 
@@ -13,8 +10,12 @@ COPY requirements.txt .
 # Install app dependencies
 RUN pip install -r requirements.txt
 
-#RUN apt-get update && apt-get install -y dnsutils
-#RUN apt-get install -y minizinc
+RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
+RUN tar -xzf MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
+RUN rm MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
+ENV PATH="/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin:$PATH"
+RUN echo $PATH
+
 # Copy the entire app into the container
 COPY . .
 
@@ -22,4 +23,4 @@ COPY . .
 EXPOSE 5001
 
 # Start the Python app
-CMD ["python", "src/main.py"]
+CMD ["minizinc", "--help"]

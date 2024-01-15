@@ -635,3 +635,48 @@ RUN pip install -r requirements.txt
 COPY . .
 
 CMD ["python", "src/main.py"]
+
+
+
+
+
+
+
+
+features = {}
+
+    # Extract constants
+    constant_pattern = re.compile(r'\bint\s*:\s*(\w+)\s*=\s*([-\d]+)\s*;')
+    constants = constant_pattern.findall(minizinc_content)
+
+    features['num_constants'] = len(constants)
+
+    # Extract variables
+    var_pattern = re.compile(r'\bvar\s+(\S+)\s*:\s*(.*?)\s*;')
+    variables = var_pattern.findall(minizinc_content)
+
+    features['num_variables'] = len(variables)
+
+    # Extract constraints with types
+    constraint_pattern = re.compile(r'\bconstraint\s+(.*?)\s*;')
+    constraints = constraint_pattern.findall(minizinc_content)
+
+    constraint_type_pattern = re.compile(r'([<>!=]+)')
+    constraint_types = [constraint_type_pattern.search(constraint).group(1) for constraint in constraints]
+
+    # Count occurrences of each constraint type
+    constraint_type_counts = {ctype: constraint_types.count(ctype) for ctype in set(constraint_types)}
+
+    features['num_constraints'] = len(constraints)
+    features['constraint_type_counts'] = constraint_type_counts
+
+    # Extract solve type
+    solve_pattern = re.compile(r'\bsolve\s+(.*?);')
+    solve_match = solve_pattern.search(minizinc_content)
+
+    if solve_match:
+        features['solve_type'] = solve_match.group(1)
+    else:
+        features['solve_type'] = None
+
+    return features
