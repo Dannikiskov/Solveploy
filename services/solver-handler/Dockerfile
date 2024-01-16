@@ -10,11 +10,21 @@ COPY requirements.txt .
 # Install app dependencies
 RUN pip install -r requirements.txt
 
+RUN apt-get update
+
+# Install Minizinc
 RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
 RUN tar -xzf MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
 RUN rm MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
 ENV PATH="/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin:$PATH"
-RUN echo $PATH
+
+# Install mzn2feat
+RUN apt-get install flex bison -y
+RUN wget https://codeload.github.com/CP-Unibo/mzn2feat/zip/refs/heads/master
+RUN unzip master
+RUN ./mzn2feat-master/install --no-xcsp
+RUN rm master
+ENV PATH="/app/mzn2feat-master/bin:$PATH"
 
 # Copy the entire app into the container
 COPY . .
@@ -23,4 +33,4 @@ COPY . .
 EXPOSE 5001
 
 # Start the Python app
-CMD ["minizinc", "--help"]
+CMD ["mzn2feat"]

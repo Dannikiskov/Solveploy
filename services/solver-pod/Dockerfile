@@ -1,4 +1,3 @@
-# Stage 1: Build stage
 FROM minizinc/minizinc:latest
 
 WORKDIR /app
