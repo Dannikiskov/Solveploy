@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: solver-database
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: solver-database
   template:
     metadata:
       labels:
-        app: postgres
+        app: solver-database
     spec:
       containers:
-        - name: postgres
+        - name: solver-database
           image: postgres:latest
           env:
             - name: POSTGRES_USER
@@ -24,3 +24,10 @@ spec:
               value: postgres
           ports:
             - containerPort: 5432
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "256Mi"

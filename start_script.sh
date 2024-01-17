@@ -25,7 +25,7 @@ kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
 (
   # Start Docker solver-handler build
   echo "Starting Docker solver-handler build.."
-  docker build -q -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
+  docker build -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
   echo "Finished Docker solver-handler build."
 ) &
 
@@ -36,12 +36,12 @@ kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
   echo "Finished Docker solver-pod build."
 ) &
 
-(
-  # Start Docker solver-db-comms build
-  echo "Starting Docker solver-db-comms build.."
-  docker build -q -t solver-db-comms -f services/solver-db-comms/Dockerfile services/solver-db-comms/
-  echo "Finished Docker solver-db-comms build."
-) &
+#(
+#  # Start Docker solver-db-comms build
+#  echo "Starting Docker solver-db-comms build.."
+#  docker build -q -t solver-db-comms -f services/solver-db-comms/Dockerfile services/solver-db-comms/
+#  echo "Finished Docker solver-db-comms build."
+#) &
 
 # Wait for all background processes to finish
 wait
@@ -56,12 +56,15 @@ kubectl apply -f kubernetes-deployments/frontend-service.yaml
 kubectl apply -f kubernetes-deployments/solver-handler-deployment.yaml
 kubectl apply -f kubernetes-deployments/solver-handler-service.yaml
 
-kubectl apply -f kubernetes-deployments/solver-db-comms-deployment.yaml
-kubectl apply -f kubernetes-deployments/solver-db-comms-service.yaml
+#kubectl apply -f kubernetes-deployments/solver-db-comms-deployment.yaml
+#kubectl apply -f kubernetes-deployments/solver-db-comms-service.yaml
 
 kubectl apply -f kubernetes-deployments/role-job-creator.yaml
 kubectl apply -f kubernetes-deployments/cluster-role-job-creator.yaml
 kubectl apply -f kubernetes-deployments/clusterrolebinding-job-creator.yaml
+
+kubectl apply -f kubernetes-deployments/solver-database-deployment.yaml
+kubectl apply -f kubernetes-deployments/solver-database-service.yaml
 
 end_time=$(date +%s)
 execution_time=$((end_time - start_time))

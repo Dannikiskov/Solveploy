@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-service
+  name: solver-database-service
 spec:
   selector:
-    app: postgres
+    app: solver-database
   ports:
     - protocol: TCP
       port: 5432

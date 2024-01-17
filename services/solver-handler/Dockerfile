@@ -33,4 +33,4 @@ COPY . .
 EXPOSE 5001
 
 # Start the Python app
-CMD ["mzn2feat"]
+CMD ["python", "src/main.py"]

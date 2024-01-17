@@ -37,14 +37,7 @@ class SolverResultQueue(object):
 
             if instructions == "StartSolver":
                 print("call start_solver", flush=True)
-                threading.Thread(target=solverHandler.start_solver_selection, args=(decoded_body, identifier,)).start()
-            
-            elif instructions == "GetSolverDBData":
-                print("Dead end", flush=True)
-
-            elif instructions == "PostSolverDBData":
-                print("call post_to_db", flush=True)
-                threading.Thread(target=self.post_to_solver_db, args=(decoded_body, identifier,)).start()
+                threading.Thread(target=solverHandler.solver_handler, args=(message_data,)).start()
 
             else:
                 print("FAILED: ", instructions, flush=True)
@@ -78,14 +71,6 @@ class SolverResultQueue(object):
         channel.start_consuming()
     
 
-
-    def post_to_solver_db(self, body, identifier):
-        connection = rmq_connect()
-        channel = connection.channel()
-        channel.basic_publish(exchange='', routing_key="db-queue", body=body)
-        channel.queue_declare(queue=f"result-queue-{identifier}")
-        self.consume_from_dynamic_queue(channel, identifier)
-        connection.close()
 
 
 def rmq_connect():
