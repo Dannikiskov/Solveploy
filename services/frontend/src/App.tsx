@@ -3,7 +3,6 @@ import "./App.css";
 
 function App() {
   const [message1, setMessage1] = useState<string>("");
-  const [message2, setMessage2] = useState<string>("");
 
   const fetchData = async (
     endpoint: string,
@@ -17,7 +16,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: setMessage === setMessage1 ? message1 : message2,
+          content: message1,
         }),
       });
 
@@ -42,20 +41,6 @@ function App() {
           onClick={() => fetchData(`/api/solverjob`, "POST", setMessage1)}
         >
           Fetch Hello POST (Textbox 1)
-        </button>
-      </div>
-      <br></br>
-      <br></br>
-      <div>
-        <textarea
-          value={message2}
-          onChange={(e) => setMessage2(e.target.value)}
-        />
-        <br></br>
-        <button
-          onClick={() => fetchData(`/api/solver-database`, "POST", setMessage2)}
-        >
-          Fetch Another POST (Textbox 2)
         </button>
       </div>
     </>

@@ -37,6 +37,7 @@ class SolverResultQueue(object):
 
             if instructions == "StartSolver":
                 print("call start_solver", flush=True)
+
                 threading.Thread(target=solverHandler.solver_handler, args=(message_data,)).start()
 
             else:
@@ -102,3 +103,10 @@ def consume_from_dynamic_queue(channel, identifier):
         print(f"Starting Consume from dynamic queue ({result_queue_name})..", flush=True)
 
         channel.start_consuming()
+
+def pub_to_queue(data, queue_name):
+    connection = rmq_connect()
+    channel = connection.channel()
+    channel.queue_declare(queue=queue_name)
+    channel.basic_publish(exchange='', routing_key=queue_name, body=data)
+    connection.close()
