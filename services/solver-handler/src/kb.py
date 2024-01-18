@@ -1,3 +1,4 @@
+from itertools import combinations
 import subprocess
 import psycopg2
 import tempfile
@@ -54,13 +55,21 @@ def handle_instance(file_data):
         query_database(query)
 
 
-def get_solved_count(s, similar_insts, T):
-    count = 0
-    for inst in similar_insts:
-        query = f"SELECT COUNT(*) FROM solving_times WHERE instance_id = {inst} AND solver_id = {s} AND solve_time <= {T}"
+def get_solved(solvers, similar_insts, T):
+    resultList = []
+    for s in solvers:
+        query = f"SELECT * FROM solving_times WHERE solver_id = {s.id} AND instance_id IN ({', '.join(inst.id for inst in similar_insts)}) AND solve_time < {T}"
+        
         result = query_database(query)
-        count += result[0][0]
-    return count
+        resultList.append(result)
+    return resultList
+
+
+def get_solved_times(solver_id, similar_insts):
+    query = f"SELECT * FROM solving_times WHERE solver_id = {solver_id} AND instance_id IN ({', '.join(str(inst.id) for inst in similar_insts)})"
+    results = query_database(query)
+    return results
+
 
 
 def print_all_tables():

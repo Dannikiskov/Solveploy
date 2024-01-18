@@ -1,3 +1,4 @@
+from itertools import combinations
 import subprocess
 import numpy as np
 import kb
@@ -59,42 +60,43 @@ def get_nearest_neighbors(feat_vect, k):
 
 
 def get_sub_portfolio(similar_insts, solvers, T):
-    portfolio = []
-    total_time = 0
+    max_solved = 0
+    selected_solvers = []
 
-    sorted_solvers = sorted(solvers, key=lambda x: (get_max_solved(x, similar_insts), -kb.get_average_solving_time(similar_insts[0], x)), reverse=True)
+    # Iterate through all possible subsets of solvers
+    for subset_size in range(1, len(solvers) + 1):
+        for subset in combinations(solvers, subset_size):
+            instances_solved = set()
+            total_solving_time = 0
 
-    for solver in sorted_solvers:
-        solver_slots = get_max_solved(solver, similar_insts, T)
-        solver_time = solver_slots * (T / len(sorted_solvers))
+            # Calculate total instances solved and total solving time for the subset
+            for solver in subset:
+                results = kb.get_solved_times(solver.id, similar_insts)
 
-        if total_time + solver_time <= T:
-            portfolio.append((solver, solver_time))
-            total_time += solver_time
-        else:
-            break
+                for instance_id, solve_time in results:
+                    instances_solved.add(instance_id)
+                    total_solving_time += solve_time
 
-    return portfolio
+            # Check if the current subset solves more instances and update if necessary
+            if len(instances_solved) > max_solved or (len(instances_solved) == max_solved and total_solving_time / len(instances_solved) < selected_solvers[0][1]):
+                max_solved = len(instances_solved)
+                selected_solvers = [(solver, total_solving_time) for solver in subset]
+
+    return [solver[0] for solver in selected_solvers]
 
 
 def get_max_solved(solver, similar_insts, T):
     max_solved = 0
-    avg_time = float('inf')  # Initialize with infinity for tie-breaking
-    for inst in similar_insts:
-        solved = kb.get_solved_count(inst, solver, T)
-        avg_inst_time = kb.get_average_solving_time(inst, solver)
 
-        if solved > max_solved or (solved == max_solved and avg_inst_time < avg_time):
-            max_solved = solved
-            avg_time = avg_inst_time
-
+    solved_times = kb.get_solved_times(solver.id, similar_insts).sort(key=lambda x: x[3])
+    
+    for solve_time in solved_times:
+        if solve_time < T:
+            max_solved += 1
+            T -= solve_time
     return max_solved
 
 
 def euclidean_distance(vector1, vector2):
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
 
-
-def get_stored_feature_vectors():
-    # Placeholder implementation
-    pass
