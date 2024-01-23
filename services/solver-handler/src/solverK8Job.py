@@ -12,7 +12,6 @@ def start_solver_job(identifier):
     solver_job = create_solver_job(job_name, identifier)
     batch_api = client.BatchV1Api()
     batch_api.create_namespaced_job(namespace="default", body=solver_job)
-    print("JOB NAME:", job_name, flush=True)
     return job_name
 
 def create_solver_job(job_name, identifier):
@@ -28,7 +27,7 @@ def create_solver_job(job_name, identifier):
                             image_pull_policy="Never",
                             env=[
                                 client.V1EnvVar(
-                                    name="JOB_NAME",
+                                    name="IDENTIFIER",
                                     value=identifier,
                                 ),
                                 client.V1EnvVar(

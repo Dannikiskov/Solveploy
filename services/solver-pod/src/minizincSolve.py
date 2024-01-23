@@ -25,7 +25,11 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
 
     print("START SOLVER", flush=True)
     # Solve the MiniZinc model
-    result = instance.solve()
+    try:
+        result = instance.solve()
+    except Exception as e:
+        print("An error occurred:", str(e), flush=True)
+        return "Error occurred during solving."
 
     # Print the result
     print("CLOSING TEMP FILE", flush=True)

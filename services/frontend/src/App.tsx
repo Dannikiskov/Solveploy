@@ -38,7 +38,7 @@ function App() {
         />
         <br></br>
         <button
-          onClick={() => fetchData(`/api/solverjob`, "POST", setMessage1)}
+          onClick={() => fetchData(`/api/solverhandler`, "POST", setMessage1)}
         >
           Fetch Hello POST (Textbox 1)
         </button>

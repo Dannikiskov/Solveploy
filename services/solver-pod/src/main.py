@@ -5,28 +5,32 @@ import json
 import minizincSolve
 import time
 
+
 def on_request(ch, method, props, body):
     decoded_body = body.decode("utf-8")
     message_data = json.loads(decoded_body)
-
-    print(f" [.] message consumed! Got and {decoded_body} attempting reply to: result_{os.getenv('JOB_NAME')}", flush=True)
-    model_string = message_data.get('model', "MODEL ERROR")
+    print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
+    model_string = message_data.get('content', "CONTENT ERROR")
+    
     print("MODEL STRING: ", model_string, flush=True)
     try:
         result = minizincSolve.run_minizinc_model(model_string)
     except:
         result = "Minizinc solver Failed."
     
+    out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
+
     ch.basic_publish(exchange='',
-        routing_key=f"result-queue-{os.getenv('JOB_NAME')}",
+        routing_key=out_queue_name,
         body=result)
     
     ch.stop_consuming()
-    ch.queue_delete(queue=f"queue-{os.getenv('JOB_NAME')}")
+    ch.queue_delete(queue=out_queue_name)
     
 
 
 if __name__ == '__main__':
+
     connection = None
     while not connection:
         try:
@@ -45,9 +49,10 @@ if __name__ == '__main__':
             time.sleep(5)
 
     channel = connection.channel()
-    channel.basic_consume(f"queue-{os.getenv('JOB_NAME')}", on_message_callback=on_request, auto_ack=True)
+    in_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}"
+    channel.basic_consume(queue=in_queue_name, on_message_callback=on_request, auto_ack=True)
 
-    print(f"Starting Consume from dynamic queue (queue-{os.getenv('JOB_NAME')})..", flush=True)
+    print(f"Starting Consume from dynamic queue ({in_queue_name})..", flush=True)
     
     channel.start_consuming()
     connection.close()
