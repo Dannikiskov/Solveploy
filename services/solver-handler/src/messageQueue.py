@@ -44,7 +44,9 @@ def send_wait_receive_k8(data, queue_name):
     print("declaring queue: ", in_queue_name, flush=True)
     channel.queue_declare(queue=in_queue_name)
 
-    channel.basic_publish(exchange='', routing_key=out_queue_name, body=data)
+    json_data = json.dumps(data)
+
+    channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
 
     result = None
 
@@ -82,13 +84,13 @@ def send_wait_receive(data):
     print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
-        
         print(" [*] Message received.")
-        decoded_body = body.decode("utf-8")
+        ch.stop_consuming()
         ch.queue_delete(queue=in_queue_name)
+        decoded_body = body.decode("utf-8")
         nonlocal result
         result = decoded_body
-        ch.stop_consuming()
+        
 
     channel.basic_consume(queue=in_queue_name, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
@@ -99,7 +101,8 @@ def send_to_queue(data, queue_name):
     connection = _rmq_connect()
     channel = connection.channel()
     channel.queue_declare(queue=queue_name)
-    channel.basic_publish(exchange='', routing_key=queue_name, body=data)
+    json_data = json.dumps(data)
+    channel.basic_publish(exchange='', routing_key=queue_name, body=json_data)
     connection.close()
 
 

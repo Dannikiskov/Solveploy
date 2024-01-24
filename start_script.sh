@@ -30,6 +30,13 @@ kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
 ) &
 
 (
+  # Start Docker knowledge-base build
+  echo "Starting Docker knowledge-bank build.."
+  docker build -q -t knowledge-base -f services/knowledge-base/Dockerfile services/knowledge-base/
+  echo "Finished Docker knowledge-bank build."
+) &
+
+(
   # Start Docker solver-pod build
   echo "Starting Docker solver-pod build.."
   docker build -q -t solver-pod -f services/solver-pod/Dockerfile services/solver-pod/
@@ -54,8 +61,11 @@ kubectl apply -f kubernetes-deployments/role-job-creator.yaml
 kubectl apply -f kubernetes-deployments/cluster-role-job-creator.yaml
 kubectl apply -f kubernetes-deployments/clusterrolebinding-job-creator.yaml
 
-kubectl apply -f kubernetes-deployments/solver-database-deployment.yaml
-kubectl apply -f kubernetes-deployments/solver-database-service.yaml
+kubectl apply -f kubernetes-deployments/knowledge-base-database-deployment.yaml
+kubectl apply -f kubernetes-deployments/knowledge-base-database-service.yaml
+
+kubectl apply -f kubernetes-deployments/knowledge-base-deployment.yaml
+kubectl apply -f kubernetes-deployments/knowledge-base-service.yaml
 
 end_time=$(date +%s)
 execution_time=$((end_time - start_time))

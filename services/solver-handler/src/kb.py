@@ -1,162 +1,30 @@
-from itertools import combinations
-import subprocess
-import psycopg2
-import tempfile
 
-def query_database(query):
-    # Connect to the PostgreSQL database
-    conn = psycopg2.connect(
-        host="solver-database-service",
-        database="postgres",
-        user="postgres",
-        password="postgres"
-    )
+import messageQueue
+import uuid
 
-    cur = conn.cursor()
-
-    cur.execute(query)
-
-    if(cur.description):
-        result = cur.fetchall()
-    else:
-        result = None
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return result
-
-
-def get_all_feature_vectors():
-    query = "SELECT features FROM feature_vectors"
-    return query_database(query)
+def get_all_feature_vectors(identifier):
+    data = create_dict(identifier)
+    messageQueue.send_wait_receive(data)
 
 
 def handle_instance(file_data):
-    query = f"SELECT * FROM instance WHERE filename = '{file_data['filename']}'"
-    exists = query_database(query)
-
-    # Add instance and its feature vector to database if it doesn't already exist
-    if not exists:
-        query = f"INSERT INTO instance (filename, file_type, content) VALUES ('{file_data['filename']}', '{file_data['file_type']}', '{file_data['content']}') RETURNING id"
-        new_instance_id = query_database(query)
-
-        temp_file = tempfile.NamedTemporaryFile(suffix=f".{file_data['filetype']}", delete=False)
-        temp_file.write(file_data['content'].encode())
-
-        command = ["mzn2feat", "-i", temp_file.name]
-        result = subprocess.run(command, capture_output=True, text=True)
-        features = result.stdout.strip()
-        feature_vector = [float(number) for number in features.split(",")]
-        temp_file.close()
-
-        query = f"INSERT INTO feature_vectors (instance_id, features) VALUES ({new_instance_id}, ARRAY{feature_vector})"
-        query_database(query)
+    data = create_dict('HandleInstance', file_data)
+    messageQueue.send_wait_receive(data)
 
 
 def get_solved(solvers, similar_insts, T):
-    resultList = []
-    for s in solvers:
-        query = f"SELECT * FROM solving_times WHERE solver_id = {s.id} AND instance_id IN ({', '.join(inst.id for inst in similar_insts)}) AND solve_time < {T}"
-        
-        result = query_database(query)
-        resultList.append(result)
-    return resultList
+    data = create_dict('GetSolved', {'solvers': solvers, 'similar_insts': similar_insts, 'T': T})
+    messageQueue.send_wait_receive(data)
 
 
 def get_solved_times(solver_id, similar_insts):
-    query = f"SELECT * FROM solving_times WHERE solver_id = {solver_id} AND instance_id IN ({', '.join(str(inst.id) for inst in similar_insts)})"
-    results = query_database(query)
-    return results
+    data = create_dict('GetSolvedTimes', {'solver_id': solver_id, 'similar_insts': similar_insts})
+    messageQueue.send_wait_receive(data)
 
+def get_solvers():
+    data = create_dict('GetSolvers')
+    messageQueue.send_wait_receive(data)
 
-
-def print_all_tables():
-    query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-    tables = query_database(query)
-    print(f"Tables: {tables}", flush=True)
-    if tables is not None:
-        for table in tables:
-            print(table[0], ": ", flush=True)
-            query = f"SELECT * FROM {table[0]}"
-            print(query_database(query), flush=True)
-
-
-def init_database():
+def create_dict(instructions, content=None):
+    return {'identifier': str(uuid.uuid4()), 'queue_name': "knowledge-base", 'instructions': instructions, 'content': content}
     
-    # Create feature_vectors table
-    query = """
-        CREATE TABLE IF NOT EXISTS feature_vectors (
-            id SERIAL PRIMARY KEY,
-            instance_id INT REFERENCES instances(id),
-            features FLOAT[]
-        );
-    """
-    query_database(query)
-
-    # Create solvers table
-    query = """
-        CREATE TABLE IF NOT EXISTS solvers (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(255) UNIQUE
-        );
-    """
-    query_database(query)
-
-    # Insert MiniZinc Default Solvers
-    solvers = [
-        "Chuffed",
-        "COIN-BC",
-        "CPLEX",
-        "findMUS",
-        "Gecode",
-        "Globalizer",
-        "Gurobi",
-        "HiGHS",
-        "OR Tools",
-        "SCIP",
-        "Xpress"
-    ]
-
-    for solver in solvers:
-        query = f"INSERT INTO solvers (name) SELECT '{solver}' WHERE NOT EXISTS (SELECT 1 FROM solvers WHERE name = '{solver}')"
-        query_database(query)
-
-
-    # Create instance table
-    query = """
-        CREATE TABLE IF NOT EXISTS instance (
-            id SERIAL PRIMARY KEY,
-            filename VARCHAR(255) NOT NULL,
-            file_type VARCHAR(10) NOT NULL,
-            content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        );
-    """
-    query_database(query)
-
-    # Create solving_times table
-    query = """
-        CREATE TABLE IF NOT EXISTS solving_times (
-            id SERIAL PRIMARY KEY,
-            solver_id INT REFERENCES solvers(id),
-            instance_id INT REFERENCES instances(id),
-            solve_time FLOAT NOT NULL,
-        );
-
-    """
-    query_database(query)
-
-     # Create instance_data table
-    query = """
-        CREATE TABLE IF NOT EXISTS instance_data (
-            id SERIAL PRIMARY KEY,
-            instance_id INT REFERENCES instance(id) ON DELETE CASCADE,
-            filename VARCHAR(255) NOT NULL,
-            file_type VARCHAR(10) NOT NULL,
-            content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        );
-    """
-    query_database(query)

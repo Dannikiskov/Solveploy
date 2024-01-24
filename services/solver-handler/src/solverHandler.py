@@ -9,6 +9,5 @@ def solver_handler(data):
     print("Solver Handler:::", data, flush=True)
     json_data = json.dumps(data)
     solverK8Job.start_solver_job(data["identifier"])
-    result = messageQueue.send_wait_receive_k8(json_data, f'solverk8job-{data["identifier"]}')
+    result = messageQueue.send_wait_receive_k8(data, f'solverk8job-{data["identifier"]}')
     messageQueue.send_to_queue(result, f'{data["queue_name"]}-{data["identifier"]}')
-    #kb.handle_instance(info.file_data)

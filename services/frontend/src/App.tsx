@@ -4,14 +4,10 @@ import "./App.css";
 function App() {
   const [message1, setMessage1] = useState<string>("");
 
-  const fetchData = async (
-    endpoint: string,
-    method: string,
-    setMessage: Function
-  ) => {
+  const fetchDataPost = async (endpoint: string, setMessage: Function) => {
     try {
       const response = await fetch(`${endpoint}`, {
-        method: `${method}`,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -21,7 +17,24 @@ function App() {
       });
 
       const text = await response.text();
-      setMessage(text.slice(1, -2));
+      setMessage(text);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setMessage(`Error fetching data, ${error}`);
+    }
+  };
+
+  const fetchDataGet = async (endpoint: string, setMessage: Function) => {
+    try {
+      const response = await fetch(`${endpoint}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const text = await response.text();
+      setMessage(text);
     } catch (error) {
       console.error("Error fetching data:", error);
       setMessage(`Error fetching data, ${error}`);
@@ -38,9 +51,14 @@ function App() {
         />
         <br></br>
         <button
-          onClick={() => fetchData(`/api/solverhandler`, "POST", setMessage1)}
+          onClick={() => fetchDataPost(`/api/solverhandler`, setMessage1)}
         >
-          Fetch Hello POST (Textbox 1)
+          change?(Textbox 1)
+        </button>
+      </div>
+      <div>
+        <button onClick={() => fetchDataGet(`/api/solverhandler`, setMessage1)}>
+          Fetch Hello POST (Textbox 2)
         </button>
       </div>
     </>

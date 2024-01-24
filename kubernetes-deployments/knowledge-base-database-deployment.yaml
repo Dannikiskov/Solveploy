@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: solver-database
+  name: knowledge-base-database
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: solver-database
+      app: knowledge-base-database
   template:
     metadata:
       labels:
-        app: solver-database
+        app: knowledge-base-database
     spec:
       containers:
-        - name: solver-database
+        - name: knowledge-base-database
           image: postgres:latest
           env:
             - name: POSTGRES_USER

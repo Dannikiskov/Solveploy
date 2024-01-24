@@ -18,6 +18,14 @@ class SolverHandler(Resource):
         result = async_execute(data)
         return result
     
+    def get(self):
+        data = {}
+        data["instructions"] = "GetSolvers"
+        data["identifier"] = str(uuid.uuid4())
+        data["queue_name"] = "knowledge-base"
+        result = async_execute(data)
+        return result
+    
 
 api.add_resource(SolverHandler, '/api/solverhandler')
 
