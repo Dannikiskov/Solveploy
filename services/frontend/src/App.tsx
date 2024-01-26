@@ -1,63 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [message1, setMessage1] = useState<string>("");
+  const [list, setList] = useState<{ [key: string]: string }>({});
+  const [selectedItems, setSelectedItems] = useState<{ [key: string]: string }>(
+    {}
+  );
 
-  const fetchDataPost = async (endpoint: string, setMessage: Function) => {
+  useEffect(() => {
+    fetchDataGet("/api/solverhandler");
+  }, []);
+
+  const fetchDataGet = async (endpoint: string) => {
     try {
-      const response = await fetch(`${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: message1,
-        }),
-      });
-
-      const text = await response.text();
-      setMessage(text);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setMessage(`Error fetching data, ${error}`);
-    }
-  };
-
-  const fetchDataGet = async (endpoint: string, setMessage: Function) => {
-    try {
-      const response = await fetch(`${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      const text = await response.text();
-      setMessage(text);
+      const data = await response.json();
+      setList(data);
     } catch (error) {
       console.error("Error fetching data:", error);
-      setMessage(`Error fetching data, ${error}`);
     }
+  };
+
+  const handleItemClick = (key: string) => {
+    setSelectedItems((prevSelectedItems) => ({
+      ...prevSelectedItems,
+      [key]: prevSelectedItems[key] ? "" : list[key],
+    }));
   };
 
   return (
     <>
-      <h1>Endpoint test</h1>
+      <h1>Select Solvers</h1>
       <div>
-        <textarea
-          value={message1}
-          onChange={(e) => setMessage1(e.target.value)}
-        />
-        <br></br>
-        <button
-          onClick={() => fetchDataPost(`/api/solverhandler`, setMessage1)}
-        >
-          change?(Textbox 1)
-        </button>
+        <ul>
+          {Object.keys(list).map((key) => (
+            <li key={key} style={{ display: "flex", alignItems: "center" }}>
+              <input
+                type="checkbox"
+                checked={!!selectedItems[key]}
+                onChange={() => handleItemClick(key)}
+              />
+              <span>{list[key]}</span>
+            </li>
+          ))}
+        </ul>
       </div>
       <div>
-        <button onClick={() => fetchDataGet(`/api/solverhandler`, setMessage1)}>
+        <button onClick={() => console.log(selectedItems)}>
           Fetch Hello POST (Textbox 2)
         </button>
       </div>

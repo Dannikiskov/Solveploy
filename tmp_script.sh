@@ -2,7 +2,7 @@
 
 eval $(minikube docker-env)
 
-docker build -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
-kubectl rollout restart deployment solver-handler
+docker build -q -t frontend -f services/frontend/Dockerfile services/frontend/
+kubectl rollout restart deployment frontend
 
 watch kubectl get pods

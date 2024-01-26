@@ -5,10 +5,10 @@
 }
 
 textarea {
-  width: 1000px;
-  height: 500px; /* Set the fixed height */
+  width: 500px;
+  height: 250px; /* Set the fixed height */
   font-family: "Courier New", monospace; /* Set a fixed font-family */
-  font-size: 20px; /* Set a fixed font size */
+  font-size: 16px; /* Set a fixed font size */
   padding: 10px;
   margin-bottom: 10px;
   resize: none;

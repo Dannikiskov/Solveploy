@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request
 from flask_restful import Api, Resource
 from flask_cors import CORS
@@ -24,7 +25,12 @@ class SolverHandler(Resource):
         data["identifier"] = str(uuid.uuid4())
         data["queue_name"] = "knowledge-base"
         result = async_execute(data)
-        return result
+        result_json = json.loads(result)
+        print(type(result_json), flush=True)
+        print("---------------", flush=True)
+        print(result_json, flush=True)
+        result_dict = {item[0]: item[1] for item in result_json}
+        return result_dict
     
 
 api.add_resource(SolverHandler, '/api/solverhandler')
