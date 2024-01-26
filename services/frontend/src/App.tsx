@@ -2,18 +2,16 @@ import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [list, setList] = useState<{ [key: string]: string }>({});
-  const [selectedItems, setSelectedItems] = useState<{ [key: string]: string }>(
-    {}
-  );
+  const [list, setList] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchDataGet("/api/solverhandler");
+    fetchDataGet();
   }, []);
 
-  const fetchDataGet = async (endpoint: string) => {
+  const fetchDataGet = async () => {
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/solverhandler", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -21,40 +19,55 @@ function App() {
       });
 
       const data = await response.json();
-      setList(data);
+      setList(Object.values(data));
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
 
-  const handleItemClick = (key: string) => {
-    setSelectedItems((prevSelectedItems) => ({
-      ...prevSelectedItems,
-      [key]: prevSelectedItems[key] ? "" : list[key],
-    }));
+  const handleItemClick = (value: string) => {
+    const newList = [...selectedItems];
+    newList.push(value);
+    setSelectedItems(newList);
+  };
+
+  const fetchPostSolvers = async () => {
+    console.log(selectedItems);
+    try {
+      const response = await fetch("/api/startsolvers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(selectedItems),
+      });
+
+      // Handle the response as needed
+      console.log(response);
+    } catch (error) {
+      console.error("Error posting solvers:", error);
+    }
   };
 
   return (
     <>
-      <h1>Select Solvers</h1>
+      <h1>List . Solvers</h1>
       <div>
         <ul>
-          {Object.keys(list).map((key) => (
-            <li key={key} style={{ display: "flex", alignItems: "center" }}>
+          {list.map((value) => (
+            <li key={value} style={{ display: "flex", alignItems: "center" }}>
               <input
                 type="checkbox"
-                checked={!!selectedItems[key]}
-                onChange={() => handleItemClick(key)}
+                checked={selectedItems.includes(value)}
+                onChange={() => handleItemClick(value)}
               />
-              <span>{list[key]}</span>
+              <span>{value}</span>
             </li>
           ))}
         </ul>
       </div>
       <div>
-        <button onClick={() => console.log(selectedItems)}>
-          Fetch Hello POST (Textbox 2)
-        </button>
+        <button onClick={() => fetchPostSolvers()}>Fetch POST</button>
       </div>
     </>
   );

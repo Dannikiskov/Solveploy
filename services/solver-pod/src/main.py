@@ -10,11 +10,12 @@ def on_request(ch, method, props, body):
     decoded_body = body.decode("utf-8")
     message_data = json.loads(decoded_body)
     print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
-    model_string = message_data.get('content', "CONTENT ERROR")
+    model_string = message_data.get('solver', "SOLVER ERROR")
+    mzn_string = message_data.get('mzn', "MZN ERROR")
     
     print("MODEL STRING: ", model_string, flush=True)
     try:
-        result = minizincSolve.run_minizinc_model(model_string)
+        result = minizincSolve.run_minizinc_model(mzn_string, solver_name=model_string)
     except:
         result = "Minizinc solver Failed."
     

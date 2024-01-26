@@ -17,7 +17,11 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
 
     print("CREATING SOLVER", flush=True)
     # Get a solver instance by name
-    solver = minizinc.Solver.lookup(solver_name)
+    try:
+        solver = minizinc.Solver.lookup(solver_name)
+    except Exception as e:
+        print("An error occurred:", str(e), flush=True)
+        return "Error Looking Up Solver."
 
     print("CREATING INSTANCE", flush=True)
     # Create an instance of the MiniZinc model with the solver

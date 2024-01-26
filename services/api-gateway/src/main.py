@@ -10,14 +10,29 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
+mzn_string = """
+int: nc = 3;
+
+var 1..nc: wa;   var 1..nc: nt;  var 1..nc: sa;   var 1..nc: q;
+var 1..nc: nsw;  var 1..nc: v;   var 1..nc: t;
+
+constraint wa != nt;
+constraint wa != sa;
+constraint nt != sa;
+constraint nt != q;
+constraint sa != q;
+constraint sa != nsw;
+constraint sa != v;
+constraint q != nsw;
+constraint nsw != v;
+solve satisfy;
+
+output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
+        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
+         "t=", show(t),  "\n"];
+"""
+
 class SolverHandler(Resource):
-    def post(self):
-        data = request.json
-        data["instructions"] = "StartSolver"
-        data["identifier"] = str(uuid.uuid4())
-        data["queue_name"] = "solverhandler"
-        result = async_execute(data)
-        return result
     
     def get(self):
         data = {}
@@ -33,7 +48,24 @@ class SolverHandler(Resource):
         return result_dict
     
 
+class StartSolvers(Resource):
+    def post(self):
+        data = request.json
+        data = {'content': data}
+        data["instructions"] = "StartSolvers"
+        data["mzn"] = mzn_string
+        data["identifier"] = str(uuid.uuid4())
+        data["queue_name"] = "solverhandler"
+        print("DATA: ", data, flush=True)
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+
 api.add_resource(SolverHandler, '/api/solverhandler')
+api.add_resource(StartSolvers, '/api/startsolvers')
+
 
 
 
