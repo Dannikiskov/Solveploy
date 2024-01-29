@@ -1,11 +1,18 @@
-FROM minizinc/minizinc:latest
+FROM python:latest AS python
 
 WORKDIR /app
 
+COPY requirements.txt .
+
+
+FROM minizinc/minizinc:latest AS minizinc
+
+WORKDIR /app
+
+COPY --from=python /usr/local/bin/python /usr/local/bin/python
+COPY --from=python /usr/lib/x86_64-linux-gnu  /usr/lib/x86_64-linux-gnu 
+COPY --from=python /usr/local/lib /usr/local/lib
 COPY . .
 
-RUN apt update -y && \
-    apt install -y python3 python3-pip && \
-    python3 -m pip install -r requirements.txt
 
 CMD ["python3", "src/main.py"]
