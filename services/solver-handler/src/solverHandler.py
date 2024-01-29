@@ -4,6 +4,8 @@ import numpy as np
 import kb
 import messageQueue
 import solverK8Job
+import minizinc
+from pathlib import Path
 
 def solver_handler(data):
     print("Solver Handler:::", data, flush=True)
@@ -25,3 +27,15 @@ def start_solvers(data):
         results.append(result)
 
     messageQueue.send_to_queue(results, f'{data["queue_name"]}-{data["identifier"]}')
+
+def get_solvers():
+    path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
+    mzn_driver = minizinc.Driver(path)
+    solvers = mzn_driver.available_solvers()
+    for solver_name, solver_list in solvers.items():
+        print("-------------------")
+        print(solver_name)
+        print(solver_list[0].name)
+        print(solver_list[0].id)
+
+get_solvers()

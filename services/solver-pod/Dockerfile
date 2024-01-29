@@ -1,19 +1,38 @@
-FROM python:3.12.1-bookworm AS python
+# Use an official Python runtime as a base image
+FROM python:latest
 
+# Set the working directory in the container
 WORKDIR /app
 
+# Copy the requirements.txt file into the container
 COPY requirements.txt .
 
+# Install app dependencies
+RUN pip install -r requirements.txt
 
-FROM minizinc/minizinc:latest AS minizinc
+RUN apt-get update
 
-WORKDIR /app
+RUN apt-get install -y libxml++2.6-dev g++
 
-COPY --from=python /usr/local/bin/python /usr/local/bin/python
-COPY --from=python /usr/lib/x86_64-linux-gnu  /usr/lib/x86_64-linux-gnu 
-COPY --from=python /usr/local/lib /usr/local/lib
+# Install Minizinc
+RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
+RUN tar -xzf MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
+RUN rm MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
+ENV PATH="/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin:$PATH"
+
+# Install mzn2feat
+RUN apt-get install flex bison -y
+RUN wget https://codeload.github.com/CP-Unibo/mzn2feat/zip/refs/heads/master
+RUN unzip master
+RUN ./mzn2feat-master/install --no-xcsp
+RUN rm master
+ENV PATH="/app/mzn2feat-master/bin:$PATH"
+
+# Copy the entire app into the container
 COPY . .
 
-RUN python -m pip install -r requirements.txt
+# Expose the port your app will run on
+EXPOSE 5001
 
-CMD ["python3", "src/main.py"]
+# Start the Python app
+CMD ["python", "src/main.py"]

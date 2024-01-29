@@ -12,6 +12,8 @@ RUN pip install -r requirements.txt
 
 RUN apt-get update
 
+RUN apt-get install -y libxml++2.6-dev g++
+
 # Install Minizinc
 RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
 RUN tar -xzf MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz

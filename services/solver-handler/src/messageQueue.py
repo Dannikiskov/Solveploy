@@ -23,6 +23,9 @@ def consume():
         if instructions == "StartSolvers":
             threading.Thread(target=solverHandler.start_solvers, args=(data,)).start()
 
+        elif instructions == "GetSolvers":
+            threading.Thread(target=solverHandler.get_solvers, args=(data,)).start()
+
         else:
             print("FAILED: ", instructions, flush=True)
         

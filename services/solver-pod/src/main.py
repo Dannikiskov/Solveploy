@@ -15,7 +15,7 @@ def on_request(ch, method, props, body):
     
     print("MODEL STRING: ", model_string, flush=True)
     try:
-        result = minizincSolve.run_minizinc_model(mzn_string, solver_name=model_string)
+        result = minizincSolve.run_minizinc_model(mzn_string, solver_name=model_string.lower())
     except:
         result = "Minizinc solver Failed."
     
