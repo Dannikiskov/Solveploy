@@ -7,6 +7,7 @@ eval $(minikube docker-env)
 
 kubectl apply -f kubernetes-deployments/rabbitmq-operator.yaml
 kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
+docker build -t solveploy-backend-base-image -f base-image/DockerfileBackendBase base-image/
 
 (
   # Start Docker frontend build

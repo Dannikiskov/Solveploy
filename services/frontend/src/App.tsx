@@ -52,7 +52,16 @@ function App() {
 
   const handleStartSolvers = async () => {
     try {
-      selectedItems.forEach(async (item) => {
+      selectedItems.forEach(async (item, index) => {
+        setSolverResultsList((prevResults) => [
+          ...prevResults,
+          {
+            solverName: item.name,
+            result: "",
+            executionTime: 0,
+          },
+        ]);
+
         try {
           const response = await fetch("/api/startsolver", {
             method: "POST",
@@ -73,13 +82,15 @@ function App() {
 
           const resultData = await response.json();
 
-          const result: SolverResult = {
-            solverName: item.name,
-            result: resultData.result,
-            executionTime: resultData.executionTime,
-          };
-
-          setSolverResultsList((prevResults) => [...prevResults, result]);
+          setSolverResultsList((prevResults) => {
+            const updatedResults = [...prevResults];
+            updatedResults[index] = {
+              solverName: item.name,
+              result: resultData.result,
+              executionTime: resultData.executionTime,
+            };
+            return updatedResults;
+          });
         } catch (error) {
           console.error(`Error starting solver ${item.name}:`, error);
         }
@@ -134,9 +145,18 @@ function App() {
         <div className="grid">
           {solverResultsList.map((item, index) => (
             <div key={index} className="solver-item">
-              <div>Name: {item.solverName}</div>
-              <div>Result: {item.result}</div>
-              <div>executionTime: {item.executionTime}</div>
+              {item.result === "" ? (
+                <>
+                  <div>Name: {item.solverName}</div>
+                  <div>Waiting for results...</div>
+                </>
+              ) : (
+                <>
+                  <div>Name: {item.solverName}</div>
+                  <div>Result: {item.result}</div>
+                  <div>Execution Time: {item.executionTime}</div>
+                </>
+              )}
             </div>
           ))}
         </div>

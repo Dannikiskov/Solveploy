@@ -1,7 +1,4 @@
 import json
-import subprocess
-import numpy as np
-import kb
 import messageQueue
 import solverK8Job
 import minizinc
