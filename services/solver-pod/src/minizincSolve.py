@@ -1,6 +1,7 @@
 import minizinc
 import tempfile
 import os
+import time
 
 def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
     # Write the MiniZinc model string to a temporary file
@@ -17,11 +18,9 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
 
     print("CREATING SOLVER", flush=True)
     # Get a solver instance by name
-    try:
-        solver = minizinc.Solver.lookup(solver_name)
-    except Exception as e:
-        print("An error occurred:", str(e), flush=True)
-        return "Error Looking Up Solver."
+
+    solver = minizinc.Solver.lookup(solver_name)
+
 
     print("CREATING INSTANCE", flush=True)
     # Create an instance of the MiniZinc model with the solver
@@ -29,18 +28,23 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
 
     print("START SOLVER", flush=True)
     # Solve the MiniZinc model
-    try:
-        result = instance.solve()
-    except Exception as e:
-        print("An error occurred:", str(e), flush=True)
-        return "Error occurred during solving."
+    
+    start_time = time.time()
+    result = instance.solve()
+    end_time = time.time()
+
+    execution_time = end_time - start_time
+    print("Execution time:", execution_time, "seconds")
+
 
     # Print the result
     print("CLOSING TEMP FILE", flush=True)
     temp_model_file.close()
     print("REMOVING TEMP FILE", flush=True)
     print("RESULT: \n ", result, flush=True)
+
+    result_dict = {"result": str(result.solution), "executionTime": execution_time}
     if result:
-        return str(result)
+        return result_dict
     else:
         return "No solution found."

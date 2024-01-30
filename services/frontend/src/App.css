@@ -26,3 +26,23 @@ button {
 button:hover {
   background-color: #45a049;
 }
+
+.solver-item {
+  border: 1px solid rgb(160, 160, 160);
+  text-align: left;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.solver-item.selected {
+  background-color: #063969; /* Change this to the color you want */
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}

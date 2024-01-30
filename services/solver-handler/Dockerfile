@@ -13,6 +13,7 @@ RUN pip install -r requirements.txt
 RUN apt-get update
 
 RUN apt-get install -y libxml++2.6-dev g++
+RUN apt-get install -y libgl1-mesa-glx libegl1-mesa
 
 # Install Minizinc
 RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
@@ -30,9 +31,6 @@ ENV PATH="/app/mzn2feat-master/bin:$PATH"
 
 # Copy the entire app into the container
 COPY . .
-
-# Expose the port your app will run on
-EXPOSE 5001
 
 # Start the Python app
 CMD ["python", "src/main.py"]

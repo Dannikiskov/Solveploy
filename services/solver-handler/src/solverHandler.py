@@ -16,26 +16,26 @@ def solver_handler(data):
 
 
 
-def start_solvers(data):
-    results = []
-    for item in data["content"]:
-        solverK8Job.start_solver_job(data["identifier"])
-        messageQueue.send_to_queue({'solver': item, 'mzn': data["mzn"]}, f'solverk8job-{data["identifier"]}')
-    
-    for item in data["content"]:
-        result = messageQueue.consume_k8(f'solverk8job-{data["identifier"]}-result')
-        results.append(result)
+def start_solver(data):
 
-    messageQueue.send_to_queue(results, f'{data["queue_name"]}-{data["identifier"]}')
+    print("Name: ", data["selectedItem"]["name"], flush=True)
+    print("ID: ", data["selectedItem"]["id"], flush=True)
+    print("MZN: ", data["mznFileContent"], flush=True)
 
-def get_solvers():
+    solverK8Job.start_solver_job(data["identifier"])
+    result = messageQueue.send_wait_receive_k8(data, f'solverk8job-{data["identifier"]}')
+    json_result = json.loads(result)
+    messageQueue.send_to_queue(json_result, f'{data["queue_name"]}-{data["identifier"]}')
+
+
+def get_solvers(data):
     path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
     mzn_driver = minizinc.Driver(path)
     solvers = mzn_driver.available_solvers()
+    
+    available_solvers = []
     for solver_name, solver_list in solvers.items():
-        print("-------------------")
-        print(solver_name)
-        print(solver_list[0].name)
-        print(solver_list[0].id)
-
-get_solvers()
+        if "." not in solver_name:
+            available_solvers.append({"name": solver_name, "id": solver_list[0].id})
+    
+    messageQueue.send_to_queue(available_solvers, f'{data["queue_name"]}-{data["identifier"]}')

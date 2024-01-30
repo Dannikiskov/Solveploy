@@ -20,8 +20,8 @@ def consume():
         data = json.loads(decoded_body)
         instructions = data.get('instructions', 'DICT INSTRUCTION ERROR')
 
-        if instructions == "StartSolvers":
-            threading.Thread(target=solverHandler.start_solvers, args=(data,)).start()
+        if instructions == "StartSolver":
+            threading.Thread(target=solverHandler.start_solver, args=(data,)).start()
 
         elif instructions == "GetSolvers":
             threading.Thread(target=solverHandler.get_solvers, args=(data,)).start()
@@ -104,8 +104,10 @@ def send_to_queue(data, queue_name):
     connection = _rmq_connect()
     channel = connection.channel()
     channel.queue_declare(queue=queue_name)
-    json_data = json.dumps(data)
-    channel.basic_publish(exchange='', routing_key=queue_name, body=json_data)
+    
+    data = json.dumps(data)
+
+    channel.basic_publish(exchange='', routing_key=queue_name, body=data)
     connection.close()
 
 def consume_k8(queue_name):
