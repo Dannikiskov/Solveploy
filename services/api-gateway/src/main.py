@@ -19,7 +19,7 @@ class Solvers(Resource):
         return result_json
     
 
-class StartSolvers(Resource):
+class StartSolver(Resource):
     def post(self):
         data = request.json
         data["identifier"] = data["item"]["solver_identifier"]
@@ -30,9 +30,20 @@ class StartSolvers(Resource):
 
         return result_json
     
+class StopSolver(Resource):
+    def post(self):
+        data = request.json
+        data["identifier"] = data["item"]["solver_identifier"]
+        data["instructions"] = "stop_solver"
+        data["queue_name"] = "solverhandler"
+        result = async_execute(data)
+
+        return result
+    
 
 api.add_resource(Solvers, '/api/solvers')
-api.add_resource(StartSolvers, '/api/startsolver')
+api.add_resource(StartSolver, '/api/startsolver')
+api.add_resource(StopSolver, '/api/stopsolver')
 
 
 

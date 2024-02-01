@@ -19,12 +19,16 @@ def consume():
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
         instructions = data.get('instructions', 'DICT INSTRUCTION ERROR')
+        print("instructions:", instructions, flush=True)
 
         if instructions == "start_solver":
             threading.Thread(target=solverHandler.start_solver, args=(data,)).start()
 
         elif instructions == "get_solvers":
             threading.Thread(target=solverHandler.get_solvers, args=(data,)).start()
+        
+        elif instructions == "stop_solver":
+            threading.Thread(target=solverHandler.stop_solver, args=(data,)).start()
 
         else:
             print("FAILED: ", instructions, flush=True)

@@ -24,9 +24,12 @@ def start_solver(data):
     mq.send_to_queue(json_result, f'{data["queue_name"]}-{identifier}')
 
 def stop_solver(data):
+
+    identifier = data["item"]["solver_identifier"]
+
     print("Stop Solver:::", data, flush=True)
-    solverK8Job.stop_solver_job(data["identifier"])
-    mq.send_to_queue("Solver stopped", f'{data["queue_name"]}-{data["identifier"]}')
+    solverK8Job.stop_solver_job(identifier)
+    mq.send_to_queue("Solver stopped", f'{data["queue_name"]}-{identifier}')
 
 
 def get_solvers(data):

@@ -13,6 +13,7 @@ interface Solver_Data {
 interface Solver_Result extends Solver_Data {
   result: string;
   execution_time: number;
+  stopped: boolean;
 }
 
 function App() {
@@ -26,6 +27,32 @@ function App() {
   use_effect(() => {
     fetch_data_get();
   }, []);
+
+  const fetch_stop_solver = async (item: Solver_Result) => {
+    item.stopped = true;
+    set_solver_results_list((prevResults) =>
+      prevResults.map((result) =>
+        result.solver_identifier === item.solver_identifier
+          ? { ...result, stopped: true }
+          : result
+      )
+    );
+    try {
+      const response = await fetch("/api/stopsolver", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ item }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error stopping solvers: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error stopping solvers:", error);
+    }
+  };
 
   const fetch_data_get = async () => {
     try {
@@ -71,6 +98,7 @@ function App() {
             execution_time: 0,
             mzn_identifier: item.mzn_identifier,
             solver_identifier: item.solver_identifier,
+            stopped: false,
           },
         ]);
 
@@ -102,6 +130,7 @@ function App() {
               execution_time: result_data.execution_time,
               mzn_identifier: item.mzn_identifier,
               solver_identifier: item.solver_identifier,
+              stopped: false,
             };
             return updated_results;
           });
@@ -129,10 +158,9 @@ function App() {
     <>
       <h1>Solveploy</h1>
       <div>
-        Upload .mzn: <br></br>
         <input onChange={handle_file_change} type="file" />
       </div>
-      <br></br>
+      <br />
       <h2>Available Solvers</h2>
       <div className="grid">
         {list.map((item, index) => (
@@ -157,18 +185,25 @@ function App() {
         <div className="grid">
           {solver_results_list.map((item, index) => (
             <div key={index} className="solver-item">
-              {item.result === "" ? (
+              {item.result === "" && !item.stopped ? (
                 <>
                   <div>Name: {item.name}</div>
                   <div>Solver ID: {item.solver_identifier}</div>
                   <div>Waiting for results...</div>
+                  <button onClick={() => fetch_stop_solver(item)}>Stop</button>
                 </>
               ) : (
                 <>
                   <div>Name: {item.name}</div>
                   <div>Solver ID: {item.solver_identifier}</div>
-                  <div>Result: {item.result}</div>
-                  <div>Execution Time: {item.execution_time}</div>
+                  {item.stopped ? (
+                    <div>Stopped</div>
+                  ) : (
+                    <>
+                      <div>Result: {item.result}</div>
+                      <div>Execution Time: {item.execution_time}</div>
+                    </>
+                  )}
                 </>
               )}
             </div>
