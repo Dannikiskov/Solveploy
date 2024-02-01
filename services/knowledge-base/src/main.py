@@ -1,8 +1,8 @@
-import messageQueue
+import messageQueue as mq
 import database
 import time
 if __name__ == '__main__':
-    messageQueue.rmq_init()
+    mq.rmq_init()
     max_attempts = 5
     attempts = 0
     while attempts < max_attempts:
@@ -11,10 +11,10 @@ if __name__ == '__main__':
             break
         except Exception as e:
             attempts += 1
-            print(f"Attempt {attempts} failed: {str(e)}")
-            time.sleep(1)
+            print(f"Attempt {attempts} failed: {str(e)}\n retryin in 5 seconds...")
+            time.sleep(5)
     else:
         print("Max attempts reached. Exiting...")
         exit(1)
     
-    messageQueue.consume()
+    mq.consume()

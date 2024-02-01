@@ -6,11 +6,12 @@ def start_solver_job(identifier):
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"solver-job-{identifier}"
+    job_name = f"solver-job-{identifier}.id"
 
     # Create solver job
-    solver_job = create_solver_job(job_name, identifier)
+    solver_job = create_solver_job(job_name, str(identifier))
     batch_api = client.BatchV1Api()
+
     batch_api.create_namespaced_job(namespace="default", body=solver_job)
     return job_name
 
@@ -54,6 +55,23 @@ def create_solver_job(job_name, identifier):
                     restart_policy="Never",
                 )
             ),
-            ttl_seconds_after_finished=120,
+            ttl_seconds_after_finished=20,
         )
     )
+
+
+def stop_solver_job(id):
+    # Load Kubernetes configuration
+    config.load_incluster_config()
+
+    # Create Kubernetes API client
+    api = client.CoreV1Api()
+
+    # Get all pods in the default namespace
+    pods = api.list_namespaced_pod(namespace="default")
+
+    # Iterate over the pods and delete the one with the specified job name
+    for pod in pods.items:
+        if f"solver-job-{id}.id" in pod.metadata.name:
+            api.delete_namespaced_pod(name=pod.metadata.name, namespace="default")
+            break

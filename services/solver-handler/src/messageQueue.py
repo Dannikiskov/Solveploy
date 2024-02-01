@@ -20,10 +20,10 @@ def consume():
         data = json.loads(decoded_body)
         instructions = data.get('instructions', 'DICT INSTRUCTION ERROR')
 
-        if instructions == "StartSolver":
+        if instructions == "start_solver":
             threading.Thread(target=solverHandler.start_solver, args=(data,)).start()
 
-        elif instructions == "GetSolvers":
+        elif instructions == "get_solvers":
             threading.Thread(target=solverHandler.get_solvers, args=(data,)).start()
 
         else:

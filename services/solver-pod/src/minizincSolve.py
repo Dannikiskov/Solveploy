@@ -43,7 +43,7 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
     print("REMOVING TEMP FILE", flush=True)
     print("RESULT: \n ", result, flush=True)
 
-    result_dict = {"result": str(result.solution), "executionTime": execution_time}
+    result_dict = {"result": str(result.solution), "execution_time": execution_time}
     if result:
         return result_dict
     else:

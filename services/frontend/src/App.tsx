@@ -1,30 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState as use_state } from "react";
+import { useEffect as use_effect } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import "./App.css";
 
-interface SolverData {
+interface Solver_Data {
   name: string;
-  id: string;
+  mzn_identifier: string;
+  solver_identifier: string;
 }
 
-interface SolverResult {
-  solverName: string;
+interface Solver_Result extends Solver_Data {
   result: string;
-  executionTime: number;
+  execution_time: number;
 }
 
 function App() {
-  const [list, setList] = useState<SolverData[]>([]);
-  const [selectedItems, setSelectedItems] = useState<SolverData[]>([]);
-  const [mznFileContent, setMznFileContent] = useState<string>("");
-  const [solverResultsList, setSolverResultsList] = useState<SolverResult[]>(
-    []
-  );
+  const [list, set_list] = use_state<Solver_Data[]>([]);
+  const [selected_items, set_selected_items] = use_state<Solver_Data[]>([]);
+  const [mzn_file_content, set_mzn_file_content] = use_state<string>("");
+  const [solver_results_list, set_solver_results_list] = use_state<
+    Solver_Result[]
+  >([]);
 
-  useEffect(() => {
-    fetchDataGet();
+  use_effect(() => {
+    fetch_data_get();
   }, []);
 
-  const fetchDataGet = async () => {
+  const fetch_data_get = async () => {
     try {
       const response = await fetch("/api/solvers", {
         method: "GET",
@@ -34,31 +37,40 @@ function App() {
       });
 
       const data = await response.json();
-      setList(data);
+      const updatedData = data.map((item: Solver_Data) => ({
+        ...item,
+        solver_identifier: uuidv4(),
+      }));
+      set_list(updatedData);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
 
-  const handleItemClick = (item: SolverData) => {
-    if (selectedItems.find((i) => i.name === item.name)) {
-      setSelectedItems((prevItems) =>
+  const handle_item_click = (item: Solver_Data) => {
+    if (selected_items.find((i) => i.name === item.name)) {
+      set_selected_items((prevItems) =>
         prevItems.filter((i) => i.name !== item.name)
       );
     } else {
-      setSelectedItems((prevItems) => [...prevItems, item]);
+      set_selected_items((prevItems) => [...prevItems, item]);
     }
   };
 
-  const handleStartSolvers = async () => {
+  const handle_start_solvers = async () => {
+    set_solver_results_list([]);
+
     try {
-      selectedItems.forEach(async (item, index) => {
-        setSolverResultsList((prevResults) => [
+      selected_items.forEach(async (item, index) => {
+        item.solver_identifier = uuidv4();
+        set_solver_results_list((prevResults) => [
           ...prevResults,
           {
-            solverName: item.name,
+            name: item.name,
             result: "",
-            executionTime: 0,
+            execution_time: 0,
+            mzn_identifier: item.mzn_identifier,
+            solver_identifier: item.solver_identifier,
           },
         ]);
 
@@ -69,8 +81,8 @@ function App() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              selectedItem: item,
-              mznFileContent,
+              item,
+              mzn_file_content,
             }),
           });
 
@@ -80,16 +92,18 @@ function App() {
             );
           }
 
-          const resultData = await response.json();
+          const result_data = await response.json();
 
-          setSolverResultsList((prevResults) => {
-            const updatedResults = [...prevResults];
-            updatedResults[index] = {
-              solverName: item.name,
-              result: resultData.result,
-              executionTime: resultData.executionTime,
+          set_solver_results_list((prev_results) => {
+            const updated_results = [...prev_results];
+            updated_results[index] = {
+              name: item.name,
+              result: result_data.result,
+              execution_time: result_data.execution_time,
+              mzn_identifier: item.mzn_identifier,
+              solver_identifier: item.solver_identifier,
             };
-            return updatedResults;
+            return updated_results;
           });
         } catch (error) {
           console.error(`Error starting solver ${item.name}:`, error);
@@ -100,15 +114,12 @@ function App() {
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handle_file_change = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result;
-        console.log(content);
-        console.log(mznFileContent);
-        setMznFileContent(reader.result as string);
+      reader.onload = () => {
+        set_mzn_file_content(reader.result as string);
       };
       reader.readAsText(file);
     }
@@ -119,7 +130,7 @@ function App() {
       <h1>Solveploy</h1>
       <div>
         Upload .mzn: <br></br>
-        <input onChange={handleFileChange} type="file" />
+        <input onChange={handle_file_change} type="file" />
       </div>
       <br></br>
       <h2>Available Solvers</h2>
@@ -128,33 +139,36 @@ function App() {
           <div
             key={index}
             className={`solver-item ${
-              selectedItems.includes(item) ? "selected" : ""
+              selected_items.includes(item) ? "selected" : ""
             }`}
-            onClick={() => handleItemClick(item)}
+            onClick={() => handle_item_click(item)}
           >
             <div>Name: {item.name}</div>
-            <div>ID: {item.id}</div>
+            <div>MZN ID: {item.mzn_identifier}</div>
+            <div>Solver ID: {item.solver_identifier}</div>
           </div>
         ))}
       </div>
-      <br></br>
-      <button onClick={handleStartSolvers}>Start Solvers</button>
-      <br></br>
+      <br />
+      <button onClick={handle_start_solvers}>Start Solvers</button>
+      <br />
       <div>
         <h2>Solver Results</h2>
         <div className="grid">
-          {solverResultsList.map((item, index) => (
+          {solver_results_list.map((item, index) => (
             <div key={index} className="solver-item">
               {item.result === "" ? (
                 <>
-                  <div>Name: {item.solverName}</div>
+                  <div>Name: {item.name}</div>
+                  <div>Solver ID: {item.solver_identifier}</div>
                   <div>Waiting for results...</div>
                 </>
               ) : (
                 <>
-                  <div>Name: {item.solverName}</div>
+                  <div>Name: {item.name}</div>
+                  <div>Solver ID: {item.solver_identifier}</div>
                   <div>Result: {item.result}</div>
-                  <div>Execution Time: {item.executionTime}</div>
+                  <div>Execution Time: {item.execution_time}</div>
                 </>
               )}
             </div>

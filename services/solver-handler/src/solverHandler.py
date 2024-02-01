@@ -1,28 +1,32 @@
 import json
-import messageQueue
+import messageQueue as mq
 import solverK8Job
 import minizinc
 from pathlib import Path
+import uuid
 
 def solver_handler(data):
     print("Solver Handler:::", data, flush=True)
     json_data = json.dumps(data)
     solverK8Job.start_solver_job(data["identifier"])
-    result = messageQueue.send_wait_receive_k8(data, f'solverk8job-{data["identifier"]}')
-    messageQueue.send_to_queue(result, f'{data["queue_name"]}-{data["identifier"]}')
+    result = mq.send_wait_receive_k8(data, f'solverk8job-{data["identifier"]}')
+    mq.send_to_queue(result, f'{data["queue_name"]}-{data["identifier"]}')
 
 
 
 def start_solver(data):
 
-    print("Name: ", data["selectedItem"]["name"], flush=True)
-    print("ID: ", data["selectedItem"]["id"], flush=True)
-    print("MZN: ", data["mznFileContent"], flush=True)
+    identifier = data["item"]["solver_identifier"]
 
-    solverK8Job.start_solver_job(data["identifier"])
-    result = messageQueue.send_wait_receive_k8(data, f'solverk8job-{data["identifier"]}')
+    solverK8Job.start_solver_job(identifier)
+    result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
     json_result = json.loads(result)
-    messageQueue.send_to_queue(json_result, f'{data["queue_name"]}-{data["identifier"]}')
+    mq.send_to_queue(json_result, f'{data["queue_name"]}-{identifier}')
+
+def stop_solver(data):
+    print("Stop Solver:::", data, flush=True)
+    solverK8Job.stop_solver_job(data["identifier"])
+    mq.send_to_queue("Solver stopped", f'{data["queue_name"]}-{data["identifier"]}')
 
 
 def get_solvers(data):
@@ -31,8 +35,9 @@ def get_solvers(data):
     solvers = mzn_driver.available_solvers()
     
     available_solvers = []
-    for solver_name, solver_list in solvers.items():
+    for index, (solver_name, solver_list) in enumerate(solvers.items()):
+        print("INDEX::::", index, flush=True)
         if "." not in solver_name:
-            available_solvers.append({"name": solver_name, "id": solver_list[0].id})
+            available_solvers.append({"name": solver_name, "mzn_identifier": solver_list[0].id})
     
-    messageQueue.send_to_queue(available_solvers, f'{data["queue_name"]}-{data["identifier"]}')
+    mq.send_to_queue(available_solvers, f'{data["queue_name"]}-{data["identifier"]}')
