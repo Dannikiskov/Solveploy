@@ -13,6 +13,7 @@ kubectl rollout restart deployment api-gateway
 kubectl rollout restart deployment solver-handler
 kubectl rollout restart deployment knowledge-base
 
+kubectl delete jobs --all
 
 watch kubectl get pods
 

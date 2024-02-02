@@ -39,7 +39,6 @@ def get_solvers(data):
     
     available_solvers = []
     for index, (solver_name, solver_list) in enumerate(solvers.items()):
-        print("INDEX::::", index, flush=True)
         if "." not in solver_name:
             available_solvers.append({"name": solver_name, "mzn_identifier": solver_list[0].id})
     

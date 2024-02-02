@@ -13,13 +13,13 @@ interface Solver_Data {
 interface Solver_Result extends Solver_Data {
   result: string;
   execution_time: number;
-  stopped: boolean;
 }
 
 function App() {
   const [list, set_list] = use_state<Solver_Data[]>([]);
   const [selected_items, set_selected_items] = use_state<Solver_Data[]>([]);
   const [mzn_file_content, set_mzn_file_content] = use_state<string>("");
+  const [running_solvers, set_running_solvers] = use_state<Solver_Data[]>([]);
   const [solver_results_list, set_solver_results_list] = use_state<
     Solver_Result[]
   >([]);
@@ -28,15 +28,21 @@ function App() {
     fetch_data_get();
   }, []);
 
-  const fetch_stop_solver = async (item: Solver_Result) => {
-    item.stopped = true;
-    set_solver_results_list((prevResults) =>
-      prevResults.map((result) =>
-        result.solver_identifier === item.solver_identifier
-          ? { ...result, stopped: true }
-          : result
-      )
+  use_effect(() => {
+    console.log("solver_results_list");
+    console.log(solver_results_list);
+  }, [solver_results_list]);
+
+  use_effect(() => {
+    console.log("running_solvers");
+    console.log(running_solvers);
+  }, [running_solvers]);
+
+  const fetch_stop_solver = async (item: Solver_Data) => {
+    set_running_solvers((prevItems) =>
+      prevItems.filter((i) => i.name !== item.name)
     );
+
     try {
       const response = await fetch("/api/stopsolver", {
         method: "POST",
@@ -84,62 +90,56 @@ function App() {
     }
   };
 
-  const handle_start_solvers = async () => {
-    set_solver_results_list([]);
+  const handle_start_solvers = () => {
+    set_running_solvers(selected_items);
+    selected_items.forEach(fetch_start_solvers);
+  };
 
+  const fetch_start_solvers = async (item: Solver_Data) => {
     try {
-      selected_items.forEach(async (item, index) => {
-        item.solver_identifier = uuidv4();
-        set_solver_results_list((prevResults) => [
-          ...prevResults,
+      const response = await fetch("/api/startsolver", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ item, mzn_file_content }),
+      });
+
+      let updated_item = await response.json();
+      if (!response.ok) {
+        updated_item = {
+          ...item,
+          result: "Error starting solver",
+          execution_time: 0,
+          stopped: true,
+        };
+        throw new Error(`Error starting solvers: ${response.statusText}`);
+      }
+      if (updated_item !== "Solver stopped") {
+        set_solver_results_list((prevItems: Solver_Result[]) => [
+          ...prevItems,
           {
             name: item.name,
-            result: "",
-            execution_time: 0,
-            mzn_identifier: item.mzn_identifier,
             solver_identifier: item.solver_identifier,
-            stopped: false,
+            result: updated_item.result,
+            execution_time: updated_item.execution_time,
+            mzn_identifier: item.mzn_identifier,
           },
         ]);
+      }
 
-        try {
-          const response = await fetch("/api/startsolver", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              item,
-              mzn_file_content,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(
-              `Error starting solver ${item.name}: ${response.statusText}`
-            );
-          }
-
-          const result_data = await response.json();
-
-          set_solver_results_list((prev_results) => {
-            const updated_results = [...prev_results];
-            updated_results[index] = {
-              name: item.name,
-              result: result_data.result,
-              execution_time: result_data.execution_time,
-              mzn_identifier: item.mzn_identifier,
-              solver_identifier: item.solver_identifier,
-              stopped: false,
-            };
-            return updated_results;
-          });
-        } catch (error) {
-          console.error(`Error starting solver ${item.name}:`, error);
-        }
-      });
+      // Update state here
+      set_running_solvers((prevItems) =>
+        prevItems.filter((i) => i.name !== item.name)
+      );
     } catch (error) {
       console.error("Error starting solvers:", error);
+      return {
+        ...item,
+        result: "Error starting solver",
+        execution_time: 0,
+        stopped: true,
+      };
     }
   };
 
@@ -183,29 +183,22 @@ function App() {
       <div>
         <h2>Solver Results</h2>
         <div className="grid">
+          {running_solvers.map((item, index) => (
+            <div key={index} className="solver-item">
+              <div>Name: {item.name}</div>
+              <div>Solver ID: {item.solver_identifier}</div>
+              <div>Waiting for result</div>
+              <button onClick={() => fetch_stop_solver(item)}>
+                Stop Solver
+              </button>
+            </div>
+          ))}
           {solver_results_list.map((item, index) => (
             <div key={index} className="solver-item">
-              {item.result === "" && !item.stopped ? (
-                <>
-                  <div>Name: {item.name}</div>
-                  <div>Solver ID: {item.solver_identifier}</div>
-                  <div>Waiting for results...</div>
-                  <button onClick={() => fetch_stop_solver(item)}>Stop</button>
-                </>
-              ) : (
-                <>
-                  <div>Name: {item.name}</div>
-                  <div>Solver ID: {item.solver_identifier}</div>
-                  {item.stopped ? (
-                    <div>Stopped</div>
-                  ) : (
-                    <>
-                      <div>Result: {item.result}</div>
-                      <div>Execution Time: {item.execution_time}</div>
-                    </>
-                  )}
-                </>
-              )}
+              <div>Name: {item.name}</div>
+              <div>Solver ID: {item.solver_identifier}</div>
+              <div>Result: {item.result}</div>
+              <div>Execution Time: {item.execution_time}</div>
             </div>
           ))}
         </div>

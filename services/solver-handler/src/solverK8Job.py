@@ -53,6 +53,7 @@ def create_solver_job(job_name, identifier):
                         )
                     ],
                     restart_policy="Never",
+                    active_deadline_seconds=1800,
                 )
             ),
             ttl_seconds_after_finished=20,
@@ -66,6 +67,7 @@ def stop_solver_job(identifier):
 
     # Create Kubernetes API client
     batch_api = client.BatchV1Api()
+    core_api = client.CoreV1Api()
 
     # Get all pods in the default namespace
     jobs = batch_api.list_namespaced_job(namespace="default")
@@ -77,3 +79,16 @@ def stop_solver_job(identifier):
             print("Deleting: ", job.metadata.name, flush=True)
             batch_api.delete_namespaced_job(name=job.metadata.name, namespace="default")
             break
+    
+    # Get all pods in the default namespace
+    pods = core_api.list_namespaced_pod(namespace="default")
+
+    # Iterate over the pods and delete the one with the specified job name
+    for pod in pods.items:
+        print("Looking at: ", pod.metadata.name, flush=True)
+        if f"solver-job-{identifier}.id" in pod.metadata.name:
+            print("Deleting: ", pod.metadata.name, flush=True)
+            core_api.delete_namespaced_pod(name=pod.metadata.name, namespace="default")
+            break
+    
+    
