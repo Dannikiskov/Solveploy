@@ -21,13 +21,13 @@ def consume():
         instructions = data.get('instructions', 'DICT INSTRUCTION ERROR')
         print("instructions:", instructions, flush=True)
 
-        if instructions == "start_solver":
+        if instructions == "StartSolver":
             threading.Thread(target=solverHandler.start_solver, args=(data,)).start()
 
-        elif instructions == "get_solvers":
+        elif instructions == "GetSolvers":
             threading.Thread(target=solverHandler.get_solvers, args=(data,)).start()
         
-        elif instructions == "stop_solver":
+        elif instructions == "StopSolver":
             threading.Thread(target=solverHandler.stop_solver, args=(data,)).start()
 
         else:
@@ -139,9 +139,7 @@ def consume_k8(queue_name):
 
 
 def _rmq_connect():
-    max_retries = 20
-    retries = 0
-    while retries < max_retries:
+    while True:
         try:
             return pika.BlockingConnection(
                 pika.ConnectionParameters(
@@ -151,8 +149,5 @@ def _rmq_connect():
                 )
             )
         except Exception as e:
-            print(f"Connection failed. Retrying in 5 seconds... ({retries+1}/{max_retries})")
-            retries += 1
+            print(f"Connection failed. Retrying in 5 seconds...")
             time.sleep(5)
-    print("Connection failed after maximum retries.")
-    return None

@@ -11,14 +11,14 @@ def on_request(ch, method, props, body):
     message_data = json.loads(decoded_body)
     print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
     model_string = message_data.get('item', "ITEM ERROR").get('name', "SOLVER NAME ERROR")
-    mzn_string = message_data.get('mzn_file_content', "MZN ERROR")
+    mzn_string = message_data.get('mznFileContent', "MZN ERROR")
     
     print("MODEL STRING: ", model_string, flush=True)
     print("MZN STRING: ", mzn_string, flush=True)
     try:
         result = minizincSolve.run_minizinc_model(mzn_string, solver_name=model_string.lower())
     except:
-        result = {"result": "Minizinc Solver failed.", "execution_time": "N/A"}
+        result = {"result": "Minizinc Solver failed.", "executionTime": "N/A"}
     
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)

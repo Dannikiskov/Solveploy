@@ -22,15 +22,22 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
     solver = minizinc.Solver.lookup(solver_name)
 
 
-    print("CREATING INSTANCE", flush=True)
-    # Create an instance of the MiniZinc model with the solver
-    instance = minizinc.Instance(solver, model)
+    try:
+        print("CREATING INSTANCE", flush=True)
+        # Create an instance of the MiniZinc model with the solver
+        instance = minizinc.Instance(solver, model)
+    except Exception as e:
+        print("Error creating instance:", str(e))
 
     print("START SOLVER", flush=True)
     # Solve the MiniZinc model
     
     start_time = time.time()
-    result = instance.solve()
+    try:
+        result = instance.solve()
+    except Exception as e:
+        print("Error solving the MiniZinc model:", str(e))
+        result = None
     end_time = time.time()
 
     execution_time = end_time - start_time
@@ -43,7 +50,7 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
     print("REMOVING TEMP FILE", flush=True)
     print("RESULT: \n ", result, flush=True)
 
-    result_dict = {"result": str(result.solution), "execution_time": execution_time}
+    result_dict = {"result": str(result.solution), "executionTime": execution_time}
     if result:
         return result_dict
     else:

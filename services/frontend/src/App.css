@@ -6,25 +6,30 @@
 
 textarea {
   width: 500px;
-  height: 250px; /* Set the fixed height */
-  font-family: "Courier New", monospace; /* Set a fixed font-family */
-  font-size: 16px; /* Set a fixed font size */
+  height: 250px;
+  /* Set the fixed height */
+  font-family: "Courier New", monospace;
+  /* Set a fixed font-family */
+  font-size: 16px;
+  /* Set a fixed font size */
   padding: 10px;
   margin-bottom: 10px;
   resize: none;
 }
 
 button {
-  background-color: #4caf50;
-  color: white;
+  background-color: #7391e2;
+  color: rgb(10, 26, 241);
   padding: 10px 15px;
-  border: none;
+  border: 1px solid rgb(0, 0, 0);
   border-radius: 4px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #45a049;
+  border: 1px solid rgb(0, 0, 0);
+  background-color: #494949;
+  color: white;
 }
 
 .solver-item {
@@ -38,7 +43,9 @@ button:hover {
 }
 
 .solver-item.selected {
-  background-color: #063969; /* Change this to the color you want */
+  background-color: #063969;
+  /* Change this to the color you want */
+  color: rgb(192, 192, 192);
 }
 
 .grid {

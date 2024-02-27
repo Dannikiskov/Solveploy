@@ -32,26 +32,27 @@ def get_all_feature_vectors():
     return query_database(query)
 
 
-def handle_instance(file_data):
-    query = f"SELECT * FROM instances WHERE filename = '{file_data['filename']}'"
-    exists = query_database(query)
+def handle_instance(data):
 
-    # Add instance and its feature vector to database if it doesn't already exist
-    if not exists:
-        query = f"INSERT INTO instances (filename, file_type, content) VALUES ('{file_data['filename']}', '{file_data['file_type']}', '{file_data['content']}') RETURNING id"
-        new_instance_id = query_database(query)
 
-        temp_file = tempfile.NamedTemporaryFile(suffix=f".{file_data['filetype']}", delete=False)
-        temp_file.write(file_data['content'].encode())
+    temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
+    temp_file.write(data['mznFileContent'].encode())
 
-        command = ["mzn2feat", "-i", temp_file.name]
-        result = subprocess.run(command, capture_output=True, text=True)
-        features = result.stdout.strip()
-        feature_vector = [float(number) for number in features.split(",")]
-        temp_file.close()
+    command = ["mzn2feat", "-i", temp_file.name]
+    result = subprocess.run(command, capture_output=True, text=True)
+    features = result.stdout.strip()
+    feature_vector = [float(number) for number in features.split(",")]
+    temp_file.close()
 
-        query = f"INSERT INTO feature_vectors (instance_id, features) VALUES ({new_instance_id}, ARRAY{feature_vector})"
-        query_database(query)
+    query = f"SELECT id FROM feature_vectors WHERE features = ARRAY{feature_vector}"
+    feat_id = query_database(query)
+    if not feat_id:
+        query = f"INSERT INTO feature_vectors (features) VALUES (ARRAY{feature_vector}) RETURNING id"
+        result = query_database(query)
+    
+    query = f"INSERT INTO "
+
+
 
 
 def get_solved(solvers, similar_insts, T):
@@ -87,24 +88,11 @@ def print_all_tables():
 
 
 def database_init():
-    # Create instance table
-    query = """
-        CREATE TABLE IF NOT EXISTS instances (
-            id SERIAL PRIMARY KEY,
-            filename VARCHAR(255) NOT NULL,
-            file_type VARCHAR(10) NOT NULL,
-            content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    """
-    query_database(query)
-
 
     # Create feature_vectors table
     query = """
         CREATE TABLE IF NOT EXISTS feature_vectors (
             id SERIAL PRIMARY KEY,
-            instance_id INT REFERENCES instances(id),
             features FLOAT[]
         );
     """
@@ -119,47 +107,13 @@ def database_init():
     """
     query_database(query)
 
-    # Insert MiniZinc Default Solvers
-    solvers = [
-        "Chuffed",
-        "COIN-BC",
-        "CPLEX",
-        "findMUS",
-        "Gecode",
-        "Globalizer",
-        "Gurobi",
-        "HiGHS",
-        "OR Tools",
-        "SCIP",
-        "Xpress"
-    ]
-
-    for solver in solvers:
-        query = f"INSERT INTO solvers (name) SELECT '{solver}' WHERE NOT EXISTS (SELECT 1 FROM solvers WHERE name = '{solver}')"
-        query_database(query)
-
-
-    # Create solving_times table
+    # Create solver_featvec_time table
     query = """
-        CREATE TABLE IF NOT EXISTS solving_times (
+        CREATE TABLE IF NOT EXISTS solver_featvec_time (
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES solvers(id),
-            instance_id INT REFERENCES instances(id),
+            feature_vec_id INT REFERENCES feature_vectors(id),
             solve_time FLOAT NOT NULL
-        );
-
-    """
-    query_database(query)
-
-     # Create instance_data table
-    query = """
-        CREATE TABLE IF NOT EXISTS instance_data (
-            id SERIAL PRIMARY KEY,
-            instance_id INT REFERENCES instances(id) ON DELETE CASCADE,
-            filename VARCHAR(255) NOT NULL,
-            file_type VARCHAR(10) NOT NULL,
-            content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """
     query_database(query)

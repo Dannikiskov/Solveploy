@@ -16,16 +16,18 @@ def solver_handler(data):
 
 def start_solver(data):
 
-    identifier = data["item"]["solver_identifier"]
+    identifier = data["item"]["solverIdentifier"]
 
     solverK8Job.start_solver_job(identifier)
     result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
+    dict = {"mznFileContent": data["mznFileContent"], "executionTime": data["executionTime"] ,"instructions": "HandleInstance", "queue_name": "knowledge-base"}
+    mq.send_to_queue(json.dumps(dict), "knowledge-base")
     json_result = json.loads(result)
     mq.send_to_queue(json_result, f'{data["queue_name"]}-{identifier}')
 
 def stop_solver(data):
 
-    identifier = data["item"]["solver_identifier"]
+    identifier = data["item"]["solverIdentifier"]
 
     print("Stop Solver:::", data, flush=True)
     solverK8Job.stop_solver_job(identifier)

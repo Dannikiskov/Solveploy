@@ -30,7 +30,7 @@ def consume():
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "HandleInstance":
-            response = database.handle_instance(content['file_data'])
+            response = database.handle_instance(data)
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "GetSolved":
@@ -65,9 +65,7 @@ def send_to_queue(data, queue_name):
 
 
 def _rmq_connect():
-    max_retries = 20
-    retries = 0
-    while retries < max_retries:
+    while True:
         try:
             return pika.BlockingConnection(
                 pika.ConnectionParameters(
@@ -77,8 +75,5 @@ def _rmq_connect():
                 )
             )
         except Exception as e:
-            print(f"Connection failed. Retrying in 5 seconds... ({retries+1}/{max_retries})")
-            retries += 1
+            print(f"Connection failed. Retrying in 5 seconds...")
             time.sleep(5)
-    print("Connection failed after maximum retries.")
-    return None

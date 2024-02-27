@@ -43,9 +43,7 @@ def send_wait_receive(data):
 
 
 def _rmq_connect():
-    max_retries = 20
-    retries = 0
-    while retries < max_retries:
+    while True:
         try:
             return pika.BlockingConnection(
                 pika.ConnectionParameters(
@@ -55,8 +53,5 @@ def _rmq_connect():
                 )
             )
         except Exception as e:
-            print(f"Connection failed. Retrying in 5 seconds... ({retries+1}/{max_retries})")
-            retries += 1
+            print(f"Connection failed. Retrying in 5 seconds...")
             time.sleep(5)
-    print("Connection failed after maximum retries.")
-    return None
