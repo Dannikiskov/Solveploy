@@ -4,6 +4,8 @@ import solverK8Job
 import minizinc
 from pathlib import Path
 import uuid
+import tempfile
+import subprocess
 
 def solver_handler(data):
     print("Solver Handler:::", data, flush=True)
@@ -14,18 +16,28 @@ def solver_handler(data):
 
 
 
-def start_solver(data):
+def handle_job(data):
 
     identifier = data["item"]["solverIdentifier"]
 
     solverK8Job.start_solver_job(identifier)
     result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-    dict = {"mznFileContent": data["mznFileContent"], "executionTime": data["executionTime"] ,"instructions": "HandleInstance", "queue_name": "knowledge-base"}
+
+    temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
+    temp_file.write(data['mznFileContent'].encode())
+
+    command = ["mzn2feat", "-i", temp_file.name]
+    result = subprocess.run(command, capture_output=True, text=True)
+    features = result.stdout.strip()
+    feature_vector = [float(number) for number in features.split(",")]
+    temp_file.close()
+
+    dict = {"featureVector": feature_vector, "executionTime": data["executionTime"] ,"instructions": "HandleInstance", "queue_name": "knowledge-base"}
     mq.send_to_queue(json.dumps(dict), "knowledge-base")
     json_result = json.loads(result)
     mq.send_to_queue(json_result, f'{data["queue_name"]}-{identifier}')
 
-def stop_solver(data):
+def stop_job(data):
 
     identifier = data["item"]["solverIdentifier"]
 
@@ -34,7 +46,7 @@ def stop_solver(data):
     mq.send_to_queue("Solver stopped", f'{data["queue_name"]}-{identifier}')
 
 
-def get_solvers(data):
+def get_available_solvers(data):
     path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
     mzn_driver = minizinc.Driver(path)
     solvers = mzn_driver.available_solvers()

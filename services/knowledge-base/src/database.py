@@ -1,6 +1,6 @@
 import subprocess
 import psycopg2
-import tempfile
+
 
 def query_database(query):
     # Connect to the PostgreSQL database
@@ -34,15 +34,7 @@ def get_all_feature_vectors():
 
 def handle_instance(data):
 
-
-    temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
-    temp_file.write(data['mznFileContent'].encode())
-
-    command = ["mzn2feat", "-i", temp_file.name]
-    result = subprocess.run(command, capture_output=True, text=True)
-    features = result.stdout.strip()
-    feature_vector = [float(number) for number in features.split(",")]
-    temp_file.close()
+    
 
     query = f"SELECT id FROM feature_vectors WHERE features = ARRAY{feature_vector}"
     feat_id = query_database(query)

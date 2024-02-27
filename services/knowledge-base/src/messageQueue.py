@@ -6,6 +6,7 @@ import json
 import time
 import database
 
+
 def rmq_init():
     connection = _rmq_connect()
     channel = connection.channel()

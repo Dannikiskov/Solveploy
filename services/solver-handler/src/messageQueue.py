@@ -21,14 +21,14 @@ def consume():
         instructions = data.get('instructions', 'DICT INSTRUCTION ERROR')
         print("instructions:", instructions, flush=True)
 
-        if instructions == "StartSolver":
-            threading.Thread(target=solverHandler.start_solver, args=(data,)).start()
+        if instructions == "HandleJob":
+            threading.Thread(target=solverHandler.handle_job, args=(data,)).start()
 
-        elif instructions == "GetSolvers":
-            threading.Thread(target=solverHandler.get_solvers, args=(data,)).start()
+        elif instructions == "GetAvailableSolvers":
+            threading.Thread(target=solverHandler.get_available_solvers, args=(data,)).start()
         
-        elif instructions == "StopSolver":
-            threading.Thread(target=solverHandler.stop_solver, args=(data,)).start()
+        elif instructions == "StopJob":
+            threading.Thread(target=solverHandler.stop_job, args=(data,)).start()
 
         else:
             print("FAILED: ", instructions, flush=True)

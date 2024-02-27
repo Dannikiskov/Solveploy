@@ -15,7 +15,7 @@ class Jobs(Resource):
     def post(self):
         data = request.json
         data["identifier"] = data["item"]["solverIdentifier"]
-        data["instructions"] = "StartSolver"
+        data["instructions"] = "StartJob"
         data["queue_name"] = "solverhandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -26,7 +26,7 @@ class Jobs(Resource):
     def delete(self):
         data = request.json
         data["identifier"] = data["item"]["solverIdentifier"]
-        data["instructions"] = "StopSolver"
+        data["instructions"] = "StopJob"
         data["queue_name"] = "solverhandler"
         result = async_execute(data)
 
@@ -48,7 +48,7 @@ class Sunny(Resource):
 class Solvers(Resource):
 
     def get(self):
-        data = {"instructions": "GetSolvers", "queue_name": "solverhandler", "identifier": str(uuid.uuid4())}
+        data = {"instructions": "GetAvailableSolvers", "queue_name": "solverhandler", "identifier": str(uuid.uuid4())}
         result = async_execute(data)
         result_json = json.loads(result)
 
@@ -58,7 +58,7 @@ class Solvers(Resource):
     def post(self):
         data = request.json
         data["identifier"] = str(uuid.uuid4())
-        data["instructions"] = "add_solver" 
+        data["instructions"] = "AddSolver" 
         data["queue_name"] = "kbhandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -68,7 +68,7 @@ class Solvers(Resource):
     def put(self):
         data = request.json
         data["identifier"] = str(uuid.uuid4())
-        data["instructions"] = "update_solver" 
+        data["instructions"] = "UpdateSolver" 
         data["queue_name"] = "kbhandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -78,7 +78,7 @@ class Solvers(Resource):
     def delete(self):
         data = request.json
         data["identifier"] = str(uuid.uuid4())
-        data["instructions"] = "delete_solver" 
+        data["instructions"] = "DeleteSolver" 
         data["queue_name"] = "kbhandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -88,7 +88,7 @@ class Solvers(Resource):
 
 
 api.add_resource(Jobs, '/api/jobs')
-api.add_resource(Solvers, '/api/knowledgebase/solvers')
+api.add_resource(Solvers, '/api/solvers')
 api.add_resource(Sunny, '/api/jobs/sunny')
 
 
