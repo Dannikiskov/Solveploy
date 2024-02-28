@@ -17,6 +17,8 @@ def query_database(query):
 
     if(cur.description):
         result = cur.fetchall()
+        result = [item[0] for item in result] if len(result) == 1 else result
+
     else:
         result = None
 
@@ -43,20 +45,19 @@ def handle_instance(data):
         query = f"INSERT INTO solvers (name) VALUES ('{solver_name}') RETURNING id"
         solver_id = query_database(query)
 
-    query = f"INSERT INTO feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
+    query = f"SELECT id FROM feature_vectors WHERE features = '{feature_vector}'"
     feat_id = query_database(query)
     if not feat_id:
         query = f"INSERT INTO feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
         feat_id = query_database(query)
-        print("FEAT ID::::", feat_id, flush=True)
 
     print(feat_id)
 
-    query = f"SELECT * FROM solver_featvec_time WHERE solver_id = '{solver_id}' AND feature_vec_id = '{feat_id[0][0]}' AND execution_time = '{execution_time}'"
+    query = f"SELECT * FROM solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
     existing_entry = query_database(query)
 
     if not existing_entry:
-        query = f"INSERT INTO solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id}', '{feat_id[0][0]}', '{execution_time}')"
+        query = f"INSERT INTO solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
         query_database(query)
 
     print_all_tables()
@@ -67,7 +68,7 @@ def handle_instance(data):
 def get_solved(solvers, similar_insts, T):
     resultList = []
     for s in solvers:
-        query = f"SELECT * FROM solving_times WHERE solver_id = {s.id} AND instance_id IN ({', '.join(inst.id for inst in similar_insts)}) AND solve_time < {T}"
+        query = f"SELECT * FROM solving_times WHERE solver_id = {s.id} AND instance_id IN ({', '.join(inst.id for inst in similar_insts)}) AND solve_time <= {T}"
         
         result = query_database(query)
         resultList.append(result)
