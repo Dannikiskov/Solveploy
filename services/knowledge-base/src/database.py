@@ -33,16 +33,33 @@ def get_all_feature_vectors():
 
 
 def handle_instance(data):
+    feature_vector = str(data["featureVector"])
+    solver_name = data["solverName"]
+    execution_time = data["executionTime"]
 
-    
+    query = f"SELECT id FROM solvers WHERE name = '{solver_name}'"
+    solver_id = query_database(query)
+    if not solver_id:
+        query = f"INSERT INTO solvers (name) VALUES ('{solver_name}') RETURNING id"
+        solver_id = query_database(query)
 
-    query = f"SELECT id FROM feature_vectors WHERE features = ARRAY{feature_vector}"
+    query = f"INSERT INTO feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
     feat_id = query_database(query)
     if not feat_id:
-        query = f"INSERT INTO feature_vectors (features) VALUES (ARRAY{feature_vector}) RETURNING id"
-        result = query_database(query)
-    
-    query = f"INSERT INTO "
+        query = f"INSERT INTO feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
+        feat_id = query_database(query)
+        print("FEAT ID::::", feat_id, flush=True)
+
+    print(feat_id)
+
+    query = f"SELECT * FROM solver_featvec_time WHERE solver_id = '{solver_id}' AND feature_vec_id = '{feat_id[0][0]}' AND execution_time = '{execution_time}'"
+    existing_entry = query_database(query)
+
+    if not existing_entry:
+        query = f"INSERT INTO solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id}', '{feat_id[0][0]}', '{execution_time}')"
+        query_database(query)
+
+    print_all_tables()
 
 
 
@@ -81,16 +98,15 @@ def print_all_tables():
 
 def database_init():
 
-    # Create feature_vectors table
     query = """
         CREATE TABLE IF NOT EXISTS feature_vectors (
             id SERIAL PRIMARY KEY,
-            features FLOAT[]
+            features VARCHAR(2047) UNIQUE
         );
     """
     query_database(query)
 
-    # Create solvers table
+
     query = """
         CREATE TABLE IF NOT EXISTS solvers (
             id SERIAL PRIMARY KEY,
@@ -99,13 +115,13 @@ def database_init():
     """
     query_database(query)
 
-    # Create solver_featvec_time table
+
     query = """
         CREATE TABLE IF NOT EXISTS solver_featvec_time (
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES solvers(id),
             feature_vec_id INT REFERENCES feature_vectors(id),
-            solve_time FLOAT NOT NULL
+            execution_time FLOAT NOT NULL
         );
     """
     query_database(query)

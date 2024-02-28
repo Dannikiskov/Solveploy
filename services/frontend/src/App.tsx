@@ -20,9 +20,7 @@ function App() {
   const [selectedSolvers, setSelectedSolvers] = useState<SolverData[]>([]);
   const [mznFileContent, setMznFileContent] = useState<string>("");
   const [runningJobs, setRunningJobs] = useState<SolverData[]>([]);
-  const [jobResultList, setJobResultList] = useState<
-    JobResult[]
-  >([]);
+  const [jobResultList, setJobResultList] = useState<JobResult[]>([]);
 
   useEffect(() => {
     fetchDataGet();
@@ -52,7 +50,7 @@ function App() {
 
   const fetchDataGet = async () => {
     try {
-      const response = await fetch("/api/knowledgebase/solvers", {
+      const response = await fetch("/api/solvers", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -83,6 +81,14 @@ function App() {
   const handlestartsolvers = () => {
     setRunningJobs(selectedSolvers);
     selectedSolvers.forEach(fetchstartsolvers);
+    setSelectedSolvers([]);
+    setSolverList((prevList) =>
+      prevList.map((item) => ({
+        ...item,
+        solverIdentifier: uuidv4(),
+      }))
+    );
+
   };
 
   const fetchstartsolvers = async (item: SolverData) => {
@@ -99,6 +105,7 @@ function App() {
       if (!response.ok) {
         updateditem = {
           ...item,
+          solverIdentifier: uuidv4(),
           result: "Error starting solver",
           executionTime: 0,
           stopped: true,
@@ -110,7 +117,7 @@ function App() {
           ...prevItems,
           {
             name: item.name,
-            solverIdentifier: item.solverIdentifier,
+            solverIdentifier: uuidv4(),
             result: updateditem.result,
             executionTime: updateditem.executionTime,
             mznIdentifier: item.mznIdentifier,

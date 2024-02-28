@@ -13,8 +13,8 @@ def rmq_init():
 
 # Service leaving call
 def send_wait_receive(data):
-    out_queue_name = data["queue_name"]
-    in_queue_name = f'{data["queue_name"]}-{data["identifier"]}'
+    out_queue_name = data["queueName"]
+    in_queue_name = f'{data["queueName"]}-{data["identifier"]}'
 
     connection = _rmq_connect()
     channel = connection.channel()

@@ -33,11 +33,13 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
     # Solve the MiniZinc model
     
     start_time = time.time()
+
     try:
         result = instance.solve()
     except Exception as e:
         print("Error solving the MiniZinc model:", str(e))
         result = None
+
     end_time = time.time()
 
     execution_time = end_time - start_time
@@ -54,4 +56,4 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
     if result:
         return result_dict
     else:
-        return "No solution found."
+        return {"result": "No result found.", "executionTime": execution_time}

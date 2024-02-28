@@ -7,35 +7,27 @@ import uuid
 import tempfile
 import subprocess
 
-def solver_handler(data):
-    print("Solver Handler:::", data, flush=True)
-    json_data = json.dumps(data)
-    solverK8Job.start_solver_job(data["identifier"])
-    result = mq.send_wait_receive_k8(data, f'solverk8job-{data["identifier"]}')
-    mq.send_to_queue(result, f'{data["queue_name"]}-{data["identifier"]}')
-
-
-
-def handle_job(data):
+def handle_new_job(data):
 
     identifier = data["item"]["solverIdentifier"]
+    solver_name = data["item"]["name"]
 
-    solverK8Job.start_solver_job(identifier)
-    result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
+    solverK8Job.start_solver_job(solver_name, identifier)
+    k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
+    print("Solver result:::::", type(k8_result), flush=True)
 
     temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file.write(data['mznFileContent'].encode())
 
     command = ["mzn2feat", "-i", temp_file.name]
-    result = subprocess.run(command, capture_output=True, text=True)
-    features = result.stdout.strip()
-    feature_vector = [float(number) for number in features.split(",")]
+    cmd_result = subprocess.run(command, capture_output=True, text=True)
+    feature_vector = cmd_result.stdout.strip()
     temp_file.close()
 
-    dict = {"featureVector": feature_vector, "executionTime": data["executionTime"] ,"instructions": "HandleInstance", "queue_name": "knowledge-base"}
-    mq.send_to_queue(json.dumps(dict), "knowledge-base")
-    json_result = json.loads(result)
-    mq.send_to_queue(json_result, f'{data["queue_name"]}-{identifier}')
+    dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleInstance", "queueName": "kbHandler"}
+    mq.send_to_queue(dict, "kbHandler")
+
+    mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
 
 def stop_job(data):
 
@@ -43,7 +35,7 @@ def stop_job(data):
 
     print("Stop Solver:::", data, flush=True)
     solverK8Job.stop_solver_job(identifier)
-    mq.send_to_queue("Solver stopped", f'{data["queue_name"]}-{identifier}')
+    mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 
 def get_available_solvers(data):
@@ -54,6 +46,6 @@ def get_available_solvers(data):
     available_solvers = []
     for index, (solver_name, solver_list) in enumerate(solvers.items()):
         if "." not in solver_name:
-            available_solvers.append({"name": solver_name, "mzn_identifier": solver_list[0].id})
+            available_solvers.append({"name": solver_name, "mznIdentifier": solver_list[0].id})
     
-    mq.send_to_queue(available_solvers, f'{data["queue_name"]}-{data["identifier"]}')
+    mq.send_to_queue(available_solvers, f'{data["queueName"]}-{data["identifier"]}')

@@ -1,12 +1,13 @@
 from kubernetes import client, config
 import uuid
 
-def start_solver_job(identifier):
+def start_solver_job(solver_name, identifier):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"solver-job-{identifier}.id"
+    job_name = f"solver-{solver_name}-{identifier}.id"
+    print("Job name: ", job_name, flush=True)
 
     # Create solver job
     solver_job = create_solver_job(job_name, str(identifier))

@@ -13,12 +13,12 @@ def handle_instance(file_data):
 
 
 def get_solved(solvers, similar_insts, T):
-    data = create_dict('GetSolved', {'solvers': solvers, 'similar_insts': similar_insts, 'T': T})
+    data = create_dict('GetSolved', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
     mq.send_wait_receive(data)
 
 
 def get_solved_times(solver_id, similar_insts):
-    data = create_dict('GetSolvedTimes', {'solver_id': solver_id, 'similar_insts': similar_insts})
+    data = create_dict('GetSolvedTimes', {'solverId': solver_id, 'similarInsts': similar_insts})
     mq.send_wait_receive(data)
 
 def get_solvers():
@@ -26,5 +26,5 @@ def get_solvers():
     mq.send_wait_receive(data)
 
 def create_dict(instructions, content=None):
-    return {'identifier': str(uuid.uuid4()), 'queue_name': "knowledge-base", 'instructions': instructions, 'content': content}
+    return {'identifier': str(uuid.uuid4()), 'queueName': "kbHandler", 'instructions': instructions, 'content': content}
     
