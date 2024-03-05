@@ -1,39 +1,36 @@
-import json
 import messageQueue as mq
 import solverK8Job
 import minizinc
 from pathlib import Path
-import uuid
 import tempfile
 import subprocess
 
-def handle_new_job(data):
+def handle_new_mzn_job(data):
 
     identifier = data["item"]["solverIdentifier"]
     solver_name = data["item"]["name"]
 
-    solverK8Job.start_solver_job(solver_name, identifier)
+    solverK8Job.start_solver_job(solver_name, identifier, "mzn")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-    print("Solver result:::::", type(k8_result), flush=True)
 
     temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file.write(data['mznFileContent'].encode())
-
+    
+    # Get feature vector
     command = ["mzn2feat", "-i", temp_file.name]
     cmd_result = subprocess.run(command, capture_output=True, text=True)
     feature_vector = cmd_result.stdout.strip()
     temp_file.close()
 
-    dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleInstance", "queueName": "kbHandler"}
+    dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleMznInstance", "queueName": "kbHandler"}
     mq.send_to_queue(dict, "kbHandler")
-
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
+
 
 def stop_job(data):
 
     identifier = data["item"]["solverIdentifier"]
 
-    print("Stop Solver:::", data, flush=True)
     solverK8Job.stop_solver_job(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 

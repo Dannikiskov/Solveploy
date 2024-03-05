@@ -26,10 +26,10 @@ echo "Finished Docker base image.."
 ) &
 
 (
-  # Start Docker solver-handler build
-  echo "Starting Docker solver-handler build.."
-  docker build -q -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
-  echo "Finished Docker solver-handler build."
+  # Start Docker job-handler build
+  echo "Starting Docker job-handler build.."
+  docker build -q -t job-handler -f services/job-handler/Dockerfile services/job-handler/
+  echo "Finished Docker job-handler build."
 ) &
 
 (
@@ -40,10 +40,17 @@ echo "Finished Docker base image.."
 ) &
 
 (
-  # Start Docker solver-pod build
-  echo "Starting Docker solver-pod build.."
-  docker build -q -t solver-pod -f services/solver-pod/Dockerfile services/solver-pod/
-  echo "Finished Docker solver-pod build."
+  # Start Docker mzn-pod build
+  echo "Starting Docker mzn-pod build.."
+  docker build -q -t mzn-pod -f services/mzn-pod/Dockerfile services/mzn-pod/
+  echo "Finished Docker mzn-pod build."
+) &
+
+(
+  # Start Docker mzn-pod build
+  echo "Starting Docker maxsat-pod build.."
+  docker build -q -t maxsat-pod -f services/maxsat-pod/Dockerfile services/maxsat-pod/
+  echo "Finished Docker maxsat-pod build."
 ) &
 
 
@@ -57,8 +64,8 @@ kubectl apply -f kubernetes-deployments/api-gateway-service.yaml
 kubectl apply -f kubernetes-deployments/frontend-deployment.yaml
 kubectl apply -f kubernetes-deployments/frontend-service.yaml
 
-kubectl apply -f kubernetes-deployments/solver-handler-deployment.yaml
-kubectl apply -f kubernetes-deployments/solver-handler-service.yaml
+kubectl apply -f kubernetes-deployments/job-handler-deployment.yaml
+kubectl apply -f kubernetes-deployments/job-handler-service.yaml
 
 kubectl apply -f kubernetes-deployments/role-job-creator.yaml
 kubectl apply -f kubernetes-deployments/cluster-role-job-creator.yaml

@@ -20,8 +20,8 @@ def consume():
         data = json.loads(decoded_body)
         instructions = data["instructions"]
 
-        if instructions == "StartJob":
-            threading.Thread(target=solverHandler.handle_new_job, args=(data,)).start()
+        if instructions == "StartMznJob":
+            threading.Thread(target=solverHandler.handle_new_mzn_job, args=(data,)).start()
 
         elif instructions == "GetAvailableSolvers":
             threading.Thread(target=solverHandler.get_available_solvers, args=(data,)).start()

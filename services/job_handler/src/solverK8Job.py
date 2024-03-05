@@ -1,22 +1,21 @@
 from kubernetes import client, config
 import uuid
 
-def start_solver_job(solver_name, identifier):
+def start_solver_job(solver_name, identifier, image_prefix):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"solver-{solver_name}-{identifier}.id"
-    print("Job name: ", job_name, flush=True)
+    job_name = f"solver-{solver_name}-{image_prefix}-{identifier}.id"
 
     # Create solver job
-    solver_job = create_solver_job(job_name, str(identifier))
+    solver_job = create_solver_job(job_name, str(identifier), image_prefix)
     batch_api = client.BatchV1Api()
 
     batch_api.create_namespaced_job(namespace="default", body=solver_job)
     return job_name
 
-def create_solver_job(job_name, identifier):
+def create_solver_job(job_name, identifier, image_prefix):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
@@ -24,8 +23,8 @@ def create_solver_job(job_name, identifier):
                 spec=client.V1PodSpec(
                     containers=[
                         client.V1Container(
-                            name="solver-container",
-                            image="solver-pod:latest",
+                            name=f"{image_prefix}-container",
+                            image=f"{image_prefix}-pod:latest",
                             image_pull_policy="Never",
                             env=[
                                 client.V1EnvVar(
@@ -57,7 +56,7 @@ def create_solver_job(job_name, identifier):
                     active_deadline_seconds=1800,
                 )
             ),
-            ttl_seconds_after_finished=20,
+            ttl_seconds_after_finished=30,
         )
     )
 

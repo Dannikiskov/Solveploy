@@ -29,7 +29,11 @@ def consume():
             response = database.get_all_feature_vectors()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
-        elif instructions == "HandleInstance":
+        elif instructions == "HandleMznInstance":
+            response = database.handle_instance(data)
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
+        elif instructions == "HandleSatInstance":
             response = database.handle_instance(data)
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
