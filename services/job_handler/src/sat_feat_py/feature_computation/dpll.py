@@ -1,7 +1,7 @@
 import math
 import random
-from feature_computation.enums import VarState, ClauseState
-from feature_computation.stopwatch import Stopwatch
+from .enums import VarState, ClauseState
+from .stopwatch import Stopwatch
 import statistics
 
 

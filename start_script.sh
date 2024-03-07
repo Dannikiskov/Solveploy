@@ -21,36 +21,36 @@ echo "Finished Docker base image.."
 (
   # Start Docker api-gateway build
   echo "Starting Docker api-gateway build.."
-  docker build -q -t api-gateway -f services/api-gateway/Dockerfile services/api-gateway/
+  docker build -q -t api-gateway -f services/api_gateway/Dockerfile services/api_gateway/
   echo "Finished Docker api-gateway build."
 ) &
 
 (
   # Start Docker job-handler build
   echo "Starting Docker job-handler build.."
-  docker build -q -t job-handler -f services/job-handler/Dockerfile services/job-handler/
+  docker build -q -t job-handler -f services/job_handler/Dockerfile services/job_handler/
   echo "Finished Docker job-handler build."
 ) &
 
 (
   # Start Docker knowledge-base build
   echo "Starting Docker knowledge-bank build.."
-  docker build -q -t knowledge-base -f services/knowledge-base/Dockerfile services/knowledge-base/
+  docker build -q -t knowledge-base -f services/knowledge_base/Dockerfile services/knowledge_base/
   echo "Finished Docker knowledge-bank build."
 ) &
 
 (
   # Start Docker mzn-pod build
   echo "Starting Docker mzn-pod build.."
-  docker build -q -t mzn-pod -f services/mzn-pod/Dockerfile services/mzn-pod/
+  docker build -q -t mzn-pod -f services/mzn_pod/Dockerfile services/mzn_pod/
   echo "Finished Docker mzn-pod build."
 ) &
 
 (
   # Start Docker mzn-pod build
-  echo "Starting Docker maxsat-pod build.."
-  docker build -q -t maxsat-pod -f services/maxsat-pod/Dockerfile services/maxsat-pod/
-  echo "Finished Docker maxsat-pod build."
+  echo "Starting Docker sat-pod build.."
+  docker build -q -t sat-pod -f services/sat_pod/Dockerfile services/sat_pod/
+  echo "Finished Docker sat-pod build."
 ) &
 
 

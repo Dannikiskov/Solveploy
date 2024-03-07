@@ -1,5 +1,5 @@
 import sys
-from sat_instance.sat_instance import SATInstance
+from .sat_instance.sat_instance import SATInstance
 
 def generate_features(cnf_path):
 

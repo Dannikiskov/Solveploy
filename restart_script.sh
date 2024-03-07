@@ -3,14 +3,15 @@
 eval $(minikube docker-env)
 
 docker build -q -t frontend -f services/frontend/Dockerfile services/frontend/
-docker build -q -t api-gateway -f services/api-gateway/Dockerfile services/api-gateway/
-docker build -q -t solver-handler -f services/solver-handler/Dockerfile services/solver-handler/
-docker build -q -t solver-pod -f services/solver-pod/Dockerfile services/solver-pod/
-docker build -q -t knowledge-base -f services/knowledge-base/Dockerfile services/knowledge-base/
+docker build -q -t api-gateway -f services/api_gateway/Dockerfile services/api_gateway/
+docker build -q -t job-handler -f services/job_handler/Dockerfile services/job_handler/
+docker build -q -t mzn-pod -f services/mzn_pod/Dockerfile services/mzn_pod/
+docker build -q -t sat-pod -f services/sat_pod/Dockerfile services/sat_pod/
+docker build -q -t knowledge-base -f services/knowledge_base/Dockerfile services/knowledge_base/
 
 kubectl rollout restart deployment frontend
 kubectl rollout restart deployment api-gateway
-kubectl rollout restart deployment solver-handler
+kubectl rollout restart deployment job-handler
 kubectl rollout restart deployment knowledge-base
 
 kubectl delete jobs --all

@@ -1,5 +1,5 @@
 # sys.path.append("/Users/bprovan/Insight/SAT-features/feature_computation")
-from feature_computation.enums import VarState, ClauseState
+from .enums import VarState, ClauseState
 
 """
 First we need to compute the active variables and clauses

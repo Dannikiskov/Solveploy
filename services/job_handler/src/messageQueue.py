@@ -4,7 +4,8 @@ import os
 import threading
 import json
 import time
-import solverHandler
+import mznHandler
+import satHandler
 
 def rmq_init():
     connection = _rmq_connect()
@@ -21,16 +22,25 @@ def consume():
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
-            threading.Thread(target=solverHandler.handle_new_mzn_job, args=(data,)).start()
+            threading.Thread(target=mznHandler.handle_new_mzn_job, args=(data,)).start()
 
-        elif instructions == "GetAvailableSolvers":
-            threading.Thread(target=solverHandler.get_available_solvers, args=(data,)).start()
+        if instructions == "StartSatJob":
+            threading.Thread(target=satHandler.handle_new_sat_job, args=(data,)).start()
+
+        elif instructions == "GetAvailableMznSolvers":
+            threading.Thread(target=mznHandler.get_available_mzn_solvers, args=(data,)).start()
         
-        elif instructions == "StopJob":
-            threading.Thread(target=solverHandler.stop_job, args=(data,)).start()
+        elif instructions == "GetAvailableSatSolvers":
+            threading.Thread(target=satHandler.get_available_sat_solvers, args=(data,)).start()
+        
+        elif instructions == "StopMznJob":
+            threading.Thread(target=mznHandler.stop_job, args=(data,)).start()
+
+        elif instructions == "StopSatJob":
+            threading.Thread(target=satHandler.stop_job, args=(data,)).start()
 
         else:
-            print("FAILED: ", instructions, flush=True)
+            print("ERROR: NO MATCHING INSTRUCTIONS:::", instructions, flush=True)
         
 
 

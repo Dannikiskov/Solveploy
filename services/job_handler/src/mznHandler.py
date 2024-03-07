@@ -35,7 +35,7 @@ def stop_job(data):
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 
-def get_available_solvers(data):
+def get_available_mzn_solvers(data):
     path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
     mzn_driver = minizinc.Driver(path)
     solvers = mzn_driver.available_solvers()

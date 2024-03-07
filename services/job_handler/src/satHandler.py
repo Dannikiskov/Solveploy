@@ -1,10 +1,9 @@
 import messageQueue as mq
 import solverK8Job
-import minizinc
 from pathlib import Path
 import tempfile
-import subprocess
 import sat_feat_py.generate_features as gf
+import pysat.solvers
 
 def handle_new_sat_job(data):
 
@@ -26,7 +25,7 @@ def handle_new_sat_job(data):
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
 
 
-def stop_job(data):
+def stop_sat_job(data):
 
     identifier = data["item"]["solverIdentifier"]
 
@@ -34,14 +33,27 @@ def stop_job(data):
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 
-def get_available_solvers(data):
-    path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
-    mzn_driver = minizinc.Driver(path)
-    solvers = mzn_driver.available_solvers()
-    
-    available_solvers = []
-    for index, (solver_name, solver_list) in enumerate(solvers.items()):
-        if "." not in solver_name:
-            available_solvers.append({"name": solver_name, "mznIdentifier": solver_list[0].id})
-    
-    mq.send_to_queue(available_solvers, f'{data["queueName"]}-{data["identifier"]}')
+def get_available_sat_solvers(data):
+
+    available_solvers = [
+        ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103'),
+        ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153'),
+        ('cms', 'cms5', 'crypto', 'crypto5', 'cryptominisat', 'cryptominisat5'),
+        ('gc3', 'gc30', 'gluecard3', 'gluecard30'),
+        ('gc4', 'gc41', 'gluecard4', 'gluecard41'),
+        ('g3', 'g30', 'glucose3', 'glucose30'),
+        ('g4', 'g41', 'glucose4', 'glucose41'),
+        ('g42', 'g421', 'glucose42', 'glucose421'),
+        ('lgl', 'lingeling'),
+        ('mcb', 'chrono', 'maplechrono'),
+        ('mcm', 'maplecm'),
+        ('mpl', 'maple', 'maplesat'),
+        ('mg3', 'mgs3', 'mergesat3', 'mergesat30'),
+        ('mc', 'mcard', 'minicard'),
+        ('m22', 'msat22', 'minisat22'),
+        ('mgh', 'msat-gh', 'minisat-gh')
+    ]
+
+    solvers_dict = [{"name": solver[-1], "satIdentifier": solver[0]} for solver in available_solvers]
+
+    mq.send_to_queue(solvers_dict, f'{data["queueName"]}-{data["identifier"]}')

@@ -15,7 +15,6 @@ class Jobs(Resource):
     def post(self):
         data = request.json
         data["identifier"] = data["item"]["solverIdentifier"]
-        data["instructions"] = "StartJob"
         data["queueName"] = "jobHandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -45,10 +44,10 @@ class Sunny(Resource):
         return result_json
 
 
-class Solvers(Resource):
+class SolversMzn(Resource):
 
     def get(self):
-        data = {"instructions": "GetAvailableSolvers", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
+        data = {"instructions": "GetAvailableMznSolvers", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
         result = async_execute(data)
         result_json = json.loads(result)
 
@@ -58,7 +57,7 @@ class Solvers(Resource):
     def post(self):
         data = request.json
         data["identifier"] = str(uuid.uuid4())
-        data["instructions"] = "AddSolver" 
+        data["instructions"] = "AddMznSolver" 
         data["queueName"] = "kbHandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -68,7 +67,7 @@ class Solvers(Resource):
     def put(self):
         data = request.json
         data["identifier"] = str(uuid.uuid4())
-        data["instructions"] = "UpdateSolver" 
+        data["instructions"] = "UpdateMznSolver" 
         data["queueName"] = "kbHandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -78,7 +77,47 @@ class Solvers(Resource):
     def delete(self):
         data = request.json
         data["identifier"] = str(uuid.uuid4())
-        data["instructions"] = "DeleteSolver" 
+        data["instructions"] = "DeleteMznSolver" 
+        data["queueName"] = "kbHandler"
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+class SolversSat(Resource):
+
+    def get(self):
+        data = {"instructions": "GetAvailableSatSolvers", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+
+    def post(self):
+        data = request.json
+        data["identifier"] = str(uuid.uuid4())
+        data["instructions"] = "AddSatSolver" 
+        data["queueName"] = "kbHandler"
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+    def put(self):
+        data = request.json
+        data["identifier"] = str(uuid.uuid4())
+        data["instructions"] = "UpdateSatSolver" 
+        data["queueName"] = "kbHandler"
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+    def delete(self):
+        data = request.json
+        data["identifier"] = str(uuid.uuid4())
+        data["instructions"] = "DeleteSatSolver" 
         data["queueName"] = "kbHandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -89,7 +128,8 @@ class Solvers(Resource):
 
 api.add_resource(Jobs, '/api/jobs')
 api.add_resource(Sunny, '/api/jobs/sunny')
-api.add_resource(Solvers, '/api/solvers')
+api.add_resource(SolversMzn, '/api/solvers/mzn')
+api.add_resource(SolversSat, '/api/solvers/sat')
 
 
 def async_execute(data):

@@ -1,8 +1,9 @@
 import os
 import statistics
 import sys
-from feature_computation import parse_cnf, balance_features, graph_features, array_stats, active_features, preprocessing
-from feature_computation.dpll import DPLLProbing
+
+from . import parse_cnf, balance_features, graph_features, array_stats, active_features, preprocessing
+from .dpll import DPLLProbing
 
 '''
 Main file to control extraction of features

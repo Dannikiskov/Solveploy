@@ -1,5 +1,5 @@
-from feature_computation import preprocessing, parse_cnf, active_features, base_features
-from feature_computation.dpll import DPLLProbing
+from ..feature_computation import preprocessing, parse_cnf, active_features, base_features
+from ..feature_computation.dpll import DPLLProbing
 
 
 class SATInstance:
