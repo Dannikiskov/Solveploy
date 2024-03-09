@@ -12,16 +12,18 @@ def handle_new_sat_job(data):
 
     solverK8Job.start_solver_job(solver_name, identifier, "sat")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-
-    temp_file = tempfile.NamedTemporaryFile(suffix=".cnf", delete=False)
-    temp_file.write(data['cnfFileContent'].encode())
+    print("k8_result: ", k8_result, flush=True)
     
     # Get feature vector
-    feature_vector = gf.generate_features(temp_file.name) 
-    temp_file.close()
+    try:
+        feature_vector = gf.generate_features(data["cnfFileContent"])
+        dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleSatInstance", "queueName": "kbHandler"}
+        mq.send_to_queue(dict, "kbHandler")
+    except Exception as e:
+        print(f"Exception occurred: {str(e)}", flush=True)
 
-    dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleSatInstance", "queueName": "kbHandler"}
-    mq.send_to_queue(dict, "kbHandler")
+
+    
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
 
 

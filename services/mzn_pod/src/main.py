@@ -9,14 +9,14 @@ import time
 def on_request(ch, method, props, body):
     decoded_body = body.decode("utf-8")
     message_data = json.loads(decoded_body)
+
     print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
-    model_string = message_data.get('item', "ITEM ERROR").get('name', "SOLVER NAME ERROR")
-    mzn_string = message_data.get('mznFileContent', "MZN ERROR")
     
-    print("MODEL STRING: ", model_string, flush=True)
-    print("MZN STRING: ", mzn_string, flush=True)
+    solver_name = message_data["item"]["name"]
+    mzn_string = message_data["mznFileContent"]
+
     try:
-        result = minizincSolve.run_minizinc_model(mzn_string, solver_name=model_string.lower())
+        result = minizincSolve.run_minizinc_model(mzn_string, solver_name=solver_name.lower())
     except:
         result = {"result": "Minizinc Solver failed.", "executionTime": "N/A"}
     

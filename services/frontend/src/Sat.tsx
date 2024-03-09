@@ -17,8 +17,10 @@ interface SatJobResult extends SatSolverData {
 
 function Sat() {
   const [satSolverList, setSatSolverList] = useState<SatSolverData[]>([]);
-  const [selectedSatSolvers, setSelectedSatSolvers] = useState<SatSolverData[]>([]);
-  const [satFileContent, setSatFileContent] = useState<string>("");
+  const [selectedSatSolvers, setSelectedSatSolvers] = useState<SatSolverData[]>(
+    []
+  );
+  const [cnfFileContent, setCnfFileContent] = useState<string>("");
   const [runningSatJobs, setRunningSatJobs] = useState<SatSolverData[]>([]);
   const [satJobResultList, setSatJobResultList] = useState<SatJobResult[]>([]);
 
@@ -27,7 +29,7 @@ function Sat() {
   }, []);
 
   const fetchStopJob = async (item: SatSolverData) => {
-    setRunningSatJobs((prevItems : Array<SatSolverData>) =>
+    setRunningSatJobs((prevItems: Array<SatSolverData>) =>
       prevItems.filter((i) => i.name !== item.name)
     );
 
@@ -69,12 +71,15 @@ function Sat() {
   };
 
   const handleitemclick = (item: SatSolverData) => {
-    if (selectedSatSolvers.find((i : any) => i.name === item.name)) {
-      setSelectedSatSolvers((prevItems : Array<SatSolverData>) =>
+    if (selectedSatSolvers.find((i: any) => i.name === item.name)) {
+      setSelectedSatSolvers((prevItems: Array<SatSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
     } else {
-      setSelectedSatSolvers((prevItems: Array<SatSolverData>) => [...prevItems, item]);
+      setSelectedSatSolvers((prevItems: Array<SatSolverData>) => [
+        ...prevItems,
+        item,
+      ]);
     }
   };
 
@@ -88,7 +93,6 @@ function Sat() {
         solverIdentifier: uuidv4(),
       }))
     );
-
   };
 
   const fetchstartsolvers = async (item: SatSolverData) => {
@@ -98,7 +102,11 @@ function Sat() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ item, satFileContent, instructions: "StartSatJob" }),
+        body: JSON.stringify({
+          item,
+          cnfFileContent,
+          instructions: "StartSatJob",
+        }),
       });
 
       let updateditem = await response.json();
@@ -126,7 +134,7 @@ function Sat() {
       }
 
       // Update state here
-      setRunningSatJobs((prevItems : Array<SatSolverData>) =>
+      setRunningSatJobs((prevItems: Array<SatSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
     } catch (error) {
@@ -145,7 +153,8 @@ function Sat() {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setSatFileContent(reader.result as string);
+        setCnfFileContent(reader.result as string);
+        console.log(reader.result);
       };
       reader.readAsText(file);
     }
@@ -185,9 +194,7 @@ function Sat() {
               <div>Name: {item.name}</div>
               <div>Solver ID: {item.solverIdentifier}</div>
               <div>Waiting for result</div>
-              <button onClick={() => fetchStopJob(item)}>
-                Stop Solver
-              </button>
+              <button onClick={() => fetchStopJob(item)}>Stop Solver</button>
             </div>
           ))}
           {satJobResultList.map((item, index) => (

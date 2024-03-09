@@ -24,7 +24,7 @@ def consume():
         if instructions == "StartMznJob":
             threading.Thread(target=mznHandler.handle_new_mzn_job, args=(data,)).start()
 
-        if instructions == "StartSatJob":
+        elif instructions == "StartSatJob":
             threading.Thread(target=satHandler.handle_new_sat_job, args=(data,)).start()
 
         elif instructions == "GetAvailableMznSolvers":

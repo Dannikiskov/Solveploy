@@ -1,1 +1,2 @@
 python-sat==1.8.dev3
+pycryptosat==5.11.21

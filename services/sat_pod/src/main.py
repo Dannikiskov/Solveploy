@@ -9,14 +9,16 @@ import time
 def on_request(ch, method, props, body):
     decoded_body = body.decode("utf-8")
     message_data = json.loads(decoded_body)
+
     print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
-    model_string = message_data.get('item', "ITEM ERROR").get('name', "SOLVER NAME ERROR")
-    maxsat_string = message_data.get('maxsatFileContent', "MZN ERROR")
-    
+
+    solver_name = message_data["item"]["name"]
+    cnf_string = message_data["cnfFileContent"]
     
     try:
-        result = None
-    except:
+        result = satSolve.run_sat_model(solver_name, cnf_string)
+    except Exception as e:
+        print(f"Exception occurred: {str(e)}", flush=True)
         result = {"result": "Solver failed.", "executionTime": "N/A"}
     
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"

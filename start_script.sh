@@ -1,7 +1,7 @@
 #!/bin/bash
 
 start_time=$(date +%s)
-minikube start 
+minikube start --cpus=4 --memory=6000
 
 eval $(minikube docker-env)
 
