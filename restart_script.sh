@@ -7,6 +7,7 @@ docker build -q -t api-gateway -f services/api_gateway/Dockerfile services/api_g
 docker build -q -t job-handler -f services/job_handler/Dockerfile services/job_handler/
 docker build -q -t mzn-pod -f services/mzn_pod/Dockerfile services/mzn_pod/
 docker build -q -t sat-pod -f services/sat_pod/Dockerfile services/sat_pod/
+docker build -q -t maxsat-pod -f services/maxsat_pod/Dockerfile services/maxsat_pod/
 docker build -q -t knowledge-base -f services/knowledge_base/Dockerfile services/knowledge_base/
 
 kubectl rollout restart deployment frontend

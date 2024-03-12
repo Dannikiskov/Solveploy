@@ -84,6 +84,7 @@ class SolversMzn(Resource):
 
         return result_json
     
+
 class SolversSat(Resource):
 
     def get(self):
@@ -125,11 +126,52 @@ class SolversSat(Resource):
         return result_json
 
 
+class SolversMaxsat(Resource):
+
+    def get(self):
+        data = {"instructions": "GetAvailableMaxsatSolvers", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+
+    def post(self):
+        data = request.json
+        data["identifier"] = str(uuid.uuid4())
+        data["instructions"] = "AddMaxsatSolver" 
+        data["queueName"] = "kbHandler"
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+    def put(self):
+        data = request.json
+        data["identifier"] = str(uuid.uuid4())
+        data["instructions"] = "UpdateMaxsatSolver" 
+        data["queueName"] = "kbHandler"
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+    
+    def delete(self):
+        data = request.json
+        data["identifier"] = str(uuid.uuid4())
+        data["instructions"] = "DeleteMaxSatSolver" 
+        data["queueName"] = "kbHandler"
+        result = async_execute(data)
+        result_json = json.loads(result)
+
+        return result_json
+
 
 api.add_resource(Jobs, '/api/jobs')
 api.add_resource(Sunny, '/api/jobs/sunny')
 api.add_resource(SolversMzn, '/api/solvers/mzn')
 api.add_resource(SolversSat, '/api/solvers/sat')
+api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
 
 
 def async_execute(data):

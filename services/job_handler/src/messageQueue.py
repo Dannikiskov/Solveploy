@@ -6,6 +6,7 @@ import json
 import time
 import mznHandler
 import satHandler
+import maxsatHandler
 
 def rmq_init():
     connection = _rmq_connect()
@@ -27,11 +28,17 @@ def consume():
         elif instructions == "StartSatJob":
             threading.Thread(target=satHandler.handle_new_sat_job, args=(data,)).start()
 
+        elif instructions == "StartMaxsatJob":
+            threading.Thread(target=maxsatHandler.handle_new_maxsat_job, args=(data,)).start()
+
         elif instructions == "GetAvailableMznSolvers":
             threading.Thread(target=mznHandler.get_available_mzn_solvers, args=(data,)).start()
         
         elif instructions == "GetAvailableSatSolvers":
             threading.Thread(target=satHandler.get_available_sat_solvers, args=(data,)).start()
+        
+        elif instructions == "GetAvailableMaxsatSolvers":
+            threading.Thread(target=maxsatHandler.get_available_maxsat_solvers, args=(data,)).start()
         
         elif instructions == "StopMznJob":
             threading.Thread(target=mznHandler.stop_job, args=(data,)).start()

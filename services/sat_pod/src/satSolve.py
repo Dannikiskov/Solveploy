@@ -3,7 +3,7 @@ import time
 import pysat.solvers
 
 def run_sat_model(solver_name, cnf_string):
-    # Create a Glucose3 solver instance
+    # Create solver instance
     print("Looking up solver", flush=True)
     solver = None
     for attr in dir(pysat.solvers.SolverNames):
