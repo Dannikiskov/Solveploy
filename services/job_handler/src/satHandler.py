@@ -7,12 +7,11 @@ import pysat.solvers
 
 def handle_new_sat_job(data):
 
-    identifier = data["item"]["solverIdentifier"]
+    identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
 
     solverK8Job.start_solver_job(solver_name, identifier, "sat")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-    print("k8_result: ", k8_result, flush=True)
     
     # Get feature vector
     try:
@@ -29,7 +28,7 @@ def handle_new_sat_job(data):
 
 def stop_sat_job(data):
 
-    identifier = data["item"]["solverIdentifier"]
+    identifier = data["item"]["jobIdentifier"]
 
     solverK8Job.stop_solver_job(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')

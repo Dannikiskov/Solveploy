@@ -14,7 +14,7 @@ class Jobs(Resource):
 
     def post(self):
         data = request.json
-        data["identifier"] = data["item"]["solverIdentifier"]
+        data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
         result = async_execute(data)
         result_json = json.loads(result)
@@ -24,7 +24,7 @@ class Jobs(Resource):
 
     def delete(self):
         data = request.json
-        data["identifier"] = data["item"]["solverIdentifier"]
+        data["identifier"] = data["item"]["jobIdentifier"]
         data["instructions"] = "StopJob"
         data["queueName"] = "jobHandler"
         result = async_execute(data)
@@ -35,7 +35,7 @@ class Sunny(Resource):
 
     def post(self):
         data = request.json
-        data["identifier"] = data["item"]["solverIdentifier"]
+        data["identifier"] = data["item"]["jobIdentifier"]
         data["instructions"] = "Sunny"
         data["queueName"] = "jobHandler"
         result = async_execute(data)

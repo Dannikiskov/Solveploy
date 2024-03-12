@@ -7,7 +7,7 @@ import "./App.css";
 interface SatSolverData {
   name: string;
   satIdentifier: string;
-  solverIdentifier: string;
+  jobIdentifier: string;
 }
 
 interface SatJobResult extends SatSolverData {
@@ -62,7 +62,7 @@ function Sat() {
       const data = await response.json();
       const updatedData = data.map((item: SatSolverData) => ({
         ...item,
-        solverIdentifier: uuidv4(),
+        jobIdentifier: uuidv4().slice(0, 8),
       }));
       setSatSolverList(updatedData);
     } catch (error) {
@@ -90,7 +90,7 @@ function Sat() {
     setSatSolverList((prevList) =>
       prevList.map((item) => ({
         ...item,
-        solverIdentifier: uuidv4(),
+        jobIdentifier: uuidv4().slice(0, 8),
       }))
     );
   };
@@ -113,7 +113,7 @@ function Sat() {
       if (!response.ok) {
         updateditem = {
           ...item,
-          solverIdentifier: uuidv4(),
+          jobIdentifier: uuidv4().slice(0, 8),
           result: "Error starting solver",
           executionTime: 0,
           stopped: true,
@@ -125,7 +125,7 @@ function Sat() {
           ...prevItems,
           {
             name: item.name,
-            solverIdentifier: uuidv4(),
+            jobIdentifier: uuidv4().slice(0, 8),
             result: updateditem.result,
             executionTime: updateditem.executionTime,
             satIdentifier: item.satIdentifier,
@@ -179,7 +179,7 @@ function Sat() {
           >
             <div>Name: {item.name}</div>
             <div>SAT ID: {item.satIdentifier}</div>
-            <div>Solver ID: {item.solverIdentifier}</div>
+            <div>Job ID: {item.jobIdentifier}</div>
           </div>
         ))}
       </div>
@@ -192,7 +192,7 @@ function Sat() {
           {runningSatJobs.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <div>Solver ID: {item.solverIdentifier}</div>
+              <div>Job ID: {item.jobIdentifier}</div>
               <div>Waiting for result</div>
               <button onClick={() => fetchStopJob(item)}>Stop Solver</button>
             </div>
@@ -200,7 +200,7 @@ function Sat() {
           {satJobResultList.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <div>Solver ID: {item.solverIdentifier}</div>
+              <div>Job ID: {item.jobIdentifier}</div>
               <div>Result: {item.result}</div>
               <div>Execution Time: {item.executionTime}</div>
             </div>

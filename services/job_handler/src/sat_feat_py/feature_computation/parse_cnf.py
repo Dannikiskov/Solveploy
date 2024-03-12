@@ -23,7 +23,6 @@ def parse_cnf(cnf_string):
             # denoting the end of the line.
             clauses_list.append([int(x) for x in line.split(" ")[:-1]])
 
-    print("CLAUSES LIST FROM PARSE CNF", clauses_list, flush=True)
     c = len(clauses_list)
     v = max([abs(l) for clause in clauses_list for l in clause])
 

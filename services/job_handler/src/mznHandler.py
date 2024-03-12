@@ -7,7 +7,7 @@ import subprocess
 
 def handle_new_mzn_job(data):
 
-    identifier = data["item"]["solverIdentifier"]
+    identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
 
     solverK8Job.start_solver_job(solver_name, identifier, "mzn")
@@ -29,7 +29,7 @@ def handle_new_mzn_job(data):
 
 def stop_job(data):
 
-    identifier = data["item"]["solverIdentifier"]
+    identifier = data["item"]["jobIdentifier"]
 
     solverK8Job.stop_solver_job(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')

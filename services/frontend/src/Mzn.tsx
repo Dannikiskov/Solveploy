@@ -7,7 +7,7 @@ import "./App.css";
 interface MznSolverData {
   name: string;
   mznIdentifier: string;
-  solverIdentifier: string;
+  jobIdentifier: string;
 }
 
 interface MznJobResult extends MznSolverData {
@@ -17,7 +17,9 @@ interface MznJobResult extends MznSolverData {
 
 function Mzn() {
   const [mznSolverList, setMznSolverList] = useState<MznSolverData[]>([]);
-  const [selectedMznSolvers, setSelectedMznSolvers] = useState<MznSolverData[]>([]);
+  const [selectedMznSolvers, setSelectedMznSolvers] = useState<MznSolverData[]>(
+    []
+  );
   const [mznFileContent, setMznFileContent] = useState<string>("");
   const [runningMznJobs, setRunningMznJobs] = useState<MznSolverData[]>([]);
   const [mznJobResultList, setMznJobResultList] = useState<MznJobResult[]>([]);
@@ -27,7 +29,7 @@ function Mzn() {
   }, []);
 
   const fetchStopJob = async (item: MznSolverData) => {
-    setRunningMznJobs((prevItems : Array<MznSolverData>) =>
+    setRunningMznJobs((prevItems: Array<MznSolverData>) =>
       prevItems.filter((i) => i.name !== item.name)
     );
 
@@ -60,7 +62,7 @@ function Mzn() {
       const data = await response.json();
       const updatedData = data.map((item: MznSolverData) => ({
         ...item,
-        solverIdentifier: uuidv4(),
+        jobIdentifier: uuidv4().slice(0, 8),
       }));
       setMznSolverList(updatedData);
     } catch (error) {
@@ -69,12 +71,15 @@ function Mzn() {
   };
 
   const handleitemclick = (item: MznSolverData) => {
-    if (selectedMznSolvers.find((i : any) => i.name === item.name)) {
-      setSelectedMznSolvers((prevItems : Array<MznSolverData>) =>
+    if (selectedMznSolvers.find((i: any) => i.name === item.name)) {
+      setSelectedMznSolvers((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
     } else {
-      setSelectedMznSolvers((prevItems: Array<MznSolverData>) => [...prevItems, item]);
+      setSelectedMznSolvers((prevItems: Array<MznSolverData>) => [
+        ...prevItems,
+        item,
+      ]);
     }
   };
 
@@ -85,10 +90,9 @@ function Mzn() {
     setMznSolverList((prevList) =>
       prevList.map((item) => ({
         ...item,
-        solverIdentifier: uuidv4(),
+        jobIdentifier: uuidv4().slice(0, 8),
       }))
     );
-
   };
 
   const fetchstartsolvers = async (item: MznSolverData) => {
@@ -98,14 +102,18 @@ function Mzn() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ item, mznFileContent, instructions: "StartMznJob" }),
+        body: JSON.stringify({
+          item,
+          mznFileContent,
+          instructions: "StartMznJob",
+        }),
       });
 
       let updateditem = await response.json();
       if (!response.ok) {
         updateditem = {
           ...item,
-          solverIdentifier: uuidv4(),
+          jobIdentifier: uuidv4().slice(0, 8),
           result: "Error starting solver",
           executionTime: 0,
           stopped: true,
@@ -117,7 +125,7 @@ function Mzn() {
           ...prevItems,
           {
             name: item.name,
-            solverIdentifier: uuidv4(),
+            jobIdentifier: uuidv4().slice(0, 8),
             result: updateditem.result,
             executionTime: updateditem.executionTime,
             mznIdentifier: item.mznIdentifier,
@@ -126,7 +134,7 @@ function Mzn() {
       }
 
       // Update state here
-      setRunningMznJobs((prevItems : Array<MznSolverData>) =>
+      setRunningMznJobs((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
     } catch (error) {
@@ -170,7 +178,7 @@ function Mzn() {
           >
             <div>Name: {item.name}</div>
             <div>MZN ID: {item.mznIdentifier}</div>
-            <div>Solver ID: {item.solverIdentifier}</div>
+            <div>Job ID: {item.jobIdentifier}</div>
           </div>
         ))}
       </div>
@@ -183,17 +191,15 @@ function Mzn() {
           {runningMznJobs.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <div>Solver ID: {item.solverIdentifier}</div>
+              <div>Job ID: {item.jobIdentifier}</div>
               <div>Waiting for result</div>
-              <button onClick={() => fetchStopJob(item)}>
-                Stop Solver
-              </button>
+              <button onClick={() => fetchStopJob(item)}>Stop Solver</button>
             </div>
           ))}
           {mznJobResultList.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <div>Solver ID: {item.solverIdentifier}</div>
+              <div>Job ID: {item.jobIdentifier}</div>
               <div>Result: {item.result}</div>
               <div>Execution Time: {item.executionTime}</div>
             </div>

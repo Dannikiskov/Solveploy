@@ -22,7 +22,7 @@ def run_sat_model(solver_name, cnf_string):
             # Skip comments and problem line
             pass
         else:
-            clause = list(map(int, line.split()))
+            clause = [int(x) for x in line.split(" ")[:-1]]
             print("CLAUSE: ", clause, flush=True)
             solver.add_clause(clause)
 
