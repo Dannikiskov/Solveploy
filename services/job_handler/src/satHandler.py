@@ -3,7 +3,6 @@ import solverK8Job
 from pathlib import Path
 import tempfile
 import sat_feat_py.generate_features as gf
-import pysat.solvers
 
 def handle_new_sat_job(data):
 

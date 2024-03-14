@@ -29,6 +29,35 @@ def query_database(query):
     return result
 
 
+# MAXSAT
+def handle_maxsat_instance(data):
+    feature_vector = str(data["featureVector"])
+    solver_name = data["solverName"]
+    execution_time = data["executionTime"]
+
+    query = f"SELECT id FROM maxsat_solvers WHERE name = '{solver_name}'"
+    solver_id = query_database(query)
+    if not solver_id:
+        query = f"INSERT INTO maxsat_solvers (name) VALUES ('{solver_name}') RETURNING id"
+        solver_id = query_database(query)
+
+    query = f"SELECT id FROM maxsat_feature_vectors WHERE features = '{feature_vector}'"
+    feat_id = query_database(query)
+    if not feat_id:
+        query = f"INSERT INTO maxsat_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
+        feat_id = query_database(query)
+
+    print(feat_id)
+
+    query = f"SELECT * FROM maxsat_solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
+    existing_entry = query_database(query)
+
+    if not existing_entry:
+        query = f"INSERT INTO maxsat_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
+        query_database(query)
+
+    print_all_tables()
+
 # SAT
 def handle_sat_instance(data):
     feature_vector = str(data["featureVector"])
@@ -159,6 +188,35 @@ def database_init():
     query_database(query)
 
     # SAT tables
+    query = """
+        CREATE TABLE IF NOT EXISTS sat_feature_vectors (
+            id SERIAL PRIMARY KEY,
+            features VARCHAR(2047) UNIQUE
+        );
+    """
+    query_database(query)
+
+
+    query = """
+        CREATE TABLE IF NOT EXISTS sat_solvers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) UNIQUE
+        );
+    """
+    query_database(query)
+
+
+    query = """
+        CREATE TABLE IF NOT EXISTS sat_solver_featvec_time (
+            id SERIAL PRIMARY KEY,
+            solver_id INT REFERENCES solvers(id),
+            feature_vec_id INT REFERENCES feature_vectors(id),
+            execution_time FLOAT NOT NULL
+        );
+    """
+    query_database(query)
+
+    # MAXSAT tables
     query = """
         CREATE TABLE IF NOT EXISTS sat_feature_vectors (
             id SERIAL PRIMARY KEY,

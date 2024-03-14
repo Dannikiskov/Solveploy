@@ -6,7 +6,7 @@ def start_solver_job(solver_name, identifier, image_prefix, namespace):
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"solver-{solver_name}-{image_prefix}-{identifier}.id"
+    job_name = f"solver-{solver_name.lower()}-{image_prefix}-{identifier}"
 
     # Create solver job
     solver_job = create_solver_job(job_name, str(identifier), image_prefix)

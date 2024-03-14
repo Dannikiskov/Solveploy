@@ -47,10 +47,17 @@ echo "Finished Docker base image.."
 ) &
 
 (
-  # Start Docker mzn-pod build
+  # Start Docker sat-pod build
   echo "Starting Docker sat-pod build.."
   docker build -q -t sat-pod -f services/sat_pod/Dockerfile services/sat_pod/
   echo "Finished Docker sat-pod build."
+) &
+
+(
+  # Start Docker sat-pod build
+  echo "Starting Docker maxsat-pod build.."
+  docker build -q -t maxsat-pod -f services/maxsat_pod/Dockerfile services/maxsat_pod/
+  echo "Finished Docker maxsat-pod build."
 ) &
 
 
