@@ -133,10 +133,7 @@ function Mzn() {
         ]);
       }
 
-      // Update state here
-      setRunningMznJobs((prevItems: Array<MznSolverData>) =>
-        prevItems.filter((i) => i.name !== item.name)
-      );
+      setRunningMznJobs([]);
     } catch (error) {
       console.error("Error starting solvers:", error);
       return {

@@ -13,6 +13,8 @@ def handle_new_mzn_job(data):
     solverK8Job.start_solver_job(solver_name, identifier, "mzn")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
+    stop_mzn_by_namespace()
+
     temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file.write(data['mznFileContent'].encode())
     
@@ -27,12 +29,16 @@ def handle_new_mzn_job(data):
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
 
 
-def stop_job(data):
+def stop_mzn_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
 
     solverK8Job.stop_solver_job(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
+
+
+def stop_mzn_by_namespace():
+    solverK8Job.stop_solver_by_namespace("mzn")
 
 
 def get_available_mzn_solvers(data):

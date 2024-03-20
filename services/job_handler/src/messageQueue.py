@@ -45,6 +45,9 @@ def consume():
 
         elif instructions == "StopSatJob":
             threading.Thread(target=satHandler.stop_job, args=(data,)).start()
+            
+        elif instructions == "StopSatJob":
+            threading.Thread(target=satHandler.stop_job, args=(data,)).start()
 
         else:
             print("ERROR: NO MATCHING INSTRUCTIONS:::", instructions, flush=True)

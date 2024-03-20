@@ -11,7 +11,8 @@ def handle_new_sat_job(data):
 
     solverK8Job.start_solver_job(solver_name, identifier, "sat")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-    
+    stop_sat_by_namespace()
+
     # Get feature vector
     try:
         feature_vector = gf.generate_features(data["cnfFileContent"])
@@ -20,17 +21,20 @@ def handle_new_sat_job(data):
     except Exception as e:
         print(f"Exception occurred: {str(e)}", flush=True)
 
-
-    
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
 
 
-def stop_sat_job(data):
+def stop_sat_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
 
-    solverK8Job.stop_solver_job(identifier)
+    solverK8Job.stop_solver_job_by_id(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
+
+
+def stop_sat_by_namespace():
+    solverK8Job.stop_solver_by_namespace("sat")
+
 
 
 def get_available_sat_solvers(data):

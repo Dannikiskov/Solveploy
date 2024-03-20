@@ -1,7 +1,7 @@
 @echo off
 
 REM Start Minikube
-minikube start --cpus=4 --memory=6000
+minikube start --cpus=2 --memory=2000
 
 REM Set Minikube Docker environment
 @FOR /f "tokens=*" %%i IN ('minikube docker-env') DO @%%i

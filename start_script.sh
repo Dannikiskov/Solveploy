@@ -1,6 +1,8 @@
 #!/bin/bash
 
-start_time=$(date +%s)
+
+
+# Deploy app locally
 minikube start --cpus=4 --memory=6000
 
 eval $(minikube docker-env)

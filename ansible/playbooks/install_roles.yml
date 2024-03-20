@@ -1,0 +1,9 @@
+---
+- name: Install Ansible Galaxy roles
+  hosts: localhost
+  connection: local
+  become: true
+  roles:
+    - geerlingguy.docker
+    - gantsign.minikube
+    - robertdebock.kubectl

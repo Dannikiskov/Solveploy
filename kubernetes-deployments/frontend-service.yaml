@@ -8,4 +8,4 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-  type: LoadBalancer # Use LoadBalancer to expose externally
+  type: LoadBalancer

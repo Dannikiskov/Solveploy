@@ -1,7 +1,7 @@
 from kubernetes import client, config
 import uuid
 
-def start_solver_job(solver_name, identifier, image_prefix, namespace):
+def start_solver_job(solver_name, identifier, image_prefix):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
@@ -12,7 +12,7 @@ def start_solver_job(solver_name, identifier, image_prefix, namespace):
     solver_job = create_solver_job(job_name, str(identifier), image_prefix)
     batch_api = client.BatchV1Api()
 
-    batch_api.create_namespaced_job(namespace=namespace, body=solver_job)
+    batch_api.create_namespaced_job(namespace=image_prefix, body=solver_job)
     return job_name
 
 def create_solver_job(job_name, identifier, image_prefix):
@@ -60,6 +60,40 @@ def create_solver_job(job_name, identifier, image_prefix):
         )
     )
 
+
+def k8s_namespace_init():
+    # Load Kubernetes configuration
+    config.load_incluster_config()
+
+    # Create Kubernetes API client
+    core_api = client.CoreV1Api()
+    
+    core_api.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name="sat")))
+    core_api.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name="mzn")))
+    core_api.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name="maxsat")))
+
+    # k8s secret with name "message-broker-default-user"
+    secrets = core_api.list_namespaced_secret(namespace="default")
+    secret_data = None
+    for secret in secrets.items:
+        if secret.metadata.name == "message-broker-default-user":
+            secret_data = secret
+            break
+    
+    # Create a namespaced secret
+    secret = client.V1Secret(
+        metadata=client.V1ObjectMeta(name="message-broker-default-user"),
+        data={
+            "username": secret_data.data["username"],
+            "password": secret_data.data["password"],
+        }
+    )
+
+    core_api.create_namespaced_secret(namespace="sat", body=secret)
+    core_api.create_namespaced_secret(namespace="mzn", body=secret)
+    core_api.create_namespaced_secret(namespace="maxsat", body=secret)
+
+    
 
 def stop_solver_job_by_id(identifier):
     # Load Kubernetes configuration
