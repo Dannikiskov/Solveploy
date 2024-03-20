@@ -1,4 +1,4 @@
-sudo apt install pipx
+sudo apt install pipx -y
 pipx install --include-deps ansible
 ansible-galaxy role install --roles-path ansible/playbooks/roles geerlingguy.docker
 ansible-galaxy role install --roles-path ansible/playbooks/roles gantsign.minikube
