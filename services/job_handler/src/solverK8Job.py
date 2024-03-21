@@ -89,10 +89,32 @@ def k8s_namespace_init():
         }
     )
 
-    core_api.create_namespaced_secret(namespace="sat", body=secret)
-    core_api.create_namespaced_secret(namespace="mzn", body=secret)
-    core_api.create_namespaced_secret(namespace="maxsat", body=secret)
-    core_api.create_namespaced_secret(namespace="default", body=secret)
+    # Check if the secret already exists in the "sat" namespace
+    try:
+        core_api.read_namespaced_secret(name="message-broker-default-user", namespace="sat")
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            core_api.create_namespaced_secret(namespace="sat", body=secret)
+        else:
+            print("Secret already exists in sat", flush=True)
+
+    # Check if the secret already exists in the "mzn" namespace
+    try:
+        core_api.read_namespaced_secret(name="message-broker-default-user", namespace="mzn")
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            core_api.create_namespaced_secret(namespace="mzn", body=secret)
+        else:
+            print("Secret already exists in mzn", flush=True)
+
+    # Check if the secret already exists in the "maxsat" namespace
+    try:
+        core_api.read_namespaced_secret(name="message-broker-default-user", namespace="maxsat")
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            core_api.create_namespaced_secret(namespace="maxsat", body=secret)
+        else:
+            print("Secret already exists maxsat", flush=True)
 
     
 

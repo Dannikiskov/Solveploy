@@ -3,18 +3,7 @@
   connection: local
   tasks:
     - name: Start minikube
-      command: minikube start --cpus=4 --memory=6000
-
-    - name: Set minikube docker-env
-      shell: eval $(minikube docker-env)
-    
-    - name: Get minikube docker-env
-      shell: minikube docker-env
-      register: minikube_docker_env
-
-    - name: Set Docker environment variables
-      set_fact:
-        docker_env: "{{ minikube_docker_env.stdout_lines | join(';') }}"
+      command: minikube start --cpus=2 --memory=6000
 
     - name: Apply rabbitmq operator
       community.kubernetes.k8s:
@@ -23,22 +12,86 @@
     - name: Apply rabbitmq definition
       community.kubernetes.k8s:
         src: ../../kubernetes-deployments/rabbitmq-definition.yaml
+  
+    - name: Get minikube docker-env
+      shell: minikube docker-env
+      register: minikube_docker_env
 
     - name: Build Docker images
-      environment: "{{ docker_env }}"
       community.docker.docker_image_build:
         path: "{{ item.context }}"
         name: "{{ item.image }}"
         dockerfile: "{{ item.dockerfile }}"
+        rebuild: "always"
+        docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
+        tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+        validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+        ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
+        client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
+        client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
       loop:
-        - { image: 'solveploy-backend-base-image', dockerfile: 'Dockerfile', context: '../../base-image/' }
-        - { image: 'frontend', dockerfile: 'Dockerfile', context: '../../services/frontend/' }
-        - { image: 'api-gateway', dockerfile: 'Dockerfile', context: '../../services/api_gateway/' }
-        - { image: 'job-handler', dockerfile: 'Dockerfile', context: '../../services/job_handler/' }
-        - { image: 'knowledge-base', dockerfile: 'Dockerfile', context: '../../services/knowledge_base/' }
-        - { image: 'mzn-pod', dockerfile: 'Dockerfile', context: '../../services/mzn_pod/' }
-        - { image: 'sat-pod', dockerfile: 'Dockerfile', context: '../../services/sat_pod/' }
-        - { image: 'maxsat-pod', dockerfile: 'Dockerfile', context: '../../services/maxsat_pod/' }
+        - {
+            image: "solveploy-backend-base-image",
+            dockerfile: "Dockerfile",
+            context: "../../base-image/",
+          }
+        - {
+            image: "frontend",
+            dockerfile: "Dockerfile",
+            context: "../../services/frontend/",
+          }
+        - {
+            image: "api-gateway",
+            dockerfile: "Dockerfile",
+            context: "../../services/api_gateway/",
+          }
+        - {
+            image: "job-handler",
+            dockerfile: "Dockerfile",
+            context: "../../services/job_handler/",
+          }
+        - {
+            image: "knowledge-base",
+            dockerfile: "Dockerfile",
+            context: "../../services/knowledge_base/",
+          }
+        - {
+            image: "mzn-pod",
+            dockerfile: "Dockerfile",
+            context: "../../services/mzn_pod/",
+          }
+        - {
+            image: "sat-pod",
+            dockerfile: "Dockerfile",
+            context: "../../services/sat_pod/",
+          }
+        - {
+            image: "maxsat-pod",
+            dockerfile: "Dockerfile",
+            context: "../../services/maxsat_pod/",
+          }
+
+    - name: Get secret from rabbitmq-system namespace
+      community.kubernetes.k8s_info:
+        kind: Secret
+        name: message-broker-default-user
+        namespace: rabbitmq-system
+      register: secret_info
+      until: (secret_info.resources | default([])) | length > 0
+      retries: 20
+      delay: 10
+
+    - name: Create secret in default namespace
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ secret_info.resources[0].metadata.name }}"
+            namespace: default
+          type: "{{ secret_info.resources[0].type }}"
+          data: "{{ secret_info.resources[0].data }}"
 
     - name: Apply Kubernetes deployments and services
       community.kubernetes.k8s:
@@ -57,4 +110,3 @@
         - ../../kubernetes-deployments/knowledge-base-database-service.yaml
         - ../../kubernetes-deployments/knowledge-base-deployment.yaml
         - ../../kubernetes-deployments/knowledge-base-service.yaml
-...
