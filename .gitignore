@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Vite
 node_modules/
 package-lock.json
@@ -18,3 +19,28 @@ public/
 *.so
 __pycache__/
 
+=======
+# Vite
+node_modules/
+package-lock.json
+yarn.lock
+
+# React
+dist/
+build/
+public/
+
+# Typescript
+*.tsbuildinfo
+*.js.map
+
+# Python Flask
+*.py[cod]
+*$py.class
+*.so
+__pycache__/
+
+# Misc
+test.py
+tmp_script.sh
+>>>>>>> f268d284596e46b00188703f3b318b75d62c025d
