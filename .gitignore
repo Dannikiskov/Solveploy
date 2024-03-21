@@ -24,3 +24,4 @@ tmp_script.sh
 
 # Ansible
 ansible/playbooks/roles/*
+ansible/collections/*
