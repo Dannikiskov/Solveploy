@@ -92,6 +92,7 @@ def k8s_namespace_init():
     core_api.create_namespaced_secret(namespace="sat", body=secret)
     core_api.create_namespaced_secret(namespace="mzn", body=secret)
     core_api.create_namespaced_secret(namespace="maxsat", body=secret)
+    core_api.create_namespaced_secret(namespace="default", body=secret)
 
     
 

@@ -7,6 +7,14 @@
 
     - name: Set minikube docker-env
       shell: eval $(minikube docker-env)
+    
+    - name: Get minikube docker-env
+      shell: minikube docker-env
+      register: minikube_docker_env
+
+    - name: Set Docker environment variables
+      set_fact:
+        docker_env: "{{ minikube_docker_env.stdout_lines | join(';') }}"
 
     - name: Apply rabbitmq operator
       community.kubernetes.k8s:
@@ -17,6 +25,7 @@
         src: ../../kubernetes-deployments/rabbitmq-definition.yaml
 
     - name: Build Docker images
+      environment: "{{ docker_env }}"
       community.docker.docker_image_build:
         path: "{{ item.context }}"
         name: "{{ item.image }}"
@@ -31,21 +40,21 @@
         - { image: 'sat-pod', dockerfile: 'Dockerfile', context: '../../services/sat_pod/' }
         - { image: 'maxsat-pod', dockerfile: 'Dockerfile', context: '../../services/maxsat_pod/' }
 
-  # - name: Apply Kubernetes deployments and services
-  #   community.kubernetes.core:
-  #     src: "{{ item }}"
-  #   loop:
-  #     - ../../kubernetes-deployments/api-gateway-deployment.yaml
-  #     - ../../kubernetes-deployments/api-gateway-service.yaml
-  #     - ../../kubernetes-deployments/frontend-deployment.yaml
-  #     - ../../kubernetes-deployments/frontend-service.yaml
-  #     - ../../kubernetes-deployments/job-handler-deployment.yaml
-  #     - ../../kubernetes-deployments/job-handler-service.yaml
-  #     - ../../kubernetes-deployments/role-job-creator.yaml
-  #     - ../../kubernetes-deployments/cluster-role-job-creator.yaml
-  #     - ../../kubernetes-deployments/clusterrolebinding-job-creator.yaml
-  #     - ../../kubernetes-deployments/knowledge-base-database-deployment.yaml
-  #     - ../../kubernetes-deployments/knowledge-base-database-service.yaml
-  #     - ../../kubernetes-deployments/knowledge-base-deployment.yaml
-  #     - ../../kubernetes-deployments/knowledge-base-service.yaml
+    - name: Apply Kubernetes deployments and services
+      community.kubernetes.k8s:
+        src: "{{ item }}"
+      loop:
+        - ../../kubernetes-deployments/api-gateway-deployment.yaml
+        - ../../kubernetes-deployments/api-gateway-service.yaml
+        - ../../kubernetes-deployments/frontend-deployment.yaml
+        - ../../kubernetes-deployments/frontend-service.yaml
+        - ../../kubernetes-deployments/job-handler-deployment.yaml
+        - ../../kubernetes-deployments/job-handler-service.yaml
+        - ../../kubernetes-deployments/role-job-creator.yaml
+        - ../../kubernetes-deployments/cluster-role-job-creator.yaml
+        - ../../kubernetes-deployments/clusterrolebinding-job-creator.yaml
+        - ../../kubernetes-deployments/knowledge-base-database-deployment.yaml
+        - ../../kubernetes-deployments/knowledge-base-database-service.yaml
+        - ../../kubernetes-deployments/knowledge-base-deployment.yaml
+        - ../../kubernetes-deployments/knowledge-base-service.yaml
 ...
