@@ -1,0 +1,51 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Start minikube
+      command: minikube start --cpus=4 --memory=6000
+
+    - name: Set minikube docker-env
+      shell: eval $(minikube docker-env)
+
+    - name: Apply rabbitmq operator
+      community.kubernetes.k8s:
+        src: ../../kubernetes-deployments/rabbitmq-operator.yaml
+
+    - name: Apply rabbitmq definition
+      community.kubernetes.k8s:
+        src: ../../kubernetes-deployments/rabbitmq-definition.yaml
+
+    - name: Build Docker images
+      community.docker.docker_image_build:
+        path: "{{ item.context }}"
+        name: "{{ item.image }}"
+        dockerfile: "{{ item.dockerfile }}"
+      loop:
+        - { image: 'solveploy-backend-base-image', dockerfile: 'Dockerfile', context: '../../base-image/' }
+        - { image: 'frontend', dockerfile: 'Dockerfile', context: '../../services/frontend/' }
+        - { image: 'api-gateway', dockerfile: 'Dockerfile', context: '../../services/api_gateway/' }
+        - { image: 'job-handler', dockerfile: 'Dockerfile', context: '../../services/job_handler/' }
+        - { image: 'knowledge-base', dockerfile: 'Dockerfile', context: '../../services/knowledge_base/' }
+        - { image: 'mzn-pod', dockerfile: 'Dockerfile', context: '../../services/mzn_pod/' }
+        - { image: 'sat-pod', dockerfile: 'Dockerfile', context: '../../services/sat_pod/' }
+        - { image: 'maxsat-pod', dockerfile: 'Dockerfile', context: '../../services/maxsat_pod/' }
+
+  # - name: Apply Kubernetes deployments and services
+  #   community.kubernetes.core:
+  #     src: "{{ item }}"
+  #   loop:
+  #     - ../../kubernetes-deployments/api-gateway-deployment.yaml
+  #     - ../../kubernetes-deployments/api-gateway-service.yaml
+  #     - ../../kubernetes-deployments/frontend-deployment.yaml
+  #     - ../../kubernetes-deployments/frontend-service.yaml
+  #     - ../../kubernetes-deployments/job-handler-deployment.yaml
+  #     - ../../kubernetes-deployments/job-handler-service.yaml
+  #     - ../../kubernetes-deployments/role-job-creator.yaml
+  #     - ../../kubernetes-deployments/cluster-role-job-creator.yaml
+  #     - ../../kubernetes-deployments/clusterrolebinding-job-creator.yaml
+  #     - ../../kubernetes-deployments/knowledge-base-database-deployment.yaml
+  #     - ../../kubernetes-deployments/knowledge-base-database-service.yaml
+  #     - ../../kubernetes-deployments/knowledge-base-deployment.yaml
+  #     - ../../kubernetes-deployments/knowledge-base-service.yaml
+...
