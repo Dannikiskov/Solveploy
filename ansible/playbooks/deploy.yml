@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: Build Base Docker image
+      community.docker.docker_image:
+        path: ../../base-image
+        name: solveploy-backend-base-image
+        tag: solveploy-backend-base-image
+        state: present
+        build:
+          pull: yes
+
+    - name: Deploy Kubernetes files
+      community.kubernetes.k8s:
+        state: present
+        src: /path/to/kubernetes/file
