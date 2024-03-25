@@ -1,6 +1,6 @@
 sudo apt install pip -y
 python3 -m pip install --user ansible
-pip3 install openshift yyaml kubernetes
+pip3 install openshift pyyaml kubernetes
 export PATH=$PATH:/home/${USER}/.local/bin
 sudo usermod -aG docker $USER && newgrp docker
 ansible-galaxy collection install kubernetes.core
