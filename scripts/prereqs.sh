@@ -1,8 +1,9 @@
 sudo apt install pip -y
 python3 -m pip install --user ansible
-pip3 install openshift pyyaml kubernetes
 export PATH=$PATH:/home/${USER}/.local/bin
+pip3 install openshift pyyaml kubernetes
 sudo usermod -aG docker $USER && newgrp docker
+sudo systemctl start docker
 ansible-galaxy collection install kubernetes.core
 ansible-galaxy role install --roles-path=ansible/playbooks/roles geerlingguy.docker
 ansible-galaxy role install --roles-path=ansible/playbooks/roles gantsign.minikube
