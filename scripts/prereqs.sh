@@ -1,5 +1,8 @@
-sudo apt install pipx -y
-pipx install --include-deps ansible
+sudo apt install pip -y
+python3 -m pip install --user ansible
+pip3 install openshift
+pip3 install pyyaml
+pip3 install kubernetes
 export PATH=$PATH:/home/${USER}/.local/bin
 sudo usermod -aG docker $USER && newgrp docker
 ansible-galaxy collection install kubernetes.core
