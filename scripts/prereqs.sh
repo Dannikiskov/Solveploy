@@ -8,5 +8,5 @@ ansible-galaxy role install --roles-path=ansible/playbooks/roles geerlingguy.doc
 ansible-galaxy role install --roles-path=ansible/playbooks/roles gantsign.minikube
 ansible-galaxy role install --roles-path=ansible/playbooks/roles robertdebock.kubectl
 
-ansible-playbook ansible/playbooks/install_roles.yml -i inventory/hosts
-ansible-playbook ansible/playbooks/testbook.yml -i inventory/hosts
+ansible-playbook ansible/playbooks/install_roles.yml -i ansible/inventory/hosts
+ansible-playbook ansible/playbooks/testbook.yml -i ansible/inventory/hosts
