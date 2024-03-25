@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   connection: local
+  become: true
   tasks:
     - name: Start minikube
       command: minikube start --cpus=2 --memory=6000
