@@ -72,7 +72,7 @@
           }
 
     - name: Get secret from rabbitmq-system namespace
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         kind: Secret
         name: message-broker-default-user
         namespace: rabbitmq-system
@@ -82,7 +82,7 @@
       delay: 10
 
     - name: Create secret in default namespace
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         state: present
         definition:
           apiVersion: v1
@@ -94,7 +94,7 @@
           data: "{{ secret_info.resources[0].data }}"
 
     - name: Apply Kubernetes deployments and services
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         src: "{{ item }}"
       loop:
         - ../../kubernetes-deployments/api-gateway-deployment.yaml
