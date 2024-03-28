@@ -47,11 +47,12 @@ def _rmq_connect():
         try:
             return pika.BlockingConnection(
                 pika.ConnectionParameters(
-                    host='message-broker.default.svc.cluster.local',
+                    host='message-broker.rabbitmq-system.svc.cluster.local',
                     credentials=pika.PlainCredentials(
                         os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
                 )
             )
         except Exception as e:
-            print(f"Connection failed. Retrying in 5 seconds...")
+            print(f"Connection failed. Retrying in 5 seconds...", flush=True)
+            print(e, flush=True)
             time.sleep(5)

@@ -1,9 +1,7 @@
 #!/bin/bash
 
-
-
 # Deploy app locally
-minikube start --cpus=4 --memory=6000
+minikube start --cpus=2 --memory=4000
 
 eval $(minikube docker-env)
 
@@ -11,7 +9,7 @@ kubectl apply -f kubernetes-deployments/rabbitmq-operator.yaml
 kubectl apply -f kubernetes-deployments/rabbitmq-definition.yaml
 
 echo "Starting Docker base image.."
-docker build -q -t solveploy-backend-base-image -f base-image/DockerfileBackendBase base-image/
+docker build -q -t solveploy-backend-base-image -f base-image/Dockerfile base-image/
 echo "Finished Docker base image.."
 
 (
@@ -66,6 +64,9 @@ echo "Finished Docker base image.."
 
 # Wait for all background processes to finish
 wait
+
+
+kubectl create -f tmp-secret.yaml
 
 # Apply Kubernetes deployments and services
 kubectl apply -f kubernetes-deployments/api-gateway-deployment.yaml

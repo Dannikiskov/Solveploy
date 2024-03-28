@@ -5,6 +5,10 @@
     - name: Start minikube
       command: minikube start --cpus=2 --memory=6000
 
+    - name: Create namespaces
+      kubernetes.core.k8s:
+        src: ../../kubernetes-deployments/namespace-creation.yaml
+
     - name: Apply rabbitmq operator
       kubernetes.core.k8s:
         src: ../../kubernetes-deployments/rabbitmq-operator.yaml
@@ -12,7 +16,7 @@
     - name: Apply rabbitmq definition
       kubernetes.core.k8s:
         src: ../../kubernetes-deployments/rabbitmq-definition.yaml
-  
+
     - name: Get minikube docker-env
       shell: minikube docker-env
       register: minikube_docker_env

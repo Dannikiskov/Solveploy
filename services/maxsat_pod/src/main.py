@@ -39,7 +39,7 @@ if __name__ == '__main__':
         try:
             established = pika.BlockingConnection(
                 pika.ConnectionParameters(
-                    host='message-broker.default.svc.cluster.local',
+                    host='message-broker.rabbitmq-system.svc.cluster.local',
                     credentials=pika.PlainCredentials(
                         os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
                 )

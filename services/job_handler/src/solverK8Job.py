@@ -1,5 +1,6 @@
 from kubernetes import client, config
 import uuid
+import os
 
 def start_solver_job(solver_name, identifier, image_prefix):
     # Load Kubernetes configuration
@@ -33,21 +34,11 @@ def create_solver_job(job_name, identifier, image_prefix):
                                 ),
                                 client.V1EnvVar(
                                     name="RABBITMQ_USERNAME",
-                                    value_from=client.V1EnvVarSource(
-                                        secret_key_ref=client.V1SecretKeySelector(
-                                            name="message-broker-default-user",
-                                            key="username",
-                                        )
-                                    ),
+                                    value=os.getenv("RABBITMQ_USERNAME"),
                                 ),
                                 client.V1EnvVar(
                                     name="RABBITMQ_PASSWORD",
-                                    value_from=client.V1EnvVarSource(
-                                        secret_key_ref=client.V1SecretKeySelector(
-                                            name="message-broker-default-user",
-                                            key="password",
-                                        )
-                                    ),
+                                    value=os.getenv("RABBITMQ_PASSWORD"),
                                 ),
                             ],
                         )
@@ -56,65 +47,9 @@ def create_solver_job(job_name, identifier, image_prefix):
                     active_deadline_seconds=1800,
                 )
             ),
-            ttl_seconds_after_finished=30,
+            ttl_seconds_after_finished=150,
         )
     )
-
-
-def k8s_namespace_init():
-    # Load Kubernetes configuration
-    config.load_incluster_config()
-
-    # Create Kubernetes API client
-    core_api = client.CoreV1Api()
-    
-    core_api.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name="sat")))
-    core_api.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name="mzn")))
-    core_api.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name="maxsat")))
-
-    # k8s secret with name "message-broker-default-user"
-    secrets = core_api.list_namespaced_secret(namespace="default")
-    secret_data = None
-    for secret in secrets.items:
-        if secret.metadata.name == "message-broker-default-user":
-            secret_data = secret
-            break
-    
-    # Create a namespaced secret
-    secret = client.V1Secret(
-        metadata=client.V1ObjectMeta(name="message-broker-default-user"),
-        data={
-            "username": secret_data.data["username"],
-            "password": secret_data.data["password"],
-        }
-    )
-
-    # Check if the secret already exists in the "sat" namespace
-    try:
-        core_api.read_namespaced_secret(name="message-broker-default-user", namespace="sat")
-    except client.rest.ApiException as e:
-        if e.status == 404:
-            core_api.create_namespaced_secret(namespace="sat", body=secret)
-        else:
-            print("Secret already exists in sat", flush=True)
-
-    # Check if the secret already exists in the "mzn" namespace
-    try:
-        core_api.read_namespaced_secret(name="message-broker-default-user", namespace="mzn")
-    except client.rest.ApiException as e:
-        if e.status == 404:
-            core_api.create_namespaced_secret(namespace="mzn", body=secret)
-        else:
-            print("Secret already exists in mzn", flush=True)
-
-    # Check if the secret already exists in the "maxsat" namespace
-    try:
-        core_api.read_namespaced_secret(name="message-broker-default-user", namespace="maxsat")
-    except client.rest.ApiException as e:
-        if e.status == 404:
-            core_api.create_namespaced_secret(namespace="maxsat", body=secret)
-        else:
-            print("Secret already exists maxsat", flush=True)
 
     
 
