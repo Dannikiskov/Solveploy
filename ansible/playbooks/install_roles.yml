@@ -3,7 +3,45 @@
   hosts: localhost
   connection: local
   become: true
-  roles:
-    - geerlingguy.docker
-    - gantsign.minikube
-    - robertdebock.kubectl
+  tasks:
+    - name: Include geerlingguy.docker
+      include_role:
+        name: geerlingguy.docker
+      async: 7200
+      poll: 0
+      register: docker_role
+
+    - name: Include gantsign.minikube
+      include_role:
+        name: gantsign.minikube
+      async: 7200
+      poll: 0
+      register: minikube_role
+
+    - name: Include robertdebock.kubectl
+      include_role:
+        name: robertdebock.kubectl
+      async: 7200
+      poll: 0
+      register: kubectl_role
+
+    - name: Wait for geerlingguy.docker
+      async_status:
+        jid: "{{ docker_role.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 300
+
+    - name: Wait for gantsign.minikube
+      async_status:
+        jid: "{{ minikube_role.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 300
+
+    - name: Wait for robertdebock.kubectl
+      async_status:
+        jid: "{{ kubectl_role.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 300

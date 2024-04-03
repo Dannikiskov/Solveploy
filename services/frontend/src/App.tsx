@@ -5,7 +5,6 @@ import Mzn from "./Mzn";
 import Sat from "./Sat";
 import Maxsat from "./Maxsat";
 import Nav from "./Nav";
-
 function App() {
   return (
     <Router>

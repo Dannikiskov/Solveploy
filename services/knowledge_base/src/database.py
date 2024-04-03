@@ -180,8 +180,8 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS mzn_solver_featvec_time (
             id SERIAL PRIMARY KEY,
-            solver_id INT REFERENCES solvers(id),
-            feature_vec_id INT REFERENCES feature_vectors(id),
+            solver_id INT REFERENCES mzn_solvers(id),
+            feature_vec_id INT REFERENCES mzn_feature_vectors(id),
             execution_time FLOAT NOT NULL
         );
     """
@@ -209,8 +209,8 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS sat_solver_featvec_time (
             id SERIAL PRIMARY KEY,
-            solver_id INT REFERENCES solvers(id),
-            feature_vec_id INT REFERENCES feature_vectors(id),
+            solver_id INT REFERENCES sat_solvers(id),
+            feature_vec_id INT REFERENCES sat_feature_vectors(id),
             execution_time FLOAT NOT NULL
         );
     """
@@ -218,7 +218,7 @@ def database_init():
 
     # MAXSAT tables
     query = """
-        CREATE TABLE IF NOT EXISTS sat_feature_vectors (
+        CREATE TABLE IF NOT EXISTS maxsat_feature_vectors (
             id SERIAL PRIMARY KEY,
             features VARCHAR(2047) UNIQUE
         );
@@ -227,7 +227,7 @@ def database_init():
 
 
     query = """
-        CREATE TABLE IF NOT EXISTS sat_solvers (
+        CREATE TABLE IF NOT EXISTS maxsat_solvers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(255) UNIQUE
         );
@@ -236,10 +236,10 @@ def database_init():
 
 
     query = """
-        CREATE TABLE IF NOT EXISTS sat_solver_featvec_time (
+        CREATE TABLE IF NOT EXISTS maxsat_solver_featvec_time (
             id SERIAL PRIMARY KEY,
-            solver_id INT REFERENCES solvers(id),
-            feature_vec_id INT REFERENCES feature_vectors(id),
+            solver_id INT REFERENCES maxsat_solvers(id),
+            feature_vec_id INT REFERENCES maxsat_feature_vectors(id),
             execution_time FLOAT NOT NULL
         );
     """
