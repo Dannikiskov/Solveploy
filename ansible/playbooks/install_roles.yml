@@ -4,44 +4,31 @@
   connection: local
   become: true
   tasks:
-    - name: Include geerlingguy.docker
-      include_role:
-        name: geerlingguy.docker
+    - name: Run task from geerlingguy.docker
+      command: echo "Task from geerlingguy.docker"
       async: 7200
       poll: 0
-      register: docker_role
+      register: docker_task
 
-    - name: Include gantsign.minikube
-      include_role:
-        name: gantsign.minikube
+    - name: Run task from gantsign.minikube
+      command: echo "Task from gantsign.minikube"
       async: 7200
       poll: 0
-      register: minikube_role
+      register: minikube_task
 
-    - name: Include robertdebock.kubectl
-      include_role:
-        name: robertdebock.kubectl
+    - name: Run task from robertdebock.kubectl
+      command: echo "Task from robertdebock.kubectl"
       async: 7200
       poll: 0
-      register: kubectl_role
+      register: kubectl_task
 
-    - name: Wait for geerlingguy.docker
+    - name: Wait for tasks to finish
       async_status:
-        jid: "{{ docker_role.ansible_job_id }}"
+        jid: "{{ item.ansible_job_id }}"
       register: job_result
       until: job_result.finished
       retries: 300
-
-    - name: Wait for gantsign.minikube
-      async_status:
-        jid: "{{ minikube_role.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 300
-
-    - name: Wait for robertdebock.kubectl
-      async_status:
-        jid: "{{ kubectl_role.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 300
+      with_items:
+        - "{{ docker_task }}"
+        - "{{ minikube_task }}"
+        - "{{ kubectl_task }}"
