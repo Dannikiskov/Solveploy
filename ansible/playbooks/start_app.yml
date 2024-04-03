@@ -141,7 +141,7 @@
         - ../../kubernetes-deployments/knowledge-base-service.yaml
     
     - name: Install ngrok-ingress-controller
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         name: ngrok-ingress-controller
         chart_ref: ngrok/kubernetes-ingress-controller
         release_namespace: ngrok-ingress-controller
