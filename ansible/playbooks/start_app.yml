@@ -41,74 +41,74 @@
           }
 
     - name: Build Docker images
-  community.docker.docker_image_build:
-    path: "{{ item.context }}"
-    name: "{{ item.image }}"
-    dockerfile: "{{ item.dockerfile }}"
-    rebuild: "always"
-    docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
-    tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-    validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-    ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
-    client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
-    client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
-  async: 7200
-  poll: 0
-  register: docker_build
-  loop:
-    - {
-        image: "frontend",
-        dockerfile: "Dockerfile",
-        context: "../../services/frontend/",
-      }
-    - {
-        image: "api-gateway",
-        dockerfile: "Dockerfile",
-        context: "../../services/api_gateway/",
-      }
-    - {
-        image: "job-handler",
-        dockerfile: "Dockerfile",
-        context: "../../services/job_handler/",
-      }
-    - {
-        image: "knowledge-base",
-        dockerfile: "Dockerfile",
-        context: "../../services/knowledge_base/",
-      }
-    - {
-        image: "mzn-pod",
-        dockerfile: "Dockerfile",
-        context: "../../services/mzn_pod/",
-      }
-    - {
-        image: "sat-pod",
-        dockerfile: "Dockerfile",
-        context: "../../services/sat_pod/",
-      }
-    - {
-        image: "maxsat-pod",
-        dockerfile: "Dockerfile",
-        context: "../../services/maxsat_pod/",
-      }
+      community.docker.docker_image_build:
+        path: "{{ item.context }}"
+        name: "{{ item.image }}"
+        dockerfile: "{{ item.dockerfile }}"
+        rebuild: "always"
+        docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
+        tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+        validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+        ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
+        client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
+        client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
+      async: 7200
+      poll: 0
+      register: docker_build
+      loop:
+        - {
+            image: "frontend",
+            dockerfile: "Dockerfile",
+            context: "../../services/frontend/",
+          }
+        - {
+            image: "api-gateway",
+            dockerfile: "Dockerfile",
+            context: "../../services/api_gateway/",
+          }
+        - {
+            image: "job-handler",
+            dockerfile: "Dockerfile",
+            context: "../../services/job_handler/",
+          }
+        - {
+            image: "knowledge-base",
+            dockerfile: "Dockerfile",
+            context: "../../services/knowledge_base/",
+          }
+        - {
+            image: "mzn-pod",
+            dockerfile: "Dockerfile",
+            context: "../../services/mzn_pod/",
+          }
+        - {
+            image: "sat-pod",
+            dockerfile: "Dockerfile",
+            context: "../../services/sat_pod/",
+          }
+        - {
+            image: "maxsat-pod",
+            dockerfile: "Dockerfile",
+            context: "../../services/maxsat_pod/",
+          }
 
-- name: Wait for Docker image builds to finish
-  async_status:
-    jid: "{{ item.ansible_job_id }}"
-  register: job_result
-  until: job_result.finished
-  retries: 300
-  loop: "{{ docker_build.results }}"
+    - name: Wait for Docker image builds to finish
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 300
+      loop: "{{ docker_build.results }}"
 
-    - name: Get secret from rabbitmq-system namespace
-      kubernetes.core.k8s_info:
-        kind: Secret
-        name: message-broker-default-user
-        namespace: rabbitmq-system
-      register: secret_info
-      until: (secret_info.resources | default([])) | length > 0
-      retries: 20
-      delay: 10
+        - name: Get secret from rabbitmq-system namespace
+          kubernetes.core.k8s_info:
+            kind: Secret
+            name: message-broker-default-user
+            namespace: rabbitmq-system
+          register: secret_info
+          until: (secret_info.resources | default([])) | length > 0
+          retries: 20
+          delay: 10
 
     - name: Create secret in default namespace
       kubernetes.core.k8s:
