@@ -33,7 +33,7 @@ def stop_maxsat_job_by_id(data):
 
 
 def stop_maxsat_job_by_namespace():
-    solverK8Job.stop_solver_job_by_namespace("maxsat")
+    solverK8Job.stop_solver_by_namespace("maxsat")
 
 
 def get_available_maxsat_solvers(data):
