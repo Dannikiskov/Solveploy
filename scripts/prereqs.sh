@@ -1,6 +1,6 @@
 sudo apt install pip -y
-python3 -m pip install --user ansible
 export PATH=$PATH:/home/${USER}/.local/bin
+python3 -m pip install --user ansible
 pip3 install openshift
 pip3 install pyyaml
 pip3 install kubernetes
