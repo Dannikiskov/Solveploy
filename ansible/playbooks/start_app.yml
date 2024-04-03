@@ -125,6 +125,9 @@
     - name: Apply Kubernetes deployments and services
       kubernetes.core.k8s:
         src: "{{ item }}"
+      async: 7200
+      poll: 0
+      register: k8s_apply
       loop:
         - ../../kubernetes-deployments/api-gateway-deployment.yaml
         - ../../kubernetes-deployments/api-gateway-service.yaml
@@ -139,3 +142,11 @@
         - ../../kubernetes-deployments/knowledge-base-database-service.yaml
         - ../../kubernetes-deployments/knowledge-base-deployment.yaml
         - ../../kubernetes-deployments/knowledge-base-service.yaml
+
+    - name: Wait for Kubernetes deployments and services to be applied
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 300
+      loop: "{{ k8s_apply.results }}"
