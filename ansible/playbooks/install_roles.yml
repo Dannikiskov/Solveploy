@@ -3,32 +3,7 @@
   hosts: localhost
   connection: local
   become: true
-  tasks:
-    - name: Run task from geerlingguy.docker
-      command: echo "Task from geerlingguy.docker"
-      async: 7200
-      poll: 0
-      register: docker_task
-
-    - name: Run task from gantsign.minikube
-      command: echo "Task from gantsign.minikube"
-      async: 7200
-      poll: 0
-      register: minikube_task
-
-    - name: Run task from robertdebock.kubectl
-      command: echo "Task from robertdebock.kubectl"
-      async: 7200
-      poll: 0
-      register: kubectl_task
-
-    - name: Wait for tasks to finish
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 300
-      with_items:
-        - "{{ docker_task }}"
-        - "{{ minikube_task }}"
-        - "{{ kubectl_task }}"
+  roles:
+    - geerlingguy.docker
+    - gantsign.minikube
+    - robertdebock.kubectl
