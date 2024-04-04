@@ -159,7 +159,7 @@ function Mzn() {
     }
   };
 
-  async function startSunny(): Promise<void> {
+  async function startSunny(): Promise<any> {
     console.log("Starting SUNNY");
     console.log("k: ", k);
     console.log("T: ", t);
@@ -190,7 +190,7 @@ function Mzn() {
     <>
     <br />
       <div>
-        <div>Please work now</div>
+        <div>change test</div>
         <input onChange={handlefilechange} type="file" />
       </div>
       <br />
@@ -212,7 +212,7 @@ function Mzn() {
             onChange={(e) => setT(Number(e.target.value))}
           />
           <br />
-          <button onClick={() => startSunny()}>Get SUNNY portfolio</button>
+          <button onClick={startSunny}>Get SUNNY portfolio</button>
         </div>
       )}
       <br />
