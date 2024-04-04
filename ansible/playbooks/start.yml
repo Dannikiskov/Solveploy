@@ -141,7 +141,7 @@
         - ../../kubernetes-deployments/knowledge-base-service.yaml
     
     - name: Add ngrok Helm repository
-      community.kubernetes.helm_repository:
+      kubernetes.core.helm_repository:
         name: ngrok
         repo_url: https://helm.ngrok.com
         update_cache: yes
