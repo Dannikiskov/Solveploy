@@ -144,7 +144,6 @@
       kubernetes.core.helm_repository:
         name: ngrok
         repo_url: https://helm.ngrok.com
-        update_cache: yes
 
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
