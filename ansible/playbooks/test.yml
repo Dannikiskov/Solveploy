@@ -2,12 +2,17 @@
 - hosts: localhost
   connection: local
   tasks:
+    - name: Add ngrok Helm repository
+      ansible.builtin.command: helm repo add ngrok https://helm.ngrok.com
+
+    - name: Update Helm repositories
+      ansible.builtin.command: helm repo update
+      
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
         name: ngrok-ingress-controller
         chart_ref: ngrok/kubernetes-ingress-controller
         release_namespace: ngrok-ingress-controller
-        chart_repo_url: https://ngrok.github.io/kubernetes-ingress-controller
         create_namespace: true
         values:
           credentials:
