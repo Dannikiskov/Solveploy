@@ -1,5 +1,5 @@
 import messageQueue as mq
-import solverK8Job
+import k8Handler
 import minizinc
 from pathlib import Path
 import tempfile
@@ -10,7 +10,7 @@ def handle_new_mzn_job(data):
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
 
-    solverK8Job.start_solver_job(solver_name, identifier, "mzn")
+    k8Handler.start_solver_job(solver_name, identifier, "mzn")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
     stop_mzn_by_namespace()
@@ -33,12 +33,12 @@ def stop_mzn_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
 
-    solverK8Job.stop_solver_job(identifier)
+    k8Handler.stop_solver_job(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 
 def stop_mzn_by_namespace():
-    solverK8Job.stop_solver_by_namespace("mzn")
+    k8Handler.stop_solver_by_namespace("mzn")
 
 
 def get_available_mzn_solvers(data):

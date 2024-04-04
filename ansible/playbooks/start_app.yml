@@ -3,7 +3,7 @@
   connection: local
   tasks:
     - name: Start minikube
-      command: minikube start --cpus=12 --memory=32000
+      command: minikube start --cpus=6 --memory=6000
 
     - name: Create namespaces
       kubernetes.core.k8s:
