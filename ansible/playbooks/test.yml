@@ -1,0 +1,11 @@
+- name: Install ngrok-ingress-controller
+      kubernetes.core.helm:
+        name: ngrok-ingress-controller
+        chart_ref: ngrok/kubernetes-ingress-controller
+        release_namespace: ngrok-ingress-controller
+        chart_repo_url: https://ngrok.github.io/kubernetes-ingress-controller
+        create_namespace: true
+        values:
+          credentials:
+            apiKey: "{{ NGROK_API_KEY }}"
+            authtoken: "{{ NGROK_AUTHTOKEN }}"git

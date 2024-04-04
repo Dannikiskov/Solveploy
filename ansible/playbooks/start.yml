@@ -3,7 +3,7 @@
   connection: local
   tasks:
     - name: Start minikube
-      command: minikube start --cpus=14 --memory=60000
+      command: minikube start --cpus=6 --memory=6000
 
     - name: Create namespaces
       kubernetes.core.k8s:
@@ -140,16 +140,12 @@
         - ../../kubernetes-deployments/knowledge-base-deployment.yaml
         - ../../kubernetes-deployments/knowledge-base-service.yaml
     
-    - name: Add ngrok Helm repository
-      kubernetes.core.helm_repository:
-        name: ngrok
-        repo_url: https://ngrok.github.io/kubernetes-ingress-controller
-
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
         name: ngrok-ingress-controller
         chart_ref: ngrok/kubernetes-ingress-controller
         release_namespace: ngrok-ingress-controller
+        chart_repo_url: https://ngrok.github.io/kubernetes-ingress-controller
         create_namespace: true
         values:
           credentials:
