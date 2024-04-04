@@ -140,12 +140,17 @@
         - ../../kubernetes-deployments/knowledge-base-deployment.yaml
         - ../../kubernetes-deployments/knowledge-base-service.yaml
     
+    - name: Add ngrok Helm repository
+      ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
+
+    - name: Update Helm repositories
+      ansible.builtin.command: helm repo update
+
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
-        name: ngrok-ingress-controller
-        chart_ref: ngrok/kubernetes-ingress-controller
+        name: ngrok
+        chart_ref: ngrok/ngrok-ingress-controller
         release_namespace: ngrok-ingress-controller
-        chart_repo_url: https://ngrok.github.io/kubernetes-ingress-controller
         create_namespace: true
         values:
           credentials:
