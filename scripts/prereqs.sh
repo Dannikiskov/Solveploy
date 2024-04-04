@@ -12,4 +12,4 @@ ansible-galaxy role install --roles-path=ansible/playbooks/roles robertdebock.ku
 ansible-playbook ansible/playbooks/install_roles.yml -i ansible/inventory/hosts
 sudo usermod -aG docker $USER && newgrp docker
 sudo systemctl start docker
-ansible-playbook ansible/playbooks/start.yml -i ansible/inventory/hosts "NGROK_AUTHTOKEN=$NGROK_AUTHTOKEN NGROK_API_KEY=$NGROK_API_KEY"
+ansible-playbook ansible/playbooks/start.yml -i ansible/inventory/hosts -e "NGROK_AUTHTOKEN=$NGROK_AUTHTOKEN NGROK_API_KEY=$NGROK_API_KEY"
