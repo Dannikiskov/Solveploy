@@ -45,6 +45,8 @@ def get_available_mzn_solvers(data):
     path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
     mzn_driver = minizinc.Driver(path)
     solvers = mzn_driver.available_solvers()
+    print("SOLLVERSSSSSS")
+    print(solvers, flush=True)
     
     available_solvers = []
     for index, (solver_name, solver_list) in enumerate(solvers.items()):
