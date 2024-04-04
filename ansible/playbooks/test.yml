@@ -10,7 +10,8 @@
 
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
-        release_name: ngrok
+        name: ngrok
+        chart_ref: ngrok/kubernetes-ingress-controller
         release_namespace: ngrok-ingress-controller
         create_namespace: true
         values:
