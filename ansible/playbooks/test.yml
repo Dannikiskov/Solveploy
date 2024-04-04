@@ -1,4 +1,8 @@
-- name: Install ngrok-ingress-controller
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
         name: ngrok-ingress-controller
         chart_ref: ngrok/kubernetes-ingress-controller
@@ -8,4 +12,10 @@
         values:
           credentials:
             apiKey: "{{ NGROK_API_KEY }}"
-            authtoken: "{{ NGROK_AUTHTOKEN }}"git
+            authtoken: "{{ NGROK_AUTHTOKEN }}"
+    
+    - name: Apply Kubernetes deployments and services
+      kubernetes.core.k8s:
+        src: "{{ item }}"
+      loop:
+        - ../../kubernetes-deployments/ngrok-ingress.yaml
