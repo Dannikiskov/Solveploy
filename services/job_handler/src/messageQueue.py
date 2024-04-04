@@ -7,6 +7,7 @@ import time
 import mznHandler
 import satHandler
 import maxsatHandler
+import sunny
 
 def rmq_init():
     connection = _rmq_connect()
@@ -45,9 +46,12 @@ def consume():
 
         elif instructions == "StopSatJob":
             threading.Thread(target=satHandler.stop_job, args=(data,)).start()
-            
-        elif instructions == "StopSatJob":
-            threading.Thread(target=satHandler.stop_job, args=(data,)).start()
+
+        elif instructions == "StopMaxsatJob":
+            threading.Thread(target=maxsatHandler.stop_job, args=(data,)).start()
+        
+        elif instructions == "Sunny":
+            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"],)).start()
 
         else:
             print("ERROR: NO MATCHING INSTRUCTIONS:::", instructions, flush=True)

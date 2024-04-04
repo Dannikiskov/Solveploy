@@ -2,8 +2,9 @@ from itertools import combinations
 import subprocess
 import numpy as np
 import kb
+import messageQueue as mq
 
-def sunny(inst, solvers, bkup_solver, k, T):
+def sunny(inst, solvers, bkup_solver, k, T, identifier):
     # Get features vector for the given instance
     feat_vect = get_features(inst)
 
@@ -30,7 +31,7 @@ def sunny(inst, solvers, bkup_solver, k, T):
         schedule[bkup_solver] += T - tot_time
 
     # Return sorted schedule
-    return sorted(schedule.items(), key=lambda x: x[1]), similar_insts
+    mq.send_to_queue(sorted(schedule.items(), key=lambda x: x[1]), f"jobhandler-{identifier}")
 
 
 def get_features(inst):
@@ -38,7 +39,6 @@ def get_features(inst):
     result = subprocess.run(command, capture_output=True, text=True)
     features = result.stdout.strip()
     features_list = [float(number) for number in features.split(",")]
-
     return features_list
 
 
@@ -59,7 +59,7 @@ def get_nearest_neighbors(feat_vect, k):
     return nearest_neighbors
 
 
-def get_sub_portfolio(similar_insts, solvers, T):
+def get_sub_portfolio(similar_insts, solvers):
     max_solved = 0
     selected_solvers = []
 

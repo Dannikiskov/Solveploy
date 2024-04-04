@@ -35,7 +35,7 @@ class Sunny(Resource):
 
     def post(self):
         data = request.json
-        data["identifier"] = data["item"]["jobIdentifier"]
+        data["identifier"] = str(uuid.uuid4())
         data["instructions"] = "Sunny"
         data["queueName"] = "jobHandler"
         result = async_execute(data)

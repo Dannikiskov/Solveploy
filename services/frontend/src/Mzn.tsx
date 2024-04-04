@@ -20,6 +20,9 @@ function Mzn() {
   const [selectedMznSolvers, setSelectedMznSolvers] = useState<MznSolverData[]>(
     []
   );
+  const [expanded, setExpanded] = useState(false);
+  const [t, setT] = useState<number>(0);
+  const [k, setK] = useState<number>(0);
   const [mznFileContent, setMznFileContent] = useState<string>("");
   const [runningMznJobs, setRunningMznJobs] = useState<MznSolverData[]>([]);
   const [mznJobResultList, setMznJobResultList] = useState<MznJobResult[]>([]);
@@ -156,12 +159,61 @@ function Mzn() {
     }
   };
 
+  async function startSunny(): Promise<void> {
+    console.log("Starting SUNNY");
+    console.log("k: ", k);
+    console.log("T: ", t);
+    console.log("solvers:", selectedMznSolvers);
+    const response = await fetch("/api/sunny", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        k,
+        t,
+        solvers: selectedMznSolvers,
+        backupSolver: selectedMznSolvers[selectedMznSolvers.length - 1],
+        fileContent: mznFileContent,
+      }),
+    });
+    if (!response.ok) {
+      console.error("Error starting SUNNY:", response.statusText);
+    }
+    console.log("SUNNY started");
+    setSelectedMznSolvers([]);
+    let responeAsJson = await response.json();
+    console.log(responeAsJson);
+  }
+
   return (
     <>
       <h1>Solveploy</h1>
       <div>
         <input onChange={handlefilechange} type="file" />
       </div>
+      <br />
+      <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
+      <br />
+      {expanded && (
+        <div>
+          Last chosen solver is backup solver.
+          <br />
+          <input
+            type="text"
+            placeholder="k"
+            onChange={(e) => setK(Number(e.target.value))}
+          />
+          <br />
+          <input
+            type="text"
+            placeholder="T"
+            onChange={(e) => setT(Number(e.target.value))}
+          />
+          <br />
+          <button onClick={() => startSunny()}>Start SUNNY</button>
+        </div>
+      )}
       <br />
       <h2>Available Solvers</h2>
       <div className="grid">

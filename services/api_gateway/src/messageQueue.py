@@ -7,7 +7,7 @@ import time
 def rmq_init():
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue="solverhandler")
+    channel.queue_declare(queue="jobhandler")
     channel.close()
 
 

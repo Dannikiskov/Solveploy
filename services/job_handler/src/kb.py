@@ -3,8 +3,9 @@ import messageQueue as mq
 import uuid
 
 def get_all_feature_vectors(identifier):
-    data = create_dict(identifier)
-    mq.send_wait_receive(data)
+    data = create_dict("GetAllFeatureVectors")
+    all_feature_vectors = mq.send_wait_receive(data)
+    return all_feature_vectors
 
 
 def handle_instance(file_data):
