@@ -162,7 +162,6 @@ function Sat() {
 
   return (
     <>
-      <h1>Solveploy</h1>
       <div>
         <input onChange={handlefilechange} type="file" />
       </div>

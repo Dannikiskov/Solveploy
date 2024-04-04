@@ -188,7 +188,7 @@ function Mzn() {
 
   return (
     <>
-      <h1>Solveploy</h1>
+    <br />
       <div>
         <input onChange={handlefilechange} type="file" />
       </div>
@@ -211,7 +211,7 @@ function Mzn() {
             onChange={(e) => setT(Number(e.target.value))}
           />
           <br />
-          <button onClick={() => startSunny()}>Start SUNNY</button>
+          <button onClick={() => startSunny()}>Get SUNNY portfolio</button>
         </div>
       )}
       <br />

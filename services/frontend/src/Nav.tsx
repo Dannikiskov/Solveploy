@@ -5,6 +5,7 @@ import "./App.css";
 const Nav: React.FC = () => {
   return (
     <div>
+      <h1>Solveploy</h1>
       <Link to="/mzn">
         <button>MZN</button>
       </Link>
