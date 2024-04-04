@@ -6,31 +6,41 @@ import messageQueue as mq
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier):
     # Get features vector for the given instance
+    print("printing arguments", inst, solvers, bkup_solver, k, T, identifier, flush=True)
+    print("Getting features vector for the given instance", flush=True)
     feat_vect = get_features(inst)
 
     # Find k-nearest neighbors
+    print("Finding k-nearest neighbors", flush=True)
     similar_insts = get_nearest_neighbors(feat_vect, k)
 
     # Get sub-portfolio
+    print("Getting sub-portfolio", flush=True)
     sub_portfolio = get_sub_portfolio(similar_insts, solvers)
 
     # Initialize variables
+    print("Initializing variables", flush=True)
     slots = sum(get_max_solved(s, similar_insts,  T) for s in sub_portfolio)
+    print("slots", slots, flush=True)
     time_slot = T / slots
     tot_time = 0
     schedule = {bkup_solver: 0}
 
     # Populate the schedule
+    print("Populating the schedule", flush=True)
     for solver in sub_portfolio:
         solver_slots = get_max_solved(solver, similar_insts, T)
         schedule[solver] = solver_slots * time_slot
         tot_time += solver_slots * time_slot
 
+    print("schedule", schedule, flush=True)
     # Adjust backup solver time
+    print("Adjusting backup solver time", flush=True)
     if tot_time < T:
         schedule[bkup_solver] += T - tot_time
 
     # Return sorted schedule
+    print("Returning sorted schedule: ", sorted(schedule.items(), key=lambda x: x[1]), flush=True)
     mq.send_to_queue(sorted(schedule.items(), key=lambda x: x[1]), f"jobhandler-{identifier}")
 
 
