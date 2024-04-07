@@ -1,2 +1,2 @@
-[localhost]
-127.0.0.1   --ansible-host=local
+[kubernetes_hosts]
+target_vm ansible_host=130.225.38.44 ansible_user=ucloud

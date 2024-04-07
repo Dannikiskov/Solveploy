@@ -1,31 +1,72 @@
 ---
-- hosts: localhost
-  connection: local
+- name: Install Ansible Galaxy roles
+  become: true
+  hosts: kubernetes_hosts
+  vars:
+    kubeconfig_path: "/home/ucloud/.kube/config"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  roles:
+    - geerlingguy.docker
+    - geerlingguy.helm
+    - gantsign.minikube
+    - robertdebock.kubectl
+    
   tasks:
+    - name: Add user to docker group
+      become: false
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+
     - name: Start minikube
-      command: minikube start --cpus=6 --memory=6000
+      become: false
+      command: minikube start --cpus=12 --memory=28000 --driver=docker
+
+    - name: install pip3
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+  
+    - name: install python3 libraries
+      ansible.builtin.pip:
+        name: "{{ item }}"
+      loop:
+        - kubernetes
+        - openshift
+        - docker
+        - PyYAML
 
     - name: Create namespaces
       kubernetes.core.k8s:
-        src: ../../kubernetes-deployments/namespace-creation.yaml
+        state: present
+        definition: "{{ lookup('file', '../../kubernetes-deployments/namespace-creation.yaml') | from_yaml_all }}"
 
     - name: Apply rabbitmq operator
       kubernetes.core.k8s:
-        src: ../../kubernetes-deployments/rabbitmq-operator.yaml
+        state: present
+        definition: "{{ lookup('file', '../../kubernetes-deployments/rabbitmq-operator.yaml') | from_yaml_all }}"
 
     - name: Apply rabbitmq definition
       kubernetes.core.k8s:
-        src: ../../kubernetes-deployments/rabbitmq-definition.yaml
+        state: present
+        definition: "{{ lookup('file', '../../kubernetes-deployments/rabbitmq-definition.yaml') | from_yaml_all }}"
 
     - name: Get minikube docker-env
+      become: false
       shell: minikube docker-env
       register: minikube_docker_env
 
+    - name: Copy base image Dockerfile to target machine
+      copy:
+        src: ../../base-image/Dockerfile
+        dest: ./DockerfileBaseImage
+
     - name: Build backend base image
       community.docker.docker_image_build:
-        path: "../../base-image/"
+        path: "."
         name: "solveploy-backend-base-image"
-        dockerfile: "Dockerfile"
+        dockerfile: "DockerfileBaseImage"
         rebuild: "always"
         docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
         tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
@@ -33,12 +74,11 @@
         ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
         client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
         client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
-      loop:
-        - {
-            image: "solveploy-backend-base-image",
-            dockerfile: "Dockerfile",
-            context: "../../base-image/",
-          }
+
+    - name: Copy services to target machine
+      copy:
+        src: ../../services
+        dest: .
 
     - name: Build Docker images
       community.docker.docker_image_build:
@@ -59,37 +99,37 @@
         - {
             image: "frontend",
             dockerfile: "Dockerfile",
-            context: "../../services/frontend/",
+            context: "./services/frontend/",
           }
         - {
             image: "api-gateway",
             dockerfile: "Dockerfile",
-            context: "../../services/api_gateway/",
+            context: "./services/api_gateway/",
           }
         - {
             image: "job-handler",
             dockerfile: "Dockerfile",
-            context: "../../services/job_handler/",
+            context: "./services/job_handler/",
           }
         - {
             image: "knowledge-base",
             dockerfile: "Dockerfile",
-            context: "../../services/knowledge_base/",
+            context: "./services/knowledge_base/",
           }
         - {
             image: "mzn-pod",
             dockerfile: "Dockerfile",
-            context: "../../services/mzn_pod/",
+            context: "./services/mzn_pod/",
           }
         - {
             image: "sat-pod",
             dockerfile: "Dockerfile",
-            context: "../../services/sat_pod/",
+            context: "./services/sat_pod/",
           }
         - {
             image: "maxsat-pod",
             dockerfile: "Dockerfile",
-            context: "../../services/maxsat_pod/",
+            context: "./services/maxsat_pod/",
           }
 
     - name: Wait for Docker image builds to finish
@@ -124,21 +164,21 @@
 
     - name: Apply Kubernetes deployments and services
       kubernetes.core.k8s:
-        src: "{{ item }}"
+        definition: "{{ item }}"
       loop:
-        - ../../kubernetes-deployments/api-gateway-deployment.yaml
-        - ../../kubernetes-deployments/api-gateway-service.yaml
-        - ../../kubernetes-deployments/job-handler-deployment.yaml
-        - ../../kubernetes-deployments/job-handler-service.yaml
-        - ../../kubernetes-deployments/role-job-creator.yaml
-        - ../../kubernetes-deployments/cluster-role-job-creator.yaml
-        - ../../kubernetes-deployments/clusterrolebinding-job-creator.yaml
-        - ../../kubernetes-deployments/knowledge-base-database-deployment.yaml
-        - ../../kubernetes-deployments/knowledge-base-database-service.yaml
-        - ../../kubernetes-deployments/knowledge-base-deployment.yaml
-        - ../../kubernetes-deployments/knowledge-base-service.yaml
-        - ../../kubernetes-deployments/frontend-deployment.yaml
-        - ../../kubernetes-deployments/frontend-service.yaml
+        - "{{ lookup('file', '../../kubernetes-deployments/api-gateway-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/api-gateway-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/job-handler-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/job-handler-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/role-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/cluster-role-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-database-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-database-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/frontend-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/frontend-service.yaml') | from_yaml_all }}"
     
     - name: Add ngrok Helm repository
       ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
@@ -159,6 +199,6 @@
     
     - name: Apply Kubernetes deployments and services
       kubernetes.core.k8s:
-        src: "{{ item }}"
+        definition: "{{ item }}"
       loop:
-        - ../../kubernetes-deployments/ngrok-ingress.yaml
+        - "{{ lookup('file', '../../kubernetes-deployments/ngrok-ingress.yaml') | from_yaml_all }}"
