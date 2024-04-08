@@ -164,14 +164,14 @@ function Mzn() {
     console.log("k: ", k);
     console.log("T: ", t);
     console.log("solvers:", selectedMznSolvers);
-    const response = await fetch("/api/sunny", {
+    const response = await fetch("/api/jobs/sunny", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         k,
-        t,
+        T: t,
         solvers: selectedMznSolvers,
         backupSolver: selectedMznSolvers[selectedMznSolvers.length - 1],
         fileContent: mznFileContent,
