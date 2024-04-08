@@ -8,16 +8,27 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   roles:
     - geerlingguy.docker
-    - geerlingguy.helm
+    - gantsing.helm
     - gantsign.minikube
     - robertdebock.kubectl
     
   tasks:
     - name: Add user to docker group
-      become: false
-      ansible.builtin.user:
+      become: yes
+      user:
         name: "{{ ansible_user }}"
         groups: docker
+        append: yes
+      tags: 
+        - docker
+      
+    - name: Set Docker socket permissions
+      become: yes
+      file:
+        path: /var/run/docker.sock
+        mode: "0777"
+      tags:
+        - docker
 
     - name: Start minikube
       become: false
@@ -189,7 +200,7 @@
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
         name: ngrok
-        chart_ref: ngrok/ngrok-ingress-controller
+        chart_ref: ngrok/kubernetes-ingress-controller
         release_namespace: ngrok-ingress-controller
         create_namespace: true
         values:

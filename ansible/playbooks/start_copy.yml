@@ -1,0 +1,35 @@
+---
+- name: Install Ansible Galaxy roles
+  become: true
+  hosts: kubernetes_hosts
+  vars:
+    kubeconfig_path: "/home/ucloud/.kube/config"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    roles:
+    - geerlingguy.docker
+    - geerlingguy.helm
+    - gantsign.minikube
+    - robertdebock.kubectl
+
+  tasks:
+    - name: uninstall helm
+    
+    - name: Add ngrok Helm repository
+      ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
+
+    - name: Update Helm repositories
+      ansible.builtin.command: helm repo update
+
+    - name: Install ngrok-ingress-controller
+      ansible.builtin.command: helm install ngrok-ingress-controller ngrok/kubernetes-ingress-controller \
+                                --namespace ngrok-ingress-controller \
+                                --create-namespace \
+                                --set credentials.apiKey="{{ NGROK_API_KEY }}" \
+                                --set credentials.authtoken="{{ NGROK_AUTHTOKEN }}"
+    
+    - name: Apply Kubernetes deployments and services
+      kubernetes.core.k8s:
+        definition: "{{ item }}"
+      loop:
+        - "{{ lookup('file', '../../kubernetes-deployments/ngrok-ingress.yaml') | from_yaml_all }}"
