@@ -45,8 +45,16 @@ def consume():
             response = database.get_solved(content['solvers'], content['similarInsts'], content['T'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
-        elif instructions == "GetSolvedTimes":
-            response = database.get_solved_times(content['solverIdd'], content['similarInsts'])
+        elif instructions == "GetSolvedTimesMzn":
+            response = database.get_solved_times_mzn(content['solverName'], content['similarInsts'])
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+
+        elif instructions == "GetSolvedTimesSat":
+            response = database.get_solved_times_sat(content['solverName'], content['similarInsts'])
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+
+        elif instructions == "GetSolvedTimesMaxSat":
+            response = database.get_solved_times_maxsat(content['solverName'], content['similarInsts'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvers":

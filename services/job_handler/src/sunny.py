@@ -5,7 +5,7 @@ import numpy as np
 import kb
 import messageQueue as mq
 
-def sunny(inst, solvers, bkup_solver, k, T, identifier):
+def sunny(inst, solvers, bkup_solver, k, T, identifier, solverType):
     # Get features vector for the given instance
     print("printing arguments", inst, k, T, identifier, flush=True)
     print("Getting features vector for the given instance", flush=True)
@@ -17,7 +17,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier):
 
     # Get sub-portfolio
     print("Getting sub-portfolio", flush=True)
-    sub_portfolio = get_sub_portfolio(similar_insts, solvers)
+    sub_portfolio = get_sub_portfolio(similar_insts, solvers, solverType)
 
     # Initialize variables
     print("Initializing variables", flush=True)
@@ -82,7 +82,7 @@ def get_nearest_neighbors(feat_vect, k):
     return nearest_neighbors
 
 
-def get_sub_portfolio(similar_insts, solvers):
+def get_sub_portfolio(similar_insts, solvers, solver_type):
     max_solved = 0
     selected_solvers = []
 
@@ -94,7 +94,7 @@ def get_sub_portfolio(similar_insts, solvers):
 
             # Calculate total instances solved and total solving time for the subset
             for solver in subset:
-                results = kb.get_solved_times(solver.id, similar_insts)
+                results = kb.get_solved_times(solver["name"], similar_insts, solver_type)
 
                 for instance_id, solve_time in results:
                     instances_solved.add(instance_id)

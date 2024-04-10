@@ -18,8 +18,13 @@ def get_solved(solvers, similar_insts, T):
     mq.send_wait_receive(data)
 
 
-def get_solved_times(solver_id, similar_insts):
-    data = create_dict('GetSolvedTimes', {'solverId': solver_id, 'similarInsts': similar_insts})
+def get_solved_times(solver_name, similar_insts, solver_type):
+    if solver_type == 'mzn':
+        data = create_dict('GetSolvedTimesMzn', {'solverName': solver_name, 'similarInsts': similar_insts})
+    if solver_type == 'sat':
+        data = create_dict('GetSolvedTimesSat', {'solverName': solver_name, 'similarInsts': similar_insts})
+    if solver_type == 'maxsat':
+        data = create_dict('GetSolvedTimesMaxSat', {'solverName': solver_name, 'similarInsts': similar_insts})
     mq.send_wait_receive(data)
 
 def get_solvers():

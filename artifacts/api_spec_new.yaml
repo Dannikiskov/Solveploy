@@ -1,0 +1,250 @@
+openapi: 3.0.0
+info:
+  title: Solveploy API
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+paths:
+  /api/jobs:
+    post:
+      summary: Create a new job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+    delete:
+      summary: Delete a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+  /api/jobs/sunny:
+    post:
+      summary: Create a sunny job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SunnyJobRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+  /api/solvers/mzn:
+    get:
+      summary: Get available MZN solvers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    post:
+      summary: Add a new MZN solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    put:
+      summary: Update an existing MZN solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    delete:
+      summary: Delete an existing MZN solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+  /api/solvers/sat:
+    get:
+      summary: Get available SAT solvers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    post:
+      summary: Add a new SAT solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    put:
+      summary: Update an existing SAT solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    delete:
+      summary: Delete an existing SAT solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+  /api/solvers/maxsat:
+    get:
+      summary: Get available MAXSAT solvers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    post:
+      summary: Add a new MAXSAT solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    put:
+      summary: Update an existing MAXSAT solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+    delete:
+      summary: Delete an existing MAXSAT solver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolverRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverResponse'
+components:
+  schemas:
+    JobRequest:
+      type: object
+      properties:
+        item:
+          type: object
+          properties:
+            jobIdentifier:
+              type: string
+        additionalProperties: true
+    JobResponse:
+      type: object
+      properties:
+        result:
+          type: string
+        additionalProperties: true
+    SunnyJobRequest:
+      type: object
+      properties:
+        additionalProperties: true
+    SolverRequest:
+      type: object
+      properties:
+        additionalProperties: true
+    SolverResponse:
+      type: object
+      properties:
+        result:
+          type: string
+        additionalProperties: true

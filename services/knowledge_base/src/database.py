@@ -89,6 +89,10 @@ def handle_sat_instance(data):
 
 
 # MZN
+def get_mzn_solver_id_by_name(solver_name):
+    query = f"SELECT id FROM mzn_solvers WHERE name = '{solver_name}'"
+    return query_database(query)
+
 def get_all_mzn_feature_vectors():
     query = "SELECT features FROM mzn_feature_vectors"
     return query_database(query)
@@ -134,7 +138,8 @@ def get_solved_mzn(solvers, similar_insts, T):
     return resultList
 
 
-def get_solved_times_mzn(solver_id, similar_insts):
+def get_solved_times_mzn(solver_name, similar_insts):
+    solver_id = get_mzn_solver_id_by_name(solver_name)
     query = f"SELECT * FROM mzn_solving_times WHERE solver_id = {solver_id} AND instance_id IN ({', '.join(str(inst.id) for inst in similar_insts)})"
     results = query_database(query)
     return results
