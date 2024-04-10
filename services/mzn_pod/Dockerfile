@@ -1,28 +1,8 @@
 # Use the base image
-FROM solveploy-backend-base-image:latest
+FROM solveploy-mzn:latest
 
 # Copy the requirements.txt file into the container
 COPY requirements.txt .
-
-RUN apt-get update
-
-RUN apt-get install -y libxml++2.6-dev g++ \
-    && apt-get install -y libgl1-mesa-glx libegl1-mesa &
-
-
-# Install Minizinc
-RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
-RUN tar -xzf MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
-RUN rm MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
-ENV PATH="/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin:$PATH"
-
-# Install mzn2feat
-RUN apt-get install flex bison -y
-RUN wget https://codeload.github.com/CP-Unibo/mzn2feat/zip/refs/heads/master
-RUN unzip master
-RUN ./mzn2feat-master/install --no-xcsp
-RUN rm master
-ENV PATH="/app/mzn2feat-master/bin:$PATH"
 
 # Copy the entire app into the container
 COPY . .

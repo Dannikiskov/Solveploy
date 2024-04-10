@@ -1,12 +1,13 @@
 from itertools import combinations
 import subprocess
+import tempfile
 import numpy as np
 import kb
 import messageQueue as mq
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier):
     # Get features vector for the given instance
-    print("printing arguments", inst, solvers, bkup_solver, k, T, identifier, flush=True)
+    print("printing arguments", inst, k, T, identifier, flush=True)
     print("Getting features vector for the given instance", flush=True)
     feat_vect = get_features(inst)
 
@@ -45,19 +46,31 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier):
 
 
 def get_features(inst):
-    command = ["mzn2feat", "-i", inst]
-    result = subprocess.run(command, capture_output=True, text=True)
-    features = result.stdout.strip()
-    features_list = [float(number) for number in features.split(",")]
-    return features_list
+    temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
+    print("temp_file.name: ", temp_file.name, flush=True)
+    temp_file.write(inst.encode())
+    temp_file.close()  # Close the file after writing
+    
+    # Get feature vector
+    command = ["mzn2feat", "-i", temp_file.name]
+    cmd_result = subprocess.run(command, capture_output=True, text=True)
+    feature_vector = cmd_result.stdout.strip()
+
+    temp_file_content = open(temp_file.name).read()  # Read the content after closing the file
+    print("temp_file_content:\n", temp_file_content, "\n----", flush=True)
+    return feature_vector
 
 
 def get_nearest_neighbors(feat_vect, k):
     kb_features = kb.get_all_feature_vectors()
-
+    
     if kb_features is not None and len(kb_features) >= k:
+        # Convert kb_features to list of doubles
+        kb_features = [list(map(float, feature.split())) for feature in kb_features]
+
         # Calculate distances to all feature vectors
         distances = [euclidean_distance(feat_vect, kb_feature) for kb_feature in kb_features]
+    
     else:  
         return kb_features
 
@@ -108,5 +121,7 @@ def get_max_solved(solver, similar_insts, T):
 
 
 def euclidean_distance(vector1, vector2):
+    print("vector1: ", vector1, flush=True)
+    print("vector2: ", vector2, flush=True)
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
 

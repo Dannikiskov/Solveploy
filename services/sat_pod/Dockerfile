@@ -1,5 +1,5 @@
 # Use the base image
-FROM solveploy-backend-base-image:latest
+FROM solveploy-base:latest
 
 # Copy the requirements.txt file into the container
 COPY requirements.txt .

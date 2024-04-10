@@ -46,7 +46,6 @@ def get_available_mzn_solvers(data):
     mzn_driver = minizinc.Driver(path)
     solvers = mzn_driver.available_solvers()
     print("SOLLVERSSSSSS")
-    print(solvers, flush=True)
     
     available_solvers = []
     for index, (solver_name, solver_list) in enumerate(solvers.items()):

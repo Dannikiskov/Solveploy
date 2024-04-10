@@ -1,0 +1,2 @@
+[local_hosts]
+ansible_host=local

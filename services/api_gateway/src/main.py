@@ -47,6 +47,7 @@ class Sunny(Resource):
 class SolversMzn(Resource):
 
     def get(self):
+        print("GETTING SOLVERS", flush=True)
         data = {"instructions": "GetAvailableMznSolvers", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
         result = async_execute(data)
         result_json = json.loads(result)

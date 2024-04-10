@@ -25,16 +25,20 @@ def consume():
         identifier = data.get("identifier", "FAILED TO RETRIEVE IDENTIFIER IN MQ KB")
         
 
-        if instructions == "GetAllFeatureVectors":
-            response = database.get_all_feature_vectors()
+        if instructions == "GetAllMznFeatureVectors":
+            response = database.get_all_mzn_feature_vectors()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
-
+        
+        elif instructions == "GetAllSatFeatureVectors":
+            response = database.get_all_sat_feature_vectors()
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
         elif instructions == "HandleMznInstance":
-            response = database.handle_instance(data)
+            response = database.handle_mzn_instance(data)
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "HandleSatInstance":
-            response = database.handle_instance(data)
+            response = database.handle_sat_instance(data)
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "GetSolved":
@@ -50,7 +54,7 @@ def consume():
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         else:
-            print("FAILED: ", instructions, flush=True)
+            print("FAILED - No matching instructions: ", instructions, flush=True)
         
 
 

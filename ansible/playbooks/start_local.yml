@@ -1,38 +1,18 @@
 ---
-- name: Install Ansible Galaxy roles
+- name: Deploy Application Locally
   become: true
-  hosts: kubernetes_hosts
+  hosts: localhost
+  connection: local
   vars:
-    kubeconfig_path: "/home/ucloud/.kube/config"
+    kubeconfig_path: "/home/hmbl/.kube/config"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  roles:
-    - geerlingguy.docker
-    - darkwizard242.helm
-    - gantsign.minikube
-    - robertdebock.kubectl
+
     
   tasks:
-    - name: Add user to docker group
-      become: yes
-      user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: yes
-      tags: 
-        - docker
-      
-    - name: Set Docker socket permissions
-      become: yes
-      file:
-        path: /var/run/docker.sock
-        mode: "0777"
-      tags:
-        - docker
-
     - name: Start minikube
       become: false
-      command: minikube start --cpus=12 --memory=28000 --driver=docker
+      command: minikube start --cpus=4 --memory=6000 --driver=docker
 
     - name: install pip3
       ansible.builtin.package:
@@ -68,14 +48,9 @@
       shell: minikube docker-env
       register: minikube_docker_env
 
-    - name: Copy base image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileBase
-        dest: ./DockerfileBase
-
     - name: Build backend base image
       community.docker.docker_image_build:
-        path: "."
+        path: "/mnt/c/Users/danni/Documents/Solveploy/images"
         name: "solveploy-base"
         dockerfile: "DockerfileBase"
         rebuild: "always"
@@ -86,14 +61,9 @@
         client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
         client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
 
-    - name: Copy mzn image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileMzn
-        dest: ./DockerfileMzn
-
     - name: Build backend mzn image
       community.docker.docker_image_build:
-        path: "."
+        path: "/mnt/c/Users/danni/Documents/Solveploy/images"
         name: "solveploy-mzn"
         dockerfile: "DockerfileMzn"
         rebuild: "always"
@@ -103,12 +73,7 @@
         ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
         client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
         client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
-
-
-    - name: Copy services to target machine
-      copy:
-        src: ../../services
-        dest: .
+    
 
     - name: Build Docker images
       community.docker.docker_image_build:
@@ -129,37 +94,37 @@
         - {
             image: "frontend",
             dockerfile: "Dockerfile",
-            context: "./services/frontend/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/frontend/",
           }
         - {
             image: "api-gateway",
             dockerfile: "Dockerfile",
-            context: "./services/api_gateway/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/api_gateway/",
           }
         - {
             image: "job-handler",
             dockerfile: "Dockerfile",
-            context: "./services/job_handler/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/job_handler/",
           }
         - {
             image: "knowledge-base",
             dockerfile: "Dockerfile",
-            context: "./services/knowledge_base/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/knowledge_base/",
           }
         - {
             image: "mzn-pod",
             dockerfile: "Dockerfile",
-            context: "./services/mzn_pod/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/mzn_pod/",
           }
         - {
             image: "sat-pod",
             dockerfile: "Dockerfile",
-            context: "./services/sat_pod/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/sat_pod/",
           }
         - {
             image: "maxsat-pod",
             dockerfile: "Dockerfile",
-            context: "./services/maxsat_pod/",
+            context: "/mnt/c/Users/danni/Documents/Solveploy/services/maxsat_pod/",
           }
 
     - name: Wait for Docker image builds to finish
@@ -209,26 +174,3 @@
         - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-service.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/frontend-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/frontend-service.yaml') | from_yaml_all }}"
-  
-    - name: Add ngrok Helm repository
-      ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
-
-    - name: Update Helm repositories
-      ansible.builtin.command: helm repo update
-
-    - name: Install ngrok-ingress-controller
-      kubernetes.core.helm:
-        name: ngrok
-        chart_ref: ngrok/kubernetes-ingress-controller
-        release_namespace: ngrok-ingress-controller
-        create_namespace: true
-        values:
-          credentials:
-            apiKey: "{{ NGROK_API_KEY }}"
-            authtoken: "{{ NGROK_AUTHTOKEN }}"
-    
-    - name: Apply Kubernetes deployments and services
-      kubernetes.core.k8s:
-        definition: "{{ item }}"
-      loop:
-        - "{{ lookup('file', '../../kubernetes-deployments/ngrok-ingress.yaml') | from_yaml_all }}"

@@ -8,7 +8,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
     roles:
     - geerlingguy.docker
-    - geerlingguy.helm
+    - darkwizard242.helm
     - gantsign.minikube
     - robertdebock.kubectl
 
