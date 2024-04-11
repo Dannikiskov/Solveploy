@@ -38,7 +38,7 @@ def run_minizinc_model(model_string, data_path=None, solver_name='gecode'):
         result = instance.solve()
     except Exception as e:
         print("Error solving the MiniZinc model:", str(e))
-        result = None
+        return {"result": f"Error solving the MiniZinc model:, {str(e)}", "executionTime": "N/A"}
 
     end_time = time.time()
 

@@ -60,6 +60,18 @@ def consume():
         elif instructions == "GetSolvers":
             response = database.get_solvers()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
+        elif instructions == "SetAllocatableResources":
+            response = database.set_allocatable_resources(data)
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+
+        elif instructions == "UpdateInUseResources":
+            response = database.update_in_use_resources()
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
+        elif instructions == "GetAvailableK8sResources":
+            response = database.get_available_k8s_resources()
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         else:
             print("FAILED - No matching instructions: ", instructions, flush=True)

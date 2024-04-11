@@ -161,13 +161,13 @@
       kubernetes.core.k8s:
         definition: "{{ item }}"
       loop:
+        - "{{ lookup('file', '../../kubernetes-deployments/role-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/cluster-role-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../kubernetes-deployments/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/api-gateway-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/api-gateway-service.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/job-handler-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/job-handler-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/role-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/cluster-role-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-database-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-database-service.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-deployment.yaml') | from_yaml_all }}"

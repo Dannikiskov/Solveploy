@@ -1,4 +1,3 @@
-# Use the base image
 FROM solveploy-mzn:latest
 
 # Copy the requirements.txt file into the container

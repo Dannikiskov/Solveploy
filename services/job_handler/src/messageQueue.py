@@ -13,6 +13,7 @@ def rmq_init():
     connection = _rmq_connect()
     channel = connection.channel()
     channel.queue_declare(queue="jobHandler")
+    channel.queue_declare(queue="kbHandler")
     channel.close()
 
     

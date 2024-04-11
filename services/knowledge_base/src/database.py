@@ -25,7 +25,7 @@ def query_database(query):
     conn.commit()
     cur.close()
     conn.close()
-
+    
     return result
 
 
@@ -149,6 +149,7 @@ def get_mzn_solvers():
     query = "SELECT * FROM mzn_solvers"
     return query_database(query)
 
+# General
 
 def print_all_tables():
     query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
@@ -159,7 +160,23 @@ def print_all_tables():
             print(table[0], ": ", flush=True)
             query = f"SELECT * FROM {table[0]}"
             print(query_database(query), flush=True)
+    print("\n\n-----------------------------------\n", flush=True)
 
+def set_allocatable_resources(data):
+    cpu = data["allocatable_cpu"]
+    memory = data["allocatable_memory"][:-2]
+    query = f"INSERT INTO k8s_resources (allocatable_cpu, allocatable_memory) VALUES ({cpu}, {memory})"
+    query_database(query)
+
+def update_in_use_resources(data):
+    cpu = data["cpu"]
+    memory = data["memory"][:-2]
+    query = f"UPDATE k8s_resources SET in_use_cpu = in_use_cpu + {cpu}, in_use_memory = in_use_memory + {memory}"
+    query_database(query)
+
+def get_available_k8s_resources():
+    query = "SELECT * FROM k8s_resources"
+    return query_database(query)
 
 def database_init():
 
@@ -246,6 +263,18 @@ def database_init():
             solver_id INT REFERENCES maxsat_solvers(id),
             feature_vec_id INT REFERENCES maxsat_feature_vectors(id),
             execution_time FLOAT NOT NULL
+        );
+    """
+    query_database(query)
+
+    # General tables
+    query = """
+        CREATE TABLE IF NOT EXISTS k8s_resources (
+            id SERIAL PRIMARY KEY,
+            allocatable_cpu FLOAT NOT NULL,
+            allocatable_memory FLOAT NOT NULL,
+            in_use_cpu FLOAT,
+            in_use_memory FLOAT 
         );
     """
     query_database(query)

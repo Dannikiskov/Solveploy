@@ -6,8 +6,11 @@ import "./App.css";
 
 interface MznSolverData {
   name: string;
-  mznIdentifier: string;
+  version: string;
   jobIdentifier: string;
+  cpu?: number;
+  memory?: number;
+
 }
 
 interface MznJobResult extends MznSolverData {
@@ -66,6 +69,8 @@ function Mzn() {
       const updatedData = data.map((item: MznSolverData) => ({
         ...item,
         jobIdentifier: uuidv4().slice(0, 8),
+        cpu : 0,
+        memory : 0,
       }));
       setMznSolverList(updatedData);
     } catch (error) {
@@ -120,6 +125,7 @@ function Mzn() {
           result: "Error starting solver",
           executionTime: 0,
           stopped: true,
+          
         };
         throw new Error(`Error starting solvers: ${response.statusText}`);
       }
@@ -131,7 +137,7 @@ function Mzn() {
             jobIdentifier: uuidv4().slice(0, 8),
             result: updateditem.result,
             executionTime: updateditem.executionTime,
-            mznIdentifier: item.mznIdentifier,
+            version: item.version,
           },
         ]);
       }
@@ -190,7 +196,6 @@ function Mzn() {
     <>
     <br />
       <div>
-        <div>change test</div>
         <input onChange={handlefilechange} type="file" />
       </div>
       <br />
@@ -222,13 +227,40 @@ function Mzn() {
           <div
             key={index}
             className={`solver-item ${
-              selectedMznSolvers.includes(item) ? "selected" : ""
+              selectedMznSolvers.find((i) => i.name === item.name) ? "selected" : ""
             }`}
-            onClick={() => handleitemclick(item)}
           >
             <div>Name: {item.name}</div>
-            <div>MZN ID: {item.mznIdentifier}</div>
-            <div>Job ID: {item.jobIdentifier}</div>
+            <div>Version: {item.version}</div>
+            <button onClick={() => handleitemclick(item)}>Select</button>
+            <div>
+              <input
+                type="number"
+                placeholder="CPU"
+                onChange={(e) =>
+                  setMznSolverList((prevList) =>
+                    prevList.map((prevItem) =>
+                      prevItem.name === item.name
+                        ? { ...prevItem, cpu: Number(e.target.value) }
+                        : prevItem
+                    )
+                  )
+                }
+              />
+              <input
+                type="number"
+                placeholder="Memory"
+                onChange={(e) =>
+                  setMznSolverList((prevList) =>
+                    prevList.map((prevItem) =>
+                      prevItem.name === item.name
+                        ? { ...prevItem, memory: Number(e.target.value) }
+                        : prevItem
+                    )
+                  )
+                }
+              />
+            </div>
           </div>
         ))}
       </div>

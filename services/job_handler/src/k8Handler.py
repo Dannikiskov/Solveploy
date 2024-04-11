@@ -1,8 +1,9 @@
 from kubernetes import client, config
-import uuid
-import os
 
-def start_solver_job(solver_name, identifier, image_prefix):
+import os
+import messageQueue as mq
+
+def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
@@ -10,13 +11,13 @@ def start_solver_job(solver_name, identifier, image_prefix):
     job_name = f"solver-{solver_name.lower()}-{image_prefix}-{identifier}"
 
     # Create solver job
-    solver_job = create_solver_job(job_name, str(identifier), image_prefix)
+    solver_job = create_solver_job(job_name, str(identifier), image_prefix, cpu, memory)
     batch_api = client.BatchV1Api()
 
     batch_api.create_namespaced_job(namespace=image_prefix, body=solver_job)
     return job_name
 
-def create_solver_job(job_name, identifier, image_prefix):
+def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
@@ -41,6 +42,12 @@ def create_solver_job(job_name, identifier, image_prefix):
                                     value=os.getenv("RABBITMQ_PASSWORD"),
                                 ),
                             ],
+                            resources=client.V1ResourceRequirements(
+                                requests={
+                                    "cpu": cpu_request,
+                                    "memory": memory_request
+                                }
+                            )
                         )
                     ],
                     restart_policy="Never",
@@ -107,3 +114,16 @@ def stop_solver_by_namespace(namespace):
     for pod in pods.items:
         print("Deleting: ", pod.metadata.name, flush=True)
         core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
+
+
+def resource_init():
+    config.load_incluster_config()
+    v1 = client.CoreV1Api()
+
+    nodes = v1.list_node().items
+
+    mq.send_to_queue( {"instructions": "SetAllocatableResources", "allocatable_cpu": nodes[0].status.allocatable["cpu"], "allocatable_memory": nodes[0].status.allocatable["memory"]}, "kbHandler" )
+
+
+def update_in_use_resources(cpu, memory):
+    mq.send_to_queue( {"instructions": "UpdateInUseResources", "in_use_cpu": cpu, "in_use_memory": memory}, "kbHandler" )

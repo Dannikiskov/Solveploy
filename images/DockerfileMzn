@@ -1,11 +1,9 @@
 # Use the base image
 FROM solveploy-base:latest
 
-RUN apt-get update
-
-RUN apt-get install -y libxml++2.6-dev g++ \
-    && apt-get install -y libgl1-mesa-glx libegl1-mesa &
-
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y libxml++2.6-dev g++ libgl1-mesa-glx libegl1-mesa libglu1-mesa:i386
 
 # Install Minizinc
 RUN wget https://github.com/MiniZinc/MiniZincIDE/releases/download/2.8.2/MiniZincIDE-2.8.2-bundle-linux-x86_64.tgz
