@@ -3,12 +3,16 @@ import subprocess
 import tempfile
 import numpy as np
 import kb
+import re
+import json
 import messageQueue as mq
+
+
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier, solverType):
     # Get features vector for the given instance
     print("printing arguments", inst, k, T, identifier, flush=True)
-    print("Getting features vector for the given instance", flush=True)
+    print("\n\nGetting features vector for the given instance", flush=True)
     feat_vect = get_features(inst)
 
     # Find k-nearest neighbors
@@ -19,9 +23,11 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solverType):
     print("Getting sub-portfolio", flush=True)
     sub_portfolio = get_sub_portfolio(similar_insts, solvers, solverType)
 
+    print("sub_portfolio", sub_portfolio, flush=True)
+
     # Initialize variables
     print("Initializing variables", flush=True)
-    slots = sum(get_max_solved(s, similar_insts,  T) for s in sub_portfolio)
+    slots = sum([kb.get_solved for solver in sub_portfolio]) + len(similar_insts)
     print("slots", slots, flush=True)
     time_slot = T / slots
     tot_time = 0
@@ -62,19 +68,17 @@ def get_features(inst):
 
 
 def get_nearest_neighbors(feat_vect, k):
+    feat_vect = [float(num) for num in re.findall(r'\b\d+\.\d+\b', feat_vect)]  # Convert feat_vect first
     kb_features = kb.get_all_feature_vectors()
-    
+    kb_features = [float(num) for num in re.findall(r'\b\d+\.\d+\b', kb_features)]
+    kb_features =[kb_features]  # Now convert kb_features
     if kb_features is not None and len(kb_features) >= k:
-        # Convert kb_features to list of doubles
-        kb_features = [list(map(float, feature.split())) for feature in kb_features]
-
         # Calculate distances to all feature vectors
-        distances = [euclidean_distance(feat_vect, kb_feature) for kb_feature in kb_features]
-    
+        distances = [euclidean_distance(feat_vect, kb_features) for kb_feature in kb_features]
     else:  
         return kb_features
 
-    # Get indices of k smallest distances
+    # Get indices of k smallest distancesk
     nearest_indices = np.argsort(distances)[:k]
 
     # Return the k nearest neighbors and their distances
@@ -85,7 +89,7 @@ def get_nearest_neighbors(feat_vect, k):
 def get_sub_portfolio(similar_insts, solvers, solver_type):
     max_solved = 0
     selected_solvers = []
-
+    
     # Iterate through all possible subsets of solvers
     for subset_size in range(1, len(solvers) + 1):
         for subset in combinations(solvers, subset_size):
@@ -95,8 +99,11 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             # Calculate total instances solved and total solving time for the subset
             for solver in subset:
                 results = kb.get_solved_times(solver["name"], similar_insts, solver_type)
-
-                for instance_id, solve_time in results:
+                res_dict = json.loads(results)
+                print("res_dict: ", res_dict, flush=True)
+                solved_times = res_dict["solvedTimes"]
+                print("solved_times: ", solved_times, flush=True)
+                for instance_id, solve_time in solved_times.items():
                     instances_solved.add(instance_id)
                     total_solving_time += solve_time
 
@@ -108,10 +115,10 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     return [solver[0] for solver in selected_solvers]
 
 
-def get_max_solved(solver, similar_insts, T):
+def get_max_solved(solver, similar_insts, T, solver_type):
     max_solved = 0
 
-    solved_times = kb.get_solved_times(solver.id, similar_insts).sort(key=lambda x: x[3])
+    solved_times = kb.get_solved_times(solver["name"], similar_insts, solver_type).sort(key=lambda x: x[3])
     
     for solve_time in solved_times:
         if solve_time < T:

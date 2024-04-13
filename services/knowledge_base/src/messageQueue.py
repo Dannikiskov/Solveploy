@@ -46,11 +46,11 @@ def consume():
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "GetSolvedTimesMzn":
-            response = database.get_solved_times_mzn(content['solverName'], content['similarInsts'])
+            response = database.get_solved_times_mzn(content['similarInsts'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesSat":
-            response = database.get_solved_times_sat(content['solverName'], content['similarInsts'])
+            response = database.get_solved_times_sat(content['similarInsts'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesMaxSat":

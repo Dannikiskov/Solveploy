@@ -25,7 +25,8 @@ def get_solved_times(solver_name, similar_insts, solver_type):
         data = create_dict('GetSolvedTimesSat', {'solverName': solver_name, 'similarInsts': similar_insts})
     if solver_type == 'maxsat':
         data = create_dict('GetSolvedTimesMaxSat', {'solverName': solver_name, 'similarInsts': similar_insts})
-    mq.send_wait_receive(data)
+    result = mq.send_wait_receive(data)
+    return result
 
 def get_solvers():
     data = create_dict('GetSolvers')

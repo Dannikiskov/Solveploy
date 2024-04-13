@@ -1,5 +1,6 @@
 import subprocess
 import psycopg2
+import re
 
 
 def query_database(query):
@@ -99,22 +100,24 @@ def get_all_mzn_feature_vectors():
 
 def handle_mzn_instance(data):
     feature_vector = str(data["featureVector"])
+    feature_vector = [float(num) for num in re.findall(r'\b\d+\.\d+\b', feature_vector)]
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
+    feature_vector_str = "{" + ",".join(map(str, feature_vector)) + "}"
 
     query = f"SELECT id FROM mzn_solvers WHERE name = '{solver_name}'"
     solver_id = query_database(query)
     if not solver_id:
         query = f"INSERT INTO mzn_solvers (name) VALUES ('{solver_name}') RETURNING id"
         solver_id = query_database(query)
+        
 
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector}'"
+    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector_str}'"
     feat_id = query_database(query)
     if not feat_id:
-        query = f"INSERT INTO mzn_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
+        query = f"INSERT INTO mzn_feature_vectors (features) VALUES ('{feature_vector_str}') RETURNING id"
         feat_id = query_database(query)
 
-    print(feat_id)
 
     query = f"SELECT * FROM mzn_solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
     existing_entry = query_database(query)
@@ -124,8 +127,6 @@ def handle_mzn_instance(data):
         query_database(query)
 
     print_all_tables()
-
-
 
 
 def get_solved_mzn(solvers, similar_insts, T):
@@ -138,19 +139,44 @@ def get_solved_mzn(solvers, similar_insts, T):
     return resultList
 
 
-def get_solved_times_mzn(solver_name, similar_insts):
-    solver_id = get_mzn_solver_id_by_name(solver_name)
-    query = f"SELECT * FROM mzn_solving_times WHERE solver_id = {solver_id} AND instance_id IN ({', '.join(str(inst.id) for inst in similar_insts)})"
-    results = query_database(query)
-    return results
+def get_mzn_feature_vector_id(feature_vector):
+    print("ASDASDASDASDASDASDASDASDASD", all_mzn_feature_vectors(), flush=True)
+    feature_vector_str = "{" + ",".join(map(str, feature_vector)) + "}"
+    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector_str}'"
+    result = query_database(query)
+    print("RESULT: ", result, flush=True)
+    return result[0]
 
+def all_mzn_feature_vectors():
+    query = "SELECT features FROM mzn_feature_vectors"
+    return query_database(query)
+
+def get_solved_times_mzn(similar_insts):
+
+
+    sim_inst_ids= []
+    for vect in similar_insts:
+        print("VECT: ", vect, flush=True)
+        sim_inst_ids.append(get_mzn_feature_vector_id(vect))
+
+    solved_times = {}
+
+    for id in sim_inst_ids:
+        print("ID: ", id, flush=True)
+        query = f"SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = {id}"
+        result = query_database(query)[0][0]
+        solved_times[id] = result
+
+    
+    
+    print("SOLVED TIMES: ", solved_times, flush=True)
+    return {"solvedTimes": solved_times}
 
 def get_mzn_solvers():
     query = "SELECT * FROM mzn_solvers"
     return query_database(query)
 
 # General
-
 def print_all_tables():
     query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
     tables = query_database(query)
@@ -184,7 +210,7 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS mzn_feature_vectors (
             id SERIAL PRIMARY KEY,
-            features VARCHAR(2047) UNIQUE
+            features FLOAT[] UNIQUE
         );
     """
     query_database(query)

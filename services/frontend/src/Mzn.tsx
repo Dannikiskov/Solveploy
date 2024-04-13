@@ -181,6 +181,7 @@ function Mzn() {
         solvers: selectedMznSolvers,
         backupSolver: selectedMznSolvers[selectedMznSolvers.length - 1],
         fileContent: mznFileContent,
+        solverType: "mzn",
       }),
     });
     if (!response.ok) {

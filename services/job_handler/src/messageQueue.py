@@ -52,7 +52,7 @@ def consume():
             threading.Thread(target=maxsatHandler.stop_job, args=(data,)).start()
         
         elif instructions == "Sunny":
-            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"],)).start()
+            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"], data["solverType"],)).start()
 
         else:
             print("ERROR: NO MATCHING INSTRUCTIONS:::", instructions, flush=True)
