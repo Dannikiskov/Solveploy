@@ -19,7 +19,7 @@ def consume():
         print(" [x] Received %r" % body, flush=True)
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
-        instructions = data["instructions"]
+        instructions = data.get("instructions", "FAILED TO RETRIEVE INSTRUCTIONS IN MQ KB")
         content = data.get("content", "FAILED TO RETRIEVE CONTENT IN MQ KB")
         queue_name = data.get("queueName", "FAILED TO RETRIEVE QUEUE NAME IN MQ KB")
         identifier = data.get("identifier", "FAILED TO RETRIEVE IDENTIFIER IN MQ KB")
@@ -45,8 +45,20 @@ def consume():
             response = database.get_solved(content['solvers'], content['similarInsts'], content['T'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
-        elif instructions == "GetSolvedTimesMzn":
-            response = database.get_solved_times_mzn(content['similarInsts'])
+        elif instructions == "GetInstsTimesMzn":
+            response = database.get_insts_times_mzn(content['similarInsts'])
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
+        elif instructions == "GetSolverTimesMzn":
+            response = database.get_solver_times_mzn(content['solverName'], content['similarInsts'])
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+
+        elif instructions == "GetAllSolvedMzn":
+            response = database.get_all_solved_mzn()
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+
+        elif instructions == "isInstanceSolvedMzn":
+            response = database.is_instance_solved_mzn(content['instance'], content['solver'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesSat":

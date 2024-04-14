@@ -6,10 +6,11 @@ import kb
 import re
 import json
 import messageQueue as mq
+import ast
 
 
 
-def sunny(inst, solvers, bkup_solver, k, T, identifier, solverType):
+def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type):
     # Get features vector for the given instance
     print("printing arguments", inst, k, T, identifier, flush=True)
     print("\n\nGetting features vector for the given instance", flush=True)
@@ -21,13 +22,11 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solverType):
 
     # Get sub-portfolio
     print("Getting sub-portfolio", flush=True)
-    sub_portfolio = get_sub_portfolio(similar_insts, solvers, solverType)
-
-    print("sub_portfolio", sub_portfolio, flush=True)
+    sub_portfolio = get_sub_portfolio(similar_insts, solvers, solver_type)
 
     # Initialize variables
     print("Initializing variables", flush=True)
-    slots = sum([kb.get_solved for solver in sub_portfolio]) + len(similar_insts)
+    slots = sum([get_max_solved(solver, similar_insts, T, solver_type) for solver in sub_portfolio] + (k - get_max_solved(sub_portfolio, similar_insts, T, solver_type))) 
     print("slots", slots, flush=True)
     time_slot = T / slots
     tot_time = 0
@@ -89,46 +88,39 @@ def get_nearest_neighbors(feat_vect, k):
 def get_sub_portfolio(similar_insts, solvers, solver_type):
     max_solved = 0
     selected_solvers = []
-    
-    # Iterate through all possible subsets of solvers
-    for subset_size in range(1, len(solvers) + 1):
-        for subset in combinations(solvers, subset_size):
-            instances_solved = set()
-            total_solving_time = 0
 
-            # Calculate total instances solved and total solving time for the subset
+    # Generate all possible subsets of solvers
+    subsets = []
+    for r in range(1, len(solvers) + 1):
+        subsets.extend(combinations(solvers, r))
+    
+
+    # Iterate through each subset
+    for subset in subsets:
+        solved_instances = 0
+        
+        # Check how many instances can be solved using the current subset
+        for instance in similar_insts:
             for solver in subset:
-                results = kb.get_solved_times(solver["name"], similar_insts, solver_type)
-                res_dict = json.loads(results)
-                print("res_dict: ", res_dict, flush=True)
-                solved_times = res_dict["solvedTimes"]
-                print("solved_times: ", solved_times, flush=True)
-                for instance_id, solve_time in solved_times.items():
-                    instances_solved.add(instance_id)
-                    total_solving_time += solve_time
-
-            # Check if the current subset solves more instances and update if necessary
-            if len(instances_solved) > max_solved or (len(instances_solved) == max_solved and total_solving_time / len(instances_solved) < selected_solvers[0][1]):
-                max_solved = len(instances_solved)
-                selected_solvers = [(solver, total_solving_time) for solver in subset]
-
-    return [solver[0] for solver in selected_solvers]
-
-
-def get_max_solved(solver, similar_insts, T, solver_type):
-    max_solved = 0
-
-    solved_times = kb.get_solved_times(solver["name"], similar_insts, solver_type).sort(key=lambda x: x[3])
+                if kb.is_instance_solved(instance, solver, solver_type):
+                    solved_instances += 1
+        
+        # Update the maximum number of solved instances and the selected solvers
+        if solved_instances > max_solved:
+            max_solved = solved_instances
+            selected_solvers = list(subset)
     
-    for solve_time in solved_times:
-        if solve_time < T:
-            max_solved += 1
-            T -= solve_time
-    return max_solved
+
+    return selected_solvers
+
+
+def get_max_solved(solvers, similar_insts, T, solver_type):
+    max_solved = 0
+    for solver in solvers:
+        solver_solves_instances = kb.get_solver_times(solver, similar_insts, solver_type)
+        print("solver_solves_instances", solver_solves_instances, flush=True)
 
 
 def euclidean_distance(vector1, vector2):
-    print("vector1: ", vector1, flush=True)
-    print("vector2: ", vector2, flush=True)
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
 
