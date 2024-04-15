@@ -26,24 +26,25 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type):
 
     # Initialize variables
     print("Initializing variables", flush=True)
-    slots = sum([get_max_solved(solver, similar_insts, T, solver_type) for solver in sub_portfolio] + (k - get_max_solved(sub_portfolio, similar_insts, T, solver_type))) 
+    slots = sum([get_max_solved(solver, similar_insts, T, solver_type) + (k - get_max_solved(sub_portfolio, similar_insts, T, solver_type)) for solver in sub_portfolio])
     print("slots", slots, flush=True)
     time_slot = T / slots
+    print("time_slot", time_slot, flush=True)
     tot_time = 0
-    schedule = {bkup_solver: 0}
+    schedule = {bkup_solver["name"]: 0}
 
     # Populate the schedule
     print("Populating the schedule", flush=True)
     for solver in sub_portfolio:
-        solver_slots = get_max_solved(solver, similar_insts, T)
-        schedule[solver] = solver_slots * time_slot
+        solver_slots = get_max_solved(solver, similar_insts, T, solver_type)
+        schedule[solver["name"]] = solver_slots * time_slot
         tot_time += solver_slots * time_slot
 
     print("schedule", schedule, flush=True)
     # Adjust backup solver time
     print("Adjusting backup solver time", flush=True)
     if tot_time < T:
-        schedule[bkup_solver] += T - tot_time
+        schedule[bkup_solver["name"]] += T - tot_time
 
     # Return sorted schedule
     print("Returning sorted schedule: ", sorted(schedule.items(), key=lambda x: x[1]), flush=True)
@@ -115,11 +116,26 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
 
 
 def get_max_solved(solvers, similar_insts, T, solver_type):
+    print("solvers FROM sunny get max solved: ", solvers, flush=True)
+
+    if not (isinstance(solvers, list)):
+        solvers = [solvers]
+
     max_solved = 0
     for solver in solvers:
-        solver_solves_instances = kb.get_solver_times(solver, similar_insts, solver_type)
+        solver_solves_instances = kb.get_solver_times(solver["name"], similar_insts, solver_type)
+        solver_solves_instances = ast.literal_eval(solver_solves_instances)
         print("solver_solves_instances", solver_solves_instances, flush=True)
+        print("type(solver_solves_instances)", type(solver_solves_instances), flush=True)
 
+        time_spent = 0
+        i = 0
+        while time_spent < T and i < len(solver_solves_instances):
+            max_solved += 1
+            time_spent += float(solver_solves_instances[i])
+            i += 1
+
+    return max_solved
 
 def euclidean_distance(vector1, vector2):
     return np.linalg.norm(np.array(vector1) - np.array(vector2))

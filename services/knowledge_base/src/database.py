@@ -200,16 +200,18 @@ def get_solver_times_mzn(solver_name, insts):
         print("VECT: ", vect, flush=True)
         sim_inst_ids.append(get_mzn_feature_vector_id(vect))
 
-    solved_times = {}
+    solved_times = []
 
     for id in sim_inst_ids:
         print("ID: ", id, flush=True)
-        query = f"SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = {solver_id[0]} AND feature_vec_id = {id}"
-        result = query_database(query)[0][0]
-        solved_times[id] = result
+        query = f"SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = {solver_id[0]} AND feature_vec_id = {id} ORDER BY execution_time ASC"
+        result = query_database(query)[0]
+        print("db RESULT: ", result, flush=True)
+        print("db type RESULT: ", type(result), flush=True)
+        solved_times.append(result)
 
     print("SOLVED TIMES: ", solved_times, flush=True)
-    return {"solvedTimesDict": solved_times}
+    return solved_times
 
 
 def get_mzn_solvers():
