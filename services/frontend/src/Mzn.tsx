@@ -27,6 +27,7 @@ function Mzn() {
   const [t, setT] = useState<number>(0);
   const [k, setK] = useState<number>(0);
   const [mznFileContent, setMznFileContent] = useState<string>("");
+  const [dataFileContent, setDataFileContent] = useState<string>("");
   const [runningMznJobs, setRunningMznJobs] = useState<MznSolverData[]>([]);
   const [mznJobResultList, setMznJobResultList] = useState<MznJobResult[]>([]);
 
@@ -113,6 +114,7 @@ function Mzn() {
         body: JSON.stringify({
           item,
           mznFileContent,
+          dataFileContent,
           instructions: "StartMznJob",
         }),
       });
@@ -154,12 +156,23 @@ function Mzn() {
     }
   };
 
-  const handlefilechange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMznFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         setMznFileContent(reader.result as string);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleDataFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setDataFileContent(reader.result as string);
       };
       reader.readAsText(file);
     }
@@ -197,7 +210,11 @@ function Mzn() {
     <>
     <br />
       <div>
-        <input onChange={handlefilechange} type="file" />
+        <input onChange={handleMznFileChange} type="file" />
+      </div>
+      <br></br>
+      <div>
+        <input onChange={handleDataFileChange} type="file" />
       </div>
       <br />
       <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
