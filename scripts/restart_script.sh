@@ -17,4 +17,4 @@ kubectl rollout restart deployment knowledge-base
 
 kubectl delete jobs --all
 
-watch kubectl get pods
+watch kubectl get podskgp

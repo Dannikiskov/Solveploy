@@ -24,6 +24,7 @@ function Mzn() {
     []
   );
   const [expanded, setExpanded] = useState(false);
+  const [dznOrJson, setDznOrJson] = useState<string>("dzn");
   const [t, setT] = useState<number>(0);
   const [k, setK] = useState<number>(0);
   const [mznFileContent, setMznFileContent] = useState<string>("");
@@ -115,6 +116,7 @@ function Mzn() {
           item,
           mznFileContent,
           dataFileContent,
+          dataFileType: dznOrJson,
           instructions: "StartMznJob",
         }),
       });
@@ -170,12 +172,20 @@ function Mzn() {
   const handleDataFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log("File name:", file.name);
+      if(file.name.endsWith(".json")){
+        setDznOrJson("json");
+      }
+      else{
+        setDznOrJson("dzn");
+      }
       const reader = new FileReader();
       reader.onload = () => {
-        setDataFileContent(reader.result as string);
+      setDataFileContent(reader.result as string);
       };
       reader.readAsText(file);
     }
+
   };
 
   async function startSunny(): Promise<any> {
@@ -209,11 +219,14 @@ function Mzn() {
   return (
     <>
     <br />
+    <h2>Upload Files</h2>
       <div>
+        <h3>Upload MZN file</h3>
         <input onChange={handleMznFileChange} type="file" />
       </div>
       <br></br>
       <div>
+        <h3>Upload Data file</h3>
         <input onChange={handleDataFileChange} type="file" />
       </div>
       <br />

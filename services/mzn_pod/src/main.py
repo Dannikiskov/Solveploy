@@ -15,9 +15,10 @@ def on_request(ch, method, props, body):
     solver_name = message_data["item"]["name"]
     mzn_string = message_data["mznFileContent"]
     data_string = message_data["dataFileContent"]
+    data_type = message_data["dataFileType"]
 
     try:
-        result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string)
+        result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type)
     except:
         result = {"result": "Minizinc Solver failed.", "executionTime": "N/A"}
     
