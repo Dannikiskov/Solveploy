@@ -11,16 +11,16 @@ def on_request(ch, method, props, body):
     message_data = json.loads(decoded_body)
 
     print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
-    
     solver_name = message_data["item"]["name"]
+    params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
     mzn_string = message_data["mznFileContent"]
-    data_string = message_data["dataFileContent"]
-    data_type = message_data["dataFileType"]
+    data_string = message_data["dataFileContent"] if message_data["dataFileContent"] != "" else None
+    data_type = message_data["dataFileType"] if message_data["dataFileType"] != "" else None
 
     try:
-        result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type)
-    except:
-        result = {"result": "Minizinc Solver failed.", "executionTime": "N/A"}
+        result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type, params)
+    except Exception as e:
+        result = {"result": f"Minizinc Solver failed: {str(e)}", "executionTime": "N/A"}
     
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)

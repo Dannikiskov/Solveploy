@@ -10,12 +10,14 @@ interface MznSolverData {
   jobIdentifier: string;
   cpu?: number;
   memory?: number;
+  params?: string; 
 
 }
 
 interface MznJobResult extends MznSolverData {
   result: string;
   executionTime: number;
+  status: string;
 }
 
 function Mzn() {
@@ -35,6 +37,12 @@ function Mzn() {
   useEffect(() => {
     fetchDataGet();
   }, []);
+
+  useEffect(() => {
+
+      console.log(  selectedMznSolvers);
+
+  }, [selectedMznSolvers]);
 
   const fetchStopJob = async (item: MznSolverData) => {
     setRunningMznJobs((prevItems: Array<MznSolverData>) =>
@@ -71,8 +79,8 @@ function Mzn() {
       const updatedData = data.map((item: MznSolverData) => ({
         ...item,
         jobIdentifier: uuidv4().slice(0, 8),
-        cpu : 0,
-        memory : 0,
+        cpu: 0,
+        memory: 0,
       }));
       setMznSolverList(updatedData);
     } catch (error) {
@@ -104,6 +112,41 @@ function Mzn() {
       }))
     );
   };
+
+  const updateItemCpu = (item: MznSolverData, cpu: number) => {
+    setMznSolverList((prevList) =>
+      prevList.map((prevItem) =>
+        prevItem.name === item.name ? { ...prevItem, cpu } : prevItem
+      )
+    );
+    console.log(item.cpu)
+  }
+
+  const updateItemMemory = (item: MznSolverData, memory: number) => {
+    setMznSolverList((prevList) =>
+      prevList.map((prevItem) =>
+        prevItem.name === item.name ? { ...prevItem, memory } : prevItem
+      )
+    );
+    console.log(item.memory);
+  }
+
+  const updateItemParams = (event: React.ChangeEvent<HTMLInputElement>, item: MznSolverData) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const fileContent = reader.result as string;
+          setMznSolverList((prevList) =>
+            prevList.map((prevItem) =>
+              prevItem.name === item.name ? { ...prevItem, params: fileContent } : prevItem
+            )
+          );
+        };
+        reader.readAsText(file);
+      }
+      console.log(item.params);
+  }
 
   const fetchstartsolvers = async (item: MznSolverData) => {
     try {
@@ -142,6 +185,7 @@ function Mzn() {
             result: updateditem.result,
             executionTime: updateditem.executionTime,
             version: item.version,
+            status: updateditem.status,
           },
         ]);
       }
@@ -169,15 +213,16 @@ function Mzn() {
     }
   };
 
+
   const handleDataFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       console.log("File name:", file.name);
       if(file.name.endsWith(".json")){
-        setDznOrJson("json");
+        setDznOrJson(".json");
       }
       else{
-        setDznOrJson("dzn");
+        setDznOrJson(".dzn");
       }
       const reader = new FileReader();
       reader.onload = () => {
@@ -268,30 +313,15 @@ function Mzn() {
               <input
                 type="number"
                 placeholder="CPU"
-                onChange={(e) =>
-                  setMznSolverList((prevList) =>
-                    prevList.map((prevItem) =>
-                      prevItem.name === item.name
-                        ? { ...prevItem, cpu: Number(e.target.value) }
-                        : prevItem
-                    )
-                  )
-                }
+                onChange={(e) => {updateItemCpu(item, Number(e.target.value))}}
               />
               <input
                 type="number"
                 placeholder="Memory"
-                onChange={(e) =>
-                  setMznSolverList((prevList) =>
-                    prevList.map((prevItem) =>
-                      prevItem.name === item.name
-                        ? { ...prevItem, memory: Number(e.target.value) }
-                        : prevItem
-                    )
-                  )
-                }
+                onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
               />
             </div>
+            <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
           </div>
         ))}
       </div>
@@ -304,7 +334,6 @@ function Mzn() {
           {runningMznJobs.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <div>Job ID: {item.jobIdentifier}</div>
               <div>Waiting for result</div>
               <button onClick={() => fetchStopJob(item)}>Stop Solver</button>
             </div>
@@ -312,9 +341,9 @@ function Mzn() {
           {mznJobResultList.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <div>Job ID: {item.jobIdentifier}</div>
               <div>Result: {item.result}</div>
-              <div>Execution Time: {item.executionTime}</div>
+              <div>Execution Time: {item.executionTime} milliseconds</div>
+              <div>Status: {item.status}</div>
             </div>
           ))}
         </div>

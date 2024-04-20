@@ -1,0 +1,2 @@
+{"type": "solution", "output": {"default": "wa=3\t nt=2\t sa=1\nq=3\t nsw=2\t v=2\nt=1\n", "raw": "wa=3\t nt=2\t sa=1\nq=3\t nsw=2\t v=2\nt=1\n", "json": {  "wa" : 3,  "nt" : 2,  "sa" : 1,  "q" : 3,  "nsw" : 2,  "v" : 2,  "t" : 1,  "_output" : "wa=3\t nt=2\t sa=1\nq=3\t nsw=2\t v=2\nt=1\n"}}, "sections": ["default", "raw", "json"], "time": 77}
+{"type": "statistics", "statistics": {"initTime": 0.000145958, "solveTime": 7.174e-05, "solutions": 1, "variables": 7, "propagators": 7, "propagations": 7, "nodes": 6, "failures": 0, "restarts": 0, "peakDepth": 5}}
