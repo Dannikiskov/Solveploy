@@ -28,6 +28,17 @@ button {
   transition: border-color 0.25s;
 }
 
+.small-button {
+  border-radius: 4px;
+  border: 1px solid;
+  padding: 0.3em 0.6em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
 button:hover {
   color: #063969;
   border-color: #646cff;

@@ -33,6 +33,7 @@ function Mzn() {
   const [dataFileContent, setDataFileContent] = useState<string>("");
   const [runningMznJobs, setRunningMznJobs] = useState<MznSolverData[]>([]);
   const [mznJobResultList, setMznJobResultList] = useState<MznJobResult[]>([]);
+  const [optVal, setOptVal] = useState<string>("");
 
   useEffect(() => {
     fetchDataGet();
@@ -148,6 +149,10 @@ function Mzn() {
       console.log(item.params);
   }
 
+  const updateOptVal = (s : string) => {
+    setOptVal(s);
+  }
+
   const fetchstartsolvers = async (item: MznSolverData) => {
     try {
       const response = await fetch("/api/jobs", {
@@ -161,6 +166,7 @@ function Mzn() {
           dataFileContent,
           dataFileType: dznOrJson,
           instructions: "StartMznJob",
+          optVal: optVal,
         }),
       });
 
@@ -294,7 +300,16 @@ function Mzn() {
           />
           <br />
           <button onClick={startSunny}>Get SUNNY portfolio</button>
+          <div>
+          <br />
+          <input
+                type="string"
+                placeholder="Optimization value"
+                onChange={(e) => {updateOptVal(e.target.value)}}
+              />
+          </div>
         </div>
+        
       )}
       <br />
       <h2>Available Solvers</h2>
@@ -308,7 +323,6 @@ function Mzn() {
           >
             <div>Name: {item.name}</div>
             <div>Version: {item.version}</div>
-            <button onClick={() => handleitemclick(item)}>Select</button>
             <div>
               <input
                 type="number"
@@ -322,7 +336,9 @@ function Mzn() {
               />
             </div>
             <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
+            <button className="small-button" onClick={() => handleitemclick(item)}>Select</button>
           </div>
+          
         ))}
       </div>
       <br />

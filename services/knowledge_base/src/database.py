@@ -123,7 +123,11 @@ def handle_mzn_instance(data):
     existing_entry = query_database(query)
 
     if not existing_entry:
-        query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
+        if data["optimizationValue"] != None:
+            opt_value = data["optimizationValue"]
+            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, opt_value, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{opt_value}', '{execution_time}')"
+        else: 
+            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
         query_database(query)
 
     print_all_tables()
@@ -273,6 +277,7 @@ def database_init():
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES mzn_solvers(id),
             feature_vec_id INT REFERENCES mzn_feature_vectors(id),
+            opt_value FLOAT,
             execution_time FLOAT NOT NULL
         );
     """
