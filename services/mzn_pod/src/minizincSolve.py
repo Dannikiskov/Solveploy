@@ -1,3 +1,4 @@
+import re
 import minizinc
 import tempfile
 import os
@@ -32,16 +33,22 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
     if data_string is not None:
         os.remove(temp_data_file.name)
 
-    print("status: ", result.status)
+    match = re.search(r'solve maximize (\w+);', model_string)
 
-    if result.status == minizinc.Status.SATISFIED:
+    if match:
+        objective = match.group(1)  # The first group is the string after "solve minimize"
+        opt_val = result.solution.__dict__[objective]
+    else:
+        match = re.search(r'solve minimize (\w+);', model_string)
+        if match:
+            objective = match.group(1)  # The first group is the string after "solve minimize"
+            opt_val = result.solution.__dict__[objective]
+        else:
+            opt_val = "N/A"
+
+    if 'time' in result.statistics:
         execution_time = result.statistics['time'].total_seconds() * 1000
-
-    elif result.status == minizinc.Status.UNSATISFIABLE:
-        result.statistics['time'].total_seconds() * 1000
-        output = "UNSATISFIABLE"
-
-    elif result.status == minizinc.Status.UNKNOWN:
+    else:
         execution_time = "N/A"
 
-    return {"result": output, "executionTime": execution_time, "status": str(result.status)}
+    return {"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}

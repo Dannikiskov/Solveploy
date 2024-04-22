@@ -19,14 +19,21 @@ def on_request(ch, method, props, body):
 
     try:
         result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type, params)
+        result["solverName"] = solver_name
+        result["solverVersion"] = message_data["item"]["version"]
     except Exception as e:
         result = {"result": f"Minizinc Solver failed: {str(e)}", "executionTime": "N/A"}
     
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)
+
     ch.basic_publish(exchange='',
-        routing_key=out_queue_name,
-        body=json_result)
+                    routing_key=out_queue_name,
+                    body="Stopped")
+
+    ch.basic_publish(exchange='',
+                    routing_key="mzn-result-queue",
+                    body=json_result,)
     
     ch.stop_consuming()
     ch.queue_delete(queue=out_queue_name)

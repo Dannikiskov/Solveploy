@@ -8,6 +8,9 @@ def rmq_init():
     connection = _rmq_connect()
     channel = connection.channel()
     channel.queue_declare(queue="jobhandler")
+    channel.queue_declare(queue="mzn-result-queue")
+    channel.queue_declare(queue="sat-result-queue")
+    channel.queue_declare(queue="maxsat-result-queue")
     channel.close()
 
 
@@ -41,6 +44,25 @@ def send_wait_receive(data):
     channel.start_consuming()
     return result
 
+def consume_one(queue_name):
+    connection = _rmq_connect()
+    channel = connection.channel()
+    channel.queue_declare(queue=queue_name)
+
+    result = None
+
+    def callback(ch, method, properties, body):
+        nonlocal result
+        result = body.decode("utf-8")
+        ch.stop_consuming()
+
+    method_frame, header_frame, body = channel.basic_get(queue=queue_name, auto_ack=True)
+    if method_frame:
+        callback(channel, method_frame, None, body)
+    else:
+        return None
+    
+    return result
 
 def _rmq_connect():
     while True:

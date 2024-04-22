@@ -16,8 +16,6 @@ class Jobs(Resource):
         data = request.json
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
-        print(data["item"]["cpu"], flush=True)
-        print(data["item"]["memory"], flush=True)
         result = async_execute(data)
         result_json = json.loads(result)
         print("RESULT: ", result_json, flush=True)
@@ -177,12 +175,30 @@ class K8s(Resource):
 
         return result_json
 
+
+class results(Resource):
+    
+    def get(self, type):
+        result = None
+        if type == "mzn":
+            result = mq.consume_one("mzn-result-queue")
+        elif type == "sat":
+            result = mq.consume_one("sat-result-queue")
+        elif type == "maxsat":
+            result = mq.consume_one("maxsat-result-queue")
+        
+        print("RESULT: ", result, flush=True)
+        if result is None:
+            return {"error": "No results available"}
+        return json.loads(result)
+
 api.add_resource(Jobs, '/api/jobs')
 api.add_resource(Sunny, '/api/jobs/sunny')
 api.add_resource(SolversMzn, '/api/solvers/mzn')
 api.add_resource(SolversSat, '/api/solvers/sat')
 api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
 api.add_resource(K8s, '/api/k8s/resource')
+api.add_resource(results, '/api/results/<string:type>')
 
 
 def async_execute(data):
