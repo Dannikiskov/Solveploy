@@ -17,6 +17,7 @@ interface MznJobResult extends MznSolverData {
   result: string;
   executionTime: number;
   status: string;
+  optValue: number;
 }
 
 function Mzn() {
@@ -52,8 +53,9 @@ function Mzn() {
             return; // Exit early if response is not OK
           }
           const data = await response.json() as MznJobResult
-          console.log(data)
-          if (bestResult === null || (optGoal === "minimize" && data.result < bestResult.result) || (optGoal === "maximize" && data.result > bestResult.result)) {
+          console.log("BestResukt", bestResult)
+          console.log("DATATDATADATA", data)
+          if (bestResult == null || (optGoal === "minimize" && data.optValue < bestResult.optValue) || (optGoal === "maximize" && data.optValue > bestResult.optValue)) {
             setBestResult(data);
           }
         } catch (error) {
@@ -66,7 +68,7 @@ function Mzn() {
     fetchResult();
   
     // Fetch data every second
-    const interval = setInterval(fetchResult, 1000);
+    const interval = setInterval(fetchResult, 5000);
   
     // Cleanup interval on unmount
     return () => clearInterval(interval);
@@ -135,6 +137,7 @@ function Mzn() {
   };
 
   const handlestartsolvers = () => {
+    setBestResult(null);
     setRunningMznJobs(selectedMznSolvers);
     selectedMznSolvers.forEach(fetchstartsolvers);
     setSelectedMznSolvers([]);
@@ -208,6 +211,9 @@ function Mzn() {
       setRunningMznJobs((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
+      if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && optGoal === "solve")) {
+        stopAllSolvers();
+      }
 
     } catch (error) {
       console.error("Error starting solvers:", error);
@@ -255,6 +261,24 @@ function Mzn() {
     }
 
   };
+
+
+  const stopAllSolvers = async () => {
+    try {
+      const response = await fetch("/api/jobs", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        console.error("Error stopping all solvers:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error stopping all solvers:", error);
+    }
+  };
+
 
   async function startSunny(): Promise<any> {
     console.log("Starting SUNNY");
@@ -374,19 +398,17 @@ function Mzn() {
           ))}
           
         </div>
-        
-        <div>
+        <br />
+        <h2>Result</h2>
+        <div>    
           {bestResult && (
-            <div>
-              <h2>Result</h2>
-              <br />
+            <div className="result-container">
               <h4>Solver Information</h4>
               <div>Name: {bestResult.name}</div>
               <div>Version: {bestResult.version}</div>
-              <br />
               <h4>Output</h4>
               <div>Status: {bestResult.status}</div>
-              <div>Execution Time: {bestResult.executionTime}</div>
+              <div>Execution Time: {bestResult.executionTime} milliseconds</div>
               <div>Result: {bestResult.result}</div>
             </div>
           )}
@@ -397,5 +419,7 @@ function Mzn() {
 }
 
 export default Mzn;
+
+
 
 

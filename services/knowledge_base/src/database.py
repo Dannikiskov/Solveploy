@@ -123,8 +123,8 @@ def handle_mzn_instance(data):
     existing_entry = query_database(query)
 
     if not existing_entry:
-        if data["optimizationValue"] != None:
-            opt_value = data["optimizationValue"]
+        if data["optVal"] != None:
+            opt_value = data["optVal"]
             query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, opt_value, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{opt_value}', '{execution_time}')"
         else: 
             query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"

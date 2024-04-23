@@ -18,7 +18,7 @@ class Jobs(Resource):
         data["queueName"] = "jobHandler"
         result = async_execute(data)
         result_json = json.loads(result)
-        print("RESULT: ", result_json, flush=True)
+        print("RESULT POST JOB: ", result_json, flush=True)
         return result_json
     
 
@@ -189,7 +189,7 @@ class results(Resource):
         
         print("RESULT: ", result, flush=True)
         if result is None:
-            return {"error": "No results available"}
+            return None
         return json.loads(result)
 
 api.add_resource(Jobs, '/api/jobs')
