@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import "./App.css";
+import React from "react";
 
 interface MznSolverData {
   name: string;
@@ -35,6 +36,7 @@ function Mzn() {
   const [optVal, setOptVal] = useState<string>("");
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
   const [optGoal, setOptGoal] = useState<string>("");
+  
 
   useEffect(() => {
     console.log("Hello from Mzn component");
@@ -308,6 +310,22 @@ function Mzn() {
     console.log(responeAsJson);
   }
 
+  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      for (let i = 0; i < e.target.files.length; i++) {
+        const file = e.target.files[i];
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          console.log("File content of file", file.name, "is:");
+          console.log(event.target?.result != null);
+          console.log("\n\n\n");
+        };
+        reader.readAsText(file);
+      }
+    }
+  }
+
+
   return (
     <>
     <br />
@@ -320,6 +338,16 @@ function Mzn() {
       <div>
         <h3>Upload Data file</h3>
         <input onChange={handleDataFileChange} type="file" />
+      </div>
+      <div>
+        <h3>Upload folder</h3>
+        {React.createElement('input', {
+          type: 'file',
+          webkitdirectory: '',
+          mozdirectory: '',
+          directory: '',
+          onChange: handleFolderChange
+        })}
       </div>
       <br />
       <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
@@ -345,6 +373,8 @@ function Mzn() {
         
       )}
       <div>
+        <br />
+        <h4>Optimization value</h4>
         <input
           type="string"
           placeholder="Optimization value"
