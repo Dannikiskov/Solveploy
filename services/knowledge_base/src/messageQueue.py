@@ -16,7 +16,7 @@ def rmq_init():
 def consume():
     channel = _rmq_connect().channel()
     def callback(ch, method, properties, body):
-        print(" [x] Received %r" % body, flush=True)
+        #print(" [x] Received %r" % body, flush=True)
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
         instructions = data.get("instructions", "FAILED TO RETRIEVE INSTRUCTIONS IN MQ KB")

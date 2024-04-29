@@ -7,28 +7,47 @@ import subprocess
 import k8Handler
 
 def handle_new_mzn_job(data):
-
+    dznIncluded = False
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
     cpu = data["item"]["cpu"]
     memory = data["item"]["memory"]
+    data_type = data["dataFileType"]
     k8Handler.start_solver_job(solver_name, identifier, "mzn", cpu, memory)
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
     #k8Handler.stop_solver_by_namespace("mzn")
 
-    temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
-    temp_file.write(data['mznFileContent'].encode())
-    temp_file.close()
-    
+    temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
+    temp_file_mzn.write(data['mznFileContent'].encode())
+    temp_file_mzn.close()
+    # print("\n\n\nMZN file: ", data['mznFileContent'], "\n\n\n", flush=True)
+    # print("\n\n\nData string ", data['dataFileContent'], "  \ntype: ", type(data['dataFileContent']), "\n\n\n", flush=True)
+    if data['dataFileContent'] is not None and data['dataFileContent'] != "":
+        temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
+        temp_file_dzn.write(data['dataFileContent'].encode())
+        temp_file_dzn.close()
+        dznIncluded = True
+        # print(f"\n\n\n{data_type} file: {data['dataFileContent']} \n\n\n", flush=True)
+
     # Get feature vector
-    command = ["mzn2feat", "-i", temp_file.name]
+    if dznIncluded:
+        command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
+    else:
+        command = ["mzn2feat", "-i", temp_file_mzn.name]
+
     cmd_result = subprocess.run(command, capture_output=True, text=True)
-    feature_vector = cmd_result.stdout.strip()
     
-    if k8_result["executionTime"] != "N/A":
+    feature_vector = cmd_result.stdout.strip()
+    feature_vector = feature_vector.split(',')
+    feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
+    feature_vector = ','.join(feature_vector)
+    # print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
+    
+    if "executionTime" in k8_result and k8_result["executionTime"] != "N/A":
         dict = {"optVal": data["optVal"], "featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleMznInstance", "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
+
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
 
 

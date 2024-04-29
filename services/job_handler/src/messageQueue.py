@@ -52,7 +52,7 @@ def consume():
             threading.Thread(target=maxsatHandler.stop_job, args=(data,)).start()
         
         elif instructions == "Sunny":
-            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"], data["solverType"],)).start()
+            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["dataContent"], data["dataFileType"],  data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"], data["solverType"],)).start()
 
         else:
             print("ERROR: NO MATCHING INSTRUCTIONS:::", instructions, flush=True)
@@ -60,7 +60,7 @@ def consume():
 
 
     channel.basic_consume(queue='jobHandler', on_message_callback=callback, auto_ack=True)
-    print("Starting Consume..", flush=True)
+    # print("Starting Consume..", flush=True)
     channel.start_consuming()
 
 
@@ -70,9 +70,9 @@ def send_wait_receive_k8(data, queue_name):
 
     connection = _rmq_connect()
     channel = connection.channel()
-    print("declaring queue: ", out_queue_name, flush=True)
+    # print("declaring queue: ", out_queue_name, flush=True)
     channel.queue_declare(queue=out_queue_name)
-    print("declaring queue: ", in_queue_name, flush=True)
+    # print("declaring queue: ", in_queue_name, flush=True)
     channel.queue_declare(queue=in_queue_name)
 
     json_data = json.dumps(data)
@@ -81,12 +81,12 @@ def send_wait_receive_k8(data, queue_name):
 
     result = None
 
-    print(" [x] Sent")
-    print(" [*] Waiting for messages.")
+    # print(" [x] Sent")
+    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
         
-        print(" [*] Message received.")
+        # print(" [*] Message received.")
         decoded_body = body.decode("utf-8")
         ch.queue_delete(queue=in_queue_name)
         nonlocal result
@@ -112,11 +112,11 @@ def send_wait_receive(data):
 
     result = None
 
-    print(" [x] Sent")
-    print(" [*] Waiting for messages.")
+    # print(" [x] Sent")
+    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
-        print(" [*] Message received.")
+        # print(" [*] Message received.")
         ch.stop_consuming()
         ch.queue_delete(queue=in_queue_name)
         decoded_body = body.decode("utf-8")
@@ -146,11 +146,11 @@ def consume_k8(queue_name):
 
     result = None
 
-    print(" [x] Sent")
-    print(" [*] Waiting for messages.")
+    # print(" [x] Sent")
+    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
-        print(" [*] Message received.")
+        # print(" [*] Message received.")
         ch.stop_consuming()
         ch.queue_delete(queue=queue_name)
         decoded_body = body.decode("utf-8")
@@ -158,7 +158,7 @@ def consume_k8(queue_name):
         result = decoded_body
 
     channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-    print("Starting Consume..", flush=True)
+    # print("Starting Consume..", flush=True)
     channel.start_consuming()
     return result
 

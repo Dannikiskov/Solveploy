@@ -43,8 +43,12 @@ button {
 .result-container {
   border: 4px solid rgb(131, 131, 131);
   /* Change color as needed */
+  border-radius: 10px;
+  /* Add round corners */
   padding: 10px;
   /* Adjust as needed */
+  margin: 5px;
+  /* Add small margin */
 }
 
 button:hover {

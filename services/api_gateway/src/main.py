@@ -14,6 +14,9 @@ class Jobs(Resource):
 
     def post(self):
         data = request.json
+        if data["mznFileContent"] is None or data["mznFileContent"] == "":
+            return {"result": "Mzn file content is required"}
+        
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
         result = async_execute(data)
@@ -23,7 +26,10 @@ class Jobs(Resource):
     
 
     def delete(self):
-        data = request.json
+        try:
+            data = request.json
+        except Exception as e:
+            return {"result": "Invalid request body"}
         data["identifier"] = data["item"]["jobIdentifier"]
         data["instructions"] = "StopJob"
         data["queueName"] = "jobHandler"

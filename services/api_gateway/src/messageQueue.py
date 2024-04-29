@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import json
 import pika
 import os

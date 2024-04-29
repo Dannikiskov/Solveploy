@@ -99,11 +99,11 @@ def get_all_mzn_feature_vectors():
     return query_database(query)
 
 def handle_mzn_instance(data):
-    feature_vector = str(data["featureVector"])
-    feature_vector = [float(num) for num in re.findall(r'\b\d+\.\d+\b', feature_vector)]
+    feature_vector = "{" + str(data["featureVector"]) + "}"
+    print("FTVC BEFORE: ", feature_vector, flush=True)
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
-    feature_vector_str = "{" + ",".join(map(str, feature_vector)) + "}"
+    
 
     query = f"SELECT id FROM mzn_solvers WHERE name = '{solver_name}'"
     solver_id = query_database(query)
@@ -112,10 +112,10 @@ def handle_mzn_instance(data):
         solver_id = query_database(query)
         
 
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector_str}'"
+    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector}'"
     feat_id = query_database(query)
     if not feat_id:
-        query = f"INSERT INTO mzn_feature_vectors (features) VALUES ('{feature_vector_str}') RETURNING id"
+        query = f"INSERT INTO mzn_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
         feat_id = query_database(query)
 
 
@@ -123,7 +123,7 @@ def handle_mzn_instance(data):
     existing_entry = query_database(query)
 
     if not existing_entry:
-        if data["optVal"] != None:
+        if data["optVal"] != "" and data["optVal"] is not None:
             opt_value = data["optVal"]
             query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, opt_value, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{opt_value}', '{execution_time}')"
         else: 
@@ -133,24 +133,32 @@ def handle_mzn_instance(data):
     print_all_tables()
 
 def is_instance_solved_mzn(instance, solver):
+    print_all_tables()
     print("INSTANCE: ", instance, flush=True)
     print("SOLVER: ", solver["name"], flush=True)
     query = f"SELECT id FROM mzn_solvers WHERE name = '{solver["name"]}'"
     solver_id = query_database(query)
+    print("solver_id", solver_id, flush=True)
+
     if not solver_id:
         return "Solver not found"
 
-    feature_vector = str(instance)
-    feature_vector = [float(num) for num in re.findall(r'\b\d+\.\d+\b', feature_vector)]
-    feature_vector_str = "{" + ",".join(map(str, feature_vector)) + "}"
+    instance = str(instance).replace(' ', '')
+    instance = instance.replace('[', '')
+    instance = instance.replace(']', '')
+    instance = "{" + instance + "}"
+    print("NEW INSTANCE: ", instance, flush=True)
 
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector_str}'"
+    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{instance}'"
     feature_vector_id = query_database(query)
     if not feature_vector_id:
         return "Feature vector not found"
+    
+    print("FV ID: ", feature_vector_id, flush=True)
 
     query = f"SELECT * FROM mzn_solver_featvec_time WHERE solver_id = {solver_id[0]} AND feature_vec_id = {feature_vector_id[0]}"
     result = query_database(query)
+    print("RESULT: ", result, flush=True)
 
     return result
 
@@ -161,11 +169,21 @@ def get_all_solved_mzn():
 
 
 def get_mzn_feature_vector_id(feature_vector):
-    print("ASDASDASDASDASDASDASDASDASD", all_mzn_feature_vectors(), flush=True)
-    feature_vector_str = "{" + ",".join(map(str, feature_vector)) + "}"
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector_str}'"
+    print("\n\n\n", "\n\n\n", flush=True)
+    
+    print_all_tables()
+    print("\n", flush=True)
+
+    feature_vector = "{" + str(feature_vector) + "}"
+    print("FTVC: ", feature_vector, flush=True)
+
+    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector}'"
     result = query_database(query)
-    print("RESULT: ", result, flush=True)
+    print(" get_mzn_feature_vector_id RESULT: ", result, flush=True)
+
+    if not result:
+        return None
+    
     return result[0]
 
 
@@ -178,7 +196,9 @@ def get_insts_times_mzn(similar_insts):
 
     sim_inst_ids= []
     for vect in similar_insts:
-        print("VECT: ", vect, flush=True)
+        vect = str(vect).replace(' ', '')
+        vect = vect.replace('[', '')
+        vect = vect.replace(']', '')
         sim_inst_ids.append(get_mzn_feature_vector_id(vect))
 
     solved_times = {}
@@ -201,8 +221,12 @@ def get_solver_times_mzn(solver_name, insts):
 
     sim_inst_ids= []
     for vect in insts:
-        print("VECT: ", vect, flush=True)
-        sim_inst_ids.append(get_mzn_feature_vector_id(vect))
+        vect = str(vect).replace(' ', '')
+        vect = vect.replace('[', '')
+        vect = vect.replace(']', '')
+        feat_vec_id = get_mzn_feature_vector_id(vect)
+        if feat_vec_id:
+            sim_inst_ids.append(feat_vec_id)
 
     solved_times = []
 

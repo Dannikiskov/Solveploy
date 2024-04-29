@@ -10,11 +10,11 @@ import ast
 
 
 
-def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type):
+def sunny(inst, dataFile, dataType, solvers, bkup_solver, k, T, identifier, solver_type):
     # Get features vector for the given instance
     print("printing arguments", inst, k, T, identifier, flush=True)
     print("\n\nGetting features vector for the given instance", flush=True)
-    feat_vect = get_features(inst)
+    feat_vect = get_features(inst, dataFile, dataType)
 
     # Find k-nearest neighbors
     print("Finding k-nearest neighbors", flush=True)
@@ -51,26 +51,40 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type):
     mq.send_to_queue(sorted(schedule.items(), key=lambda x: x[1]), f"jobhandler-{identifier}")
 
 
-def get_features(inst):
-    temp_file = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
-    print("temp_file.name: ", temp_file.name, flush=True)
-    temp_file.write(inst.encode())
-    temp_file.close()  # Close the file after writing
+def get_features(inst, data, data_type):
+    temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
+    temp_file_mzn.write(inst.encode())
+    temp_file_mzn.close()  # Close the file after writing
     
-    # Get feature vector
-    command = ["mzn2feat", "-i", temp_file.name]
-    cmd_result = subprocess.run(command, capture_output=True, text=True)
-    feature_vector = cmd_result.stdout.strip()
+    if data is not None and data != "":
+        temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
+        temp_file_dzn.write(data.encode())
+        temp_file_dzn.close()
+        dznIncluded = True
 
-    temp_file_content = open(temp_file.name).read()  # Read the content after closing the file
-    print("temp_file_content:\n", temp_file_content, "\n----", flush=True)
+    # Get feature vector
+    if data is not None and data != "":
+        command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
+    else:
+        command = ["mzn2feat", "-i", temp_file_mzn.name]
+    cmd_result = subprocess.run(command, capture_output=True, text=True)
+
+    feature_vector = cmd_result.stdout.strip()
+    feature_vector = feature_vector.split(',')
+    feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
+    feature_vector = ','.join(feature_vector)
+
+    print("get_features feature_vector: ", feature_vector, flush=True)
+
     return feature_vector
 
 
 def get_nearest_neighbors(feat_vect, k):
-    feat_vect = [float(num) for num in re.findall(r'\b\d+\.\d+\b', feat_vect)]  # Convert feat_vect first
+    print("\n\n", flush=True)
+    print("feat_vect: ", feat_vect, flush=True)
+    print("\n\n", flush=True)
     kb_features = kb.get_all_feature_vectors()
-    kb_features = [float(num) for num in re.findall(r'\b\d+\.\d+\b', kb_features)]
+
     kb_features =[kb_features]  # Now convert kb_features
     if kb_features is not None and len(kb_features) >= k:
         # Calculate distances to all feature vectors
@@ -126,7 +140,6 @@ def get_max_solved(solvers, similar_insts, T, solver_type):
         solver_solves_instances = kb.get_solver_times(solver["name"], similar_insts, solver_type)
         solver_solves_instances = ast.literal_eval(solver_solves_instances)
         print("solver_solves_instances", solver_solves_instances, flush=True)
-        print("type(solver_solves_instances)", type(solver_solves_instances), flush=True)
 
         time_spent = 0
         i = 0

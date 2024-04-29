@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
-
+import { v4 as uuidv4 } from "uuid";;
 import "./App.css";
 import React from "react";
 
@@ -16,7 +15,7 @@ interface MznSolverData {
 
 interface MznJobResult extends MznSolverData {
   result: string;
-  executionTime: number;
+  executionTime?: number;
   status: string;
   optValue: number;
 }
@@ -36,45 +35,65 @@ function Mzn() {
   const [optVal, setOptVal] = useState<string>("");
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
   const [optGoal, setOptGoal] = useState<string>("");
-  
+  const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null } }>({});
+  const [bestSet, setBestSet] = useState<boolean>(false);
+  // useEffect(() => {
+  //   // console.log("Hello from Mzn component");
+  //   // console.log("runningMznJobs:", runningMznJobs);
+  //   const fetchResult = async () => {
 
-  useEffect(() => {
-    console.log("Hello from Mzn component");
-    console.log("runningMznJobs:", runningMznJobs);
-    const fetchResult = async () => {
+  //       try {
+  //         const response = await fetch("/api/results/mzn", {
+  //           method: "GET",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //         });
+  //         if (!response.ok) {
+  //           console.error("HALA HALA Error fetching results:", response.statusText);
+  //           return; // Exit early if response is not OK
+  //         }
+  //         const data = await response.json() as MznJobResult;
 
-        try {
-          const response = await fetch("/api/results/mzn", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          if (!response.ok) {
-            console.error("HALA HALA Error fetching results:", response.statusText);
-            return; // Exit early if response is not OK
-          }
-          const data = await response.json() as MznJobResult
-          console.log("BestResukt", bestResult)
-          console.log("DATATDATADATA", data)
-          if (bestResult == null || (optGoal === "minimize" && data.optValue < bestResult.optValue) || (optGoal === "maximize" && data.optValue > bestResult.optValue)) {
-            setBestResult(data);
-          }
-        } catch (error) {
-          console.error("Error fetching results:", error);
-        }
+  //         console.log("\n----NEW---\n");
+  //         console.log("DATA", data);
+  //         console.log("BESTRESULT", bestResult);
+  //         console.log("\n----\n");
+  //         if (data ==  null){
+  //           return;
+  //         }
 
-    };
+  //         else if (bestSet === false){
+  //           setBestResult(data);
+  //           setBestSet(true);
+  //         }
+  //         else if (optGoal === "minimize" && data.optValue < (bestResult?.optValue ?? 0)){
+  //           setBestResult(data);
+  //         }
+  //         else if (optGoal === "maximize" && data.optValue > (bestResult?.optValue ?? 0)){
+  //           setBestResult(data);
+  //         }
+  //         else if (bestResult && data.status === bestResult.status){
+  //           if (data.executionTime != null && data.executionTime < (bestResult?.executionTime ?? 0)){
+  //             setBestResult(data);
+  //           }
+  //         }
+          
+  //       } catch (error) {
+  //         console.error("Error fetching results:", error);
+  //       }
+
+  //   };
   
-    // Fetch data initially
-    fetchResult();
+  //   // Fetch data initially
+  //   fetchResult();
   
-    // Fetch data every second
-    const interval = setInterval(fetchResult, 5000);
+  //   // Fetch data every second
+  //   const interval = setInterval(fetchResult, 5000);
   
-    // Cleanup interval on unmount
-    return () => clearInterval(interval);
-  }, [selectedMznSolvers, runningMznJobs, bestResult, optGoal]);
+  //   // Cleanup interval on unmount
+  //   return () => clearInterval(interval);
+  // }, []);
   
   useEffect(() => {
     fetchDataGet();
@@ -124,7 +143,7 @@ function Mzn() {
     }
   };
 
-  const handleitemclick = (item: MznSolverData) => {
+  const handleItemClick = (item: MznSolverData) => {
     if (selectedMznSolvers.find((i: any) => i.name === item.name)) {
       setSelectedMznSolvers((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
@@ -135,13 +154,14 @@ function Mzn() {
         item,
       ]);
     }
-    console.log(selectedMznSolvers);
+    //console.log(selectedMznSolvers);
   };
 
-  const handlestartsolvers = () => {
+  const handleStartSolvers = () => {
     setBestResult(null);
+    setBestSet(false);
     setRunningMznJobs(selectedMznSolvers);
-    selectedMznSolvers.forEach(fetchstartsolvers);
+    selectedMznSolvers.forEach(fetchStartSolvers);
     setSelectedMznSolvers([]);
     setMznSolverList((prevList) =>
       prevList.map((item) => ({
@@ -190,7 +210,7 @@ function Mzn() {
     setOptVal(s);
   }
 
-  const fetchstartsolvers = async (item: MznSolverData) => {
+  const fetchStartSolvers = async (item: MznSolverData) => {
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
@@ -208,7 +228,7 @@ function Mzn() {
       });
 
       const data = await response.json() as any;
-      console.log(data);
+      //console.log(data);
       // Remove the item from runningMznSolvers list
       setRunningMznJobs((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
@@ -216,6 +236,39 @@ function Mzn() {
       if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && optGoal === "solve")) {
         stopAllSolvers();
       }
+
+    } catch (error) {
+      console.error("Error starting solvers:", error);
+    }
+  }
+
+  const fetchStartSolverWithContent = async (item: MznSolverData, mznString: string, dataString: string, suffix: string) => {
+    // console.log("\n\n\n\n--------------------")
+    // console.log("Starting solver with content");
+    // console.log("Item: ", item);
+    // console.log("MZN content: ", mznString);
+    // console.log("Data content: ", dataString);
+    // console.log("Data file type: ", suffix);
+    // console.log("Opt val: ", optVal);
+    // console.log("--------------------\n\n\n\n")
+    try {
+      const response = await fetch("/api/jobs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          item,
+          mznFileContent : mznString,
+          dataFileContent: dataString,
+          dataFileType: suffix,
+          instructions: "StartMznJob",
+          optVal: optVal,
+        }),
+      });
+
+      const data = await response.json() as any;
+      console.log("fSSWC", data);
 
     } catch (error) {
       console.error("Error starting solvers:", error);
@@ -248,7 +301,7 @@ function Mzn() {
   const handleDataFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log("File name:", file.name);
+      // console.log("File name:", file.name);
       if(file.name.endsWith(".json")){
         setDznOrJson(".json");
       }
@@ -298,6 +351,8 @@ function Mzn() {
         solvers: selectedMznSolvers,
         backupSolver: selectedMznSolvers[selectedMznSolvers.length - 1],
         fileContent: mznFileContent,
+        dataContent: dataFileContent,
+        dataFileType: dznOrJson,
         solverType: "mzn",
       }),
     });
@@ -310,36 +365,117 @@ function Mzn() {
     console.log(responeAsJson);
   }
 
-  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
+      const fileMapping: { [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null } } = {};
+  
       for (let i = 0; i < e.target.files.length; i++) {
-        const file = e.target.files[i];
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          console.log("File content of file", file.name, "is:");
-          console.log(event.target?.result != null);
-          console.log("\n\n\n");
-        };
-        reader.readAsText(file);
+        const file = e.target.files[i] as any;
+        const pathParts = file.webkitRelativePath.split('/');
+        const folder = pathParts[pathParts.length - 2]; // Get the parent folder name
+  
+        if (!fileMapping[folder]) {
+          fileMapping[folder] = { mzn: null, dzn: null };
+        }
+  
+        const fileContent = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = event => resolve(event.target?.result as string);
+          reader.onerror = error => reject(error);
+          reader.readAsText(file);
+        });
+  
+        if (file.name.endsWith('.mzn')) {
+          fileMapping[folder].mzn = { file, content: fileContent };
+        } else if (file.name.endsWith('.dzn')) {
+          fileMapping[folder].dzn = { file, content: fileContent };
+        }
+      }
+  
+      // console.log(fileMapping);
+      setFolderMapping(fileMapping);
+    }
+  }
+
+  const startSolverWithAllFiles = async () => {
+    for (const solver of selectedMznSolvers) {
+      for (const folder in folderMapping) {
+        const { mzn, dzn } = folderMapping[folder];
+        if (mzn && dzn) {
+          setOptVal("");
+          await fetchStartSolverWithContent(solver, mzn.content, dzn.content, dzn.file.name.endsWith('.json') ? '.json' : '.dzn');
+        }
+        else if (mzn && !dzn) {
+          setOptVal("");
+          await fetchStartSolverWithContent(solver, mzn.content, "", "");
+        }
       }
     }
   }
 
+  async function handleRefresh(): Promise<void> {
+    try {
+      const response = await fetch("/api/results/mzn", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        console.error("HALA HALA Error fetching results:", response.statusText);
+        return; // Exit early if response is not OK
+      }
+      const data = await response.json() as MznJobResult;
+
+      console.log("\n----NEW---\n");
+      console.log("DATA", data);
+      console.log("BESTRESULT", bestResult);
+      console.log("\n----\n");
+      
+      if (data ==  null){
+        return;
+      }
+
+      else if (bestSet === false){
+        setBestResult(data);
+        setBestSet(true);
+      }
+    
+      else if (optGoal === "minimize" && data.optValue < (bestResult?.optValue ?? 0)){
+        setBestResult(data);
+      }
+      
+      else if (optGoal === "maximize" && data.optValue > (bestResult?.optValue ?? 0)){
+        setBestResult(data);
+      }
+      else if (bestResult && data.status === bestResult.status){
+        if (data.executionTime != null && data.executionTime < (bestResult?.executionTime ?? 0)){
+          setBestResult(data);
+        }
+      }
+      
+    } catch (error) {
+      console.error("Error fetching results:", error);
+    }
+
+  }
 
   return (
     <>
     <br />
     <h2>Upload Files</h2>
-      <div>
-        <h3>Upload MZN file</h3>
-        <input onChange={handleMznFileChange} type="file" />
+      <div className="result-container">
+        <div>
+          <h3>Upload MZN file</h3>
+          <input onChange={handleMznFileChange} type="file" />
+        </div>
+        <br></br>
+        <div>
+          <h3>Upload Data file</h3>
+          <input onChange={handleDataFileChange} type="file" />
+        </div>
       </div>
-      <br></br>
-      <div>
-        <h3>Upload Data file</h3>
-        <input onChange={handleDataFileChange} type="file" />
-      </div>
-      <div>
+      <div className="result-container">
         <h3>Upload folder</h3>
         {React.createElement('input', {
           type: 'file',
@@ -372,7 +508,7 @@ function Mzn() {
         </div>
         
       )}
-      <div>
+      <div className="result-container">
         <br />
         <h4>Optimization value</h4>
         <input
@@ -409,15 +545,19 @@ function Mzn() {
             <br />
             <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
             <br />
-            <button className="small-button" onClick={() => handleitemclick(item)}>Select</button>
+            <button className="small-button" onClick={() => handleItemClick(item)}>Select</button>
           </div>
           
         ))}
       </div>
       <br />
-      <button onClick={handlestartsolvers}>Start Solvers</button>
+      <div className="result-container">
+        <button onClick={startSolverWithAllFiles}>Start Solvers with all files</button>
+      </div>
       <br />
-      <div>
+      <button onClick={handleStartSolvers}>Start Solvers</button>
+      <br />
+      <div className="result-container">
         <h2>Running Solvers</h2>
         <div className="grid">
           {runningMznJobs.map((item, index) => (
@@ -428,6 +568,8 @@ function Mzn() {
           ))}
           
         </div>
+        </div>
+        <div>
         <br />
         <h2>Result</h2>
         <div>    
@@ -441,7 +583,11 @@ function Mzn() {
               <div>Execution Time: {bestResult.executionTime} milliseconds</div>
               <div>Result: {bestResult.result}</div>
             </div>
+
           )}
+        </div>
+        <div>
+          <button onClick={handleRefresh}>Refresh Result</button>
         </div>
       </div>
     </>

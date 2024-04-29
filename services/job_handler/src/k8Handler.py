@@ -1,3 +1,4 @@
+import uuid
 from kubernetes import client, config
 
 import os
@@ -8,7 +9,7 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"solver-{solver_name.lower()}-{image_prefix}-{identifier}"
+    job_name = f"{solver_name.lower()}-{image_prefix}-{identifier}-{str(uuid.uuid4())[:8]}"
 
     # Create solver job
     solver_job = create_solver_job(job_name, str(identifier), image_prefix, cpu, memory)
