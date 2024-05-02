@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: api-gateway
   namespace: default
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics" # If your metrics endpoint is different
+    prometheus.io/port: "5000"     # Port where your application is running
 spec:
   selector:
     matchLabels:
