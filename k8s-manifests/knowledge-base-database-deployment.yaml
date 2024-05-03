@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledge-base-database
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: knowledge-base-database
+  template:
+    metadata:
+      labels:
+        app: knowledge-base-database
+    spec:
+      containers:
+      - name: knowledge-base-database
+        image: postgres:latest
+        volumeMounts:
+        - name: data
+          mountPath: /mnt/data/postgres
+        env:
+          - name: POSTGRES_USER
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            value: postgres
+          - name: POSTGRES_DB
+            value: postgres
+        ports:
+          - containerPort: 5432
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+        
+        

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledge-base
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: knowledge-base
+  template:
+    metadata:
+      labels:
+        app: knowledge-base
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: knowledge-base
+          image: knowledge-base:latest
+          imagePullPolicy: Never
+          env:
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: message-broker-default-user
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: message-broker-default-user
+                  key: password
+          ports:
+            - containerPort: 5002

@@ -1,8 +1,7 @@
 ---
 - name: Install Ansible Galaxy roles
-  become: true
   hosts: kubernetes_hosts
-  connection: local
+  become: true
   vars:
     kubeconfig_path: "/home/hmbl/.kube/config"
   environment:
@@ -12,28 +11,32 @@
     - darkwizard242.helm
     - gantsign.minikube
     - robertdebock.kubectl
+    - darkwizard242.crictl
+    - darkwizard242.kubeadm
+    - alvistack.kube_kubelet
+    - antmelekhin.containerd
     
   tasks:
-    - name: Add user to docker group
-      become: yes
-      user:
-        name: "hmbl"
-        groups: docker
-        append: yes
-      tags: 
-        - docker
-      
-    - name: Set Docker socket permissions
-      become: yes
-      file:
-        path: /var/run/docker.sock
-        mode: "0777"
-      tags:
-        - docker
+    - name: reset kubeadm
+      ansible.builtin.command: kubeadm reset -f
 
-    - name: Start minikube
-      become: false
-      command: minikube start --cpus=4 --memory=3000 --driver=docker --mount --mount-string="/mnt/data/postgres:/mnt/data/postgres"
+    - name: turn off swap
+      ansible.builtin.command: swapoff -a
+
+    - name: create containerd config
+      ansible.builtin.command: containerd config default > /etc/containerd/config.toml
+c
+    - name: Enable CRI-O"
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: 'disabled_plugins = \["cri"\]'
+        replace: '#disabled_plugins = \["cri"\]'
+    
+    - name: Restart containerd
+      ansible.builtin.command: systemctl restart containerd
+
+    - name: Start kubeadm
+      ansible.builtin.command: kubeadm init 
 
     - name: install pip3
       ansible.builtin.package:

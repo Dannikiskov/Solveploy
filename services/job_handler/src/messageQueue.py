@@ -20,6 +20,7 @@ def rmq_init():
 def consume():
     channel = _rmq_connect().channel()
     def callback(ch, method, properties, body):
+        
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
         instructions = data["instructions"]
