@@ -8,6 +8,7 @@ import mznHandler
 import satHandler
 import maxsatHandler
 import sunny
+from multiprocessing import Process
 
 def rmq_init():
     connection = _rmq_connect()
@@ -23,10 +24,11 @@ def consume():
         
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
+        print(" [x] Received:\n %r" % data, "\n-----------------", flush=True)
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
-            threading.Thread(target=mznHandler.handle_new_mzn_job, args=(data,)).start()
+            Process(target=mznHandler.handle_new_mzn_job, args=(data,)).start()
 
         elif instructions == "StartSatJob":
             threading.Thread(target=satHandler.handle_new_sat_job, args=(data,)).start()

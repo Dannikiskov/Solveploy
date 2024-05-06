@@ -184,18 +184,64 @@ class K8s(Resource):
 
 class results(Resource):
     
-    def get(self, type):
-        result = None
-        if type == "mzn":
-            result = mq.consume_one("mzn-result-queue")
-        elif type == "sat":
-            result = mq.consume_one("sat-result-queue")
-        elif type == "maxsat":
-            result = mq.consume_one("maxsat-result-queue")
-        
+    def post(self):
+        data = request.json
+        result = mq.consume_one(f"{data['type']}-result-queue")
         print("RESULT: ", result, flush=True)
+        print("DATA: ", data, flush=True)
+        resultsList = []
+        
+        while result is not None:
+            resultsList.append(json.loads(result))
+            print("RESULT LIST INSIDE: ", resultsList, flush=True)
+            result = mq.consume_one(f"{data['type']}-result-queue")
+
+        print("optgoal: ", data["optGoal"], flush=True)
+        try:
+            if data["optGoal"] == "minimize":
+                lowest = resultsList[0]["optValue"]
+                for res in resultsList:
+                    if res["optValue"] < lowest:
+                        lowest = res["optValue"]
+                    if lowest < data["item"]["optValue"]:
+                        print("Returning result: ", result, flush=True)
+                        return lowest
+                    else:
+                        print("Returning None", flush=True)
+                        return None
+                    
+            elif data["optGoal"] == "maximize":
+                highest = resultsList[0]["optValue"]
+                for res in resultsList:
+                    if res["optValue"] > highest:
+                        highest = res["optValue"]
+                    if highest > data["item"]["optValue"]:
+                        print("Returning result: ", result, flush=True)
+                        return highest
+                    else:
+                        print("Returning None", flush=True)
+                        return None
+                    
+            else:
+                fastest = resultsList[0]
+                for res in resultsList:
+                    if res["status"] == "SATISFIED" and fastest["status"] == "SATISFIED":
+                        if res["executionTime"] < fastest["executionTime"]:
+                            fastest = res
+                if data["item"] == None or fastest["executionTime"] < data["item"]["executionTime"]:
+                    print("Returning result: ", fastest, flush=True)
+                    return fastest
+                
+        except Exception as e:
+            print("Error: ", e, flush=True)
+            return None
+            
+            
+
+        
         if result is None:
             return None
+        
         return json.loads(result)
 
 api.add_resource(Jobs, '/api/jobs')
@@ -204,7 +250,7 @@ api.add_resource(SolversMzn, '/api/solvers/mzn')
 api.add_resource(SolversSat, '/api/solvers/sat')
 api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
 api.add_resource(K8s, '/api/k8s/resource')
-api.add_resource(results, '/api/results/<string:type>')
+api.add_resource(results, '/api/results')
 
 
 def async_execute(data):

@@ -3,8 +3,6 @@ import subprocess
 import tempfile
 import numpy as np
 import kb
-import re
-import json
 import messageQueue as mq
 import ast
 

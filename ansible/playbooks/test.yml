@@ -1,0 +1,44 @@
+---
+- name: Install Ansible Galaxy roles
+  hosts: kubernetes_hosts
+  become: true
+
+  roles:
+    - geerlingguy.docker
+    - geerlingguy.kubernetes
+
+  tasks:
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+        
+    - name: disable swap
+      ansible.builtin.command: swapoff -a
+    
+    - name: restart containerd
+      ansible.builtin.systemd:
+        name: containerd
+        state: restarted
+
+    - name: mkdir
+      ansible.builtin.command: mkdir -p /home/{{ ansible_user }}/.kube
+
+    - name: Copy kube admin config to user's kube config
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "/home/{{ ansible_user }}/.kube/config"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+    - name: sudo chmod kubectl
+      ansible.builtin.command: chmod 644 /etc/kubernetes/admin.conf
+    
+    - name: sudo chown
+      ansible.builtin.command: chown -R $(id -u):$(id -g) /home/{{ ansible_user }}/.kube
+
+    - name: Install Flannel networking
+      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      args:
+        creates: /etc/cni/net.d/10-flannel.conflist

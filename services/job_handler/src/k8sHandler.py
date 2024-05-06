@@ -9,7 +9,11 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"{solver_name.lower()}-{image_prefix}-{identifier}-{str(uuid.uuid4())[:8]}"
+    job_name = f"{solver_name.lower()}-{image_prefix}-{str(uuid.uuid4())[:8]}"
+
+
+    cpu = str(cpu) + "m"
+    memory = str(memory) + "Mi"
 
     # Create solver job
     solver_job = create_solver_job(job_name, str(identifier), image_prefix, cpu, memory)
@@ -52,7 +56,6 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                         )
                     ],
                     restart_policy="Never",
-                    active_deadline_seconds=1800,
                 )
             ),
             ttl_seconds_after_finished=150,

@@ -32,7 +32,7 @@
 
     - name: Start minikube
       become: false
-      command: minikube start --cpus=12 --memory=28000 --driver=docker
+      command: minikube start --cpus=13 --memory=42000 --driver=docker
 
     - name: install pip3
       ansible.builtin.package:
@@ -51,17 +51,17 @@
     - name: Create namespaces
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../../kubernetes-deployments/namespace-creation.yaml') | from_yaml_all }}"
+        definition: "{{ lookup('file', '../../k8s-manifests/namespace-creation.yaml') | from_yaml_all }}"
 
     - name: Apply rabbitmq operator
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../../kubernetes-deployments/rabbitmq-operator.yaml') | from_yaml_all }}"
+        definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-operator.yaml') | from_yaml_all }}"
 
     - name: Apply rabbitmq definition
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../../kubernetes-deployments/rabbitmq-definition.yaml') | from_yaml_all }}"
+        definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-definition.yaml') | from_yaml_all }}"
 
     - name: Get minikube docker-env
       become: false
@@ -196,19 +196,20 @@
       kubernetes.core.k8s:
         definition: "{{ item }}"
       loop:
-        - "{{ lookup('file', '../../kubernetes-deployments/role-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/cluster-role-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/api-gateway-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/api-gateway-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/job-handler-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/job-handler-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-database-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-database-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/knowledge-base-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/frontend-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../kubernetes-deployments/frontend-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/pv.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/pvc.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/cluster-role-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/api-gateway-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/api-gateway-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/job-handler-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/job-handler-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-database-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-database-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
   
     - name: Add ngrok Helm repository
       ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
@@ -231,7 +232,7 @@
             authtoken: "{{ NGROK_AUTHTOKEN }}"
     
     - name: Install Prometheus
-        kubernetes.core.helm:
+      kubernetes.core.helm:
         name: prometheus-operator
         chart_ref: prometheus-community/kube-prometheus-stack
         release_namespace: monitoring
@@ -241,6 +242,6 @@
       kubernetes.core.k8s:
         definition: "{{ item }}"
       loop:
-        - "{{ lookup('file', '../../kubernetes-deployments/ngrok-ingress.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/ngrok-ingress.yaml') | from_yaml_all }}"
     
     

@@ -1,10 +1,10 @@
 import messageQueue as mq
-import k8Handler
+import k8sHandler
 import minizinc
 from pathlib import Path
 import tempfile
 import subprocess
-import k8Handler
+
 
 def handle_new_mzn_job(data):
     dznIncluded = False
@@ -13,22 +13,20 @@ def handle_new_mzn_job(data):
     cpu = data["item"]["cpu"]
     memory = data["item"]["memory"]
     data_type = data["dataFileType"]
-    k8Handler.start_solver_job(solver_name, identifier, "mzn", cpu, memory)
+    k8sHandler.start_solver_job(solver_name, identifier, "mzn", cpu, memory)
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
-    #k8Handler.stop_solver_by_namespace("mzn")
 
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file_mzn.write(data['mznFileContent'].encode())
     temp_file_mzn.close()
-    # print("\n\n\nMZN file: ", data['mznFileContent'], "\n\n\n", flush=True)
-    # print("\n\n\nData string ", data['dataFileContent'], "  \ntype: ", type(data['dataFileContent']), "\n\n\n", flush=True)
+
     if data['dataFileContent'] is not None and data['dataFileContent'] != "":
         temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
         temp_file_dzn.write(data['dataFileContent'].encode())
         temp_file_dzn.close()
         dznIncluded = True
-        # print(f"\n\n\n{data_type} file: {data['dataFileContent']} \n\n\n", flush=True)
+
 
     # Get feature vector
     if dznIncluded:
@@ -55,7 +53,7 @@ def stop_mzn_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
 
-    k8Handler.stop_solver_job(identifier)
+    k8sHandler.stop_solver_job(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 def get_available_mzn_solvers(data):

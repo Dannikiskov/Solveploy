@@ -36,7 +36,6 @@ function Mzn() {
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
   const [optGoal, setOptGoal] = useState<string>("");
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null } }>({});
-  const [bestSet, setBestSet] = useState<boolean>(false);
   // useEffect(() => {
   //   // console.log("Hello from Mzn component");
   //   // console.log("runningMznJobs:", runningMznJobs);
@@ -159,7 +158,6 @@ function Mzn() {
 
   const handleStartSolvers = () => {
     setBestResult(null);
-    setBestSet(false);
     setRunningMznJobs(selectedMznSolvers);
     selectedMznSolvers.forEach(fetchStartSolvers);
     setSelectedMznSolvers([]);
@@ -242,37 +240,29 @@ function Mzn() {
     }
   }
 
-  const fetchStartSolverWithContent = async (item: MznSolverData, mznString: string, dataString: string, suffix: string) => {
-    // console.log("\n\n\n\n--------------------")
-    // console.log("Starting solver with content");
-    // console.log("Item: ", item);
-    // console.log("MZN content: ", mznString);
-    // console.log("Data content: ", dataString);
-    // console.log("Data file type: ", suffix);
-    // console.log("Opt val: ", optVal);
-    // console.log("--------------------\n\n\n\n")
-    try {
-      const response = await fetch("/api/jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          item,
-          mznFileContent : mznString,
-          dataFileContent: dataString,
-          dataFileType: suffix,
-          instructions: "StartMznJob",
-          optVal: optVal,
-        }),
-      });
+  const fetchStartSolverWithContent = (item: MznSolverData, mznString: string, dataString: string, suffix: string) => {
+    const updatedItem = {
+      ...item,
+      jobIdentifier: uuidv4().slice(0, 8),
+    };
 
-      const data = await response.json() as any;
-      console.log("fSSWC", data);
-
-    } catch (error) {
+    fetch("/api/jobs", {
+      method: "POST",
+      headers: {
+      "Content-Type": "application/json",
+      },
+      
+      body: JSON.stringify({
+      item: updatedItem,
+      mznFileContent : mznString,
+      dataFileContent: dataString,
+      dataFileType: suffix,
+      instructions: "StartMznJob",
+      optVal: optVal,
+      }),
+    }).catch(error => {
       console.error("Error starting solvers:", error);
-    }
+    });
   }
 
 
@@ -415,44 +405,27 @@ function Mzn() {
 
   async function handleRefresh(): Promise<void> {
     try {
-      const response = await fetch("/api/results/mzn", {
-        method: "GET",
+      const response = await fetch("/api/results", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          item: bestResult,
+          type: "mzn",
+          optGoal
+        }),
       });
       if (!response.ok) {
-        console.error("HALA HALA Error fetching results:", response.statusText);
+        console.error("Error fetching results:", response.statusText);
         return; // Exit early if response is not OK
       }
       const data = await response.json() as MznJobResult;
-
-      console.log("\n----NEW---\n");
       console.log("DATA", data);
-      console.log("BESTRESULT", bestResult);
-      console.log("\n----\n");
-      
-      if (data ==  null){
-        return;
-      }
-
-      else if (bestSet === false){
-        setBestResult(data);
-        setBestSet(true);
-      }
-    
-      else if (optGoal === "minimize" && data.optValue < (bestResult?.optValue ?? 0)){
+      if (data != null){
         setBestResult(data);
       }
       
-      else if (optGoal === "maximize" && data.optValue > (bestResult?.optValue ?? 0)){
-        setBestResult(data);
-      }
-      else if (bestResult && data.status === bestResult.status){
-        if (data.executionTime != null && data.executionTime < (bestResult?.executionTime ?? 0)){
-          setBestResult(data);
-        }
-      }
       
     } catch (error) {
       console.error("Error fetching results:", error);

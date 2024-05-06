@@ -2,30 +2,27 @@
 - name: Install Ansible Galaxy roles
   hosts: kubernetes_hosts
   become: true
-  vars:
-    kubeconfig_path: "/home/hmbl/.kube/config"
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+  # vars:
+  #   kubeconfig_path: "/home/ucloud/.kube/config"
+  # environment:
+  #   KUBECONFIG: "{{ kubeconfig_path }}"
   roles:
+    - 
     - geerlingguy.docker
     - darkwizard242.helm
-    - gantsign.minikube
     - robertdebock.kubectl
     - darkwizard242.crictl
     - darkwizard242.kubeadm
     - alvistack.kube_kubelet
-    - antmelekhin.containerd
     
   tasks:
-    - name: reset kubeadm
-      ansible.builtin.command: kubeadm reset -f
 
     - name: turn off swap
       ansible.builtin.command: swapoff -a
 
-    - name: create containerd config
-      ansible.builtin.command: containerd config default > /etc/containerd/config.toml
-c
+    # - name: create containerd config
+    #   ansible.builtin.command: containerd config default > /etc/containerd/config.toml
+
     - name: Enable CRI-O"
       ansible.builtin.replace:
         path: /etc/containerd/config.toml
@@ -35,189 +32,195 @@ c
     - name: Restart containerd
       ansible.builtin.command: systemctl restart containerd
 
+    - name: Docker permission
+      ansible.builtin.command: usermod -aG docker ucloud
+    
+    - name: Start Docker
+      ansible.builtin.command: chmod 666 /run/containerd/containerd.sock
+
     - name: Start kubeadm
       ansible.builtin.command: kubeadm init 
 
-    - name: install pip3
-      ansible.builtin.package:
-        name: python3-pip
-        state: present
+    # - name: install pip3
+    #   ansible.builtin.package:
+    #     name: python3-pip
+    #     state: present
   
-    - name: install python3 libraries
-      ansible.builtin.pip:
-        name: "{{ item }}"
-      loop:
-        - kubernetes
-        - openshift
-        - docker
-        - PyYAML
+    # - name: install python3 libraries
+    #   ansible.builtin.pip:
+    #     name: "{{ item }}"
+    #   loop:
+    #     - kubernetes
+    #     - openshift
+    #     - docker
+    #     - PyYAML
 
-    - name: Apply persistent volume
-      kubernetes.core.k8s:
+    # - name: Apply persistent volume
+    #   kubernetes.core.k8s:
 
-        state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/pv.yaml') | from_yaml_all }}"
+    #     state: present
+    #     definition: "{{ lookup('file', '../../k8s-manifests/pv.yaml') | from_yaml_all }}"
 
-    - name: Apply persistent volume claim
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/pvc.yaml') | from_yaml_all }}"
+    # - name: Apply persistent volume claim
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     definition: "{{ lookup('file', '../../k8s-manifests/pvc.yaml') | from_yaml_all }}"
 
-    - name: Create namespaces
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/namespace-creation.yaml') | from_yaml_all }}"
+    # - name: Create namespaces
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     definition: "{{ lookup('file', '../../k8s-manifests/namespace-creation.yaml') | from_yaml_all }}"
 
-    - name: Apply rabbitmq operator
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-operator.yaml') | from_yaml_all }}"
+    # - name: Apply rabbitmq operator
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-operator.yaml') | from_yaml_all }}"
 
-    - name: Apply rabbitmq definition
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-definition.yaml') | from_yaml_all }}"
+    # - name: Apply rabbitmq definition
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-definition.yaml') | from_yaml_all }}"
 
-    - name: Get minikube docker-env
-      become: false
-      shell: minikube docker-env
-      register: minikube_docker_env
+    # - name: Get minikube docker-env
+    #   become: false
+    #   shell: minikube docker-env
+    #   register: minikube_docker_env
 
-    - name: Copy base image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileBase
-        dest: ./DockerfileBase
+    # - name: Copy base image Dockerfile to target machine
+    #   copy:
+    #     src: ../../images/DockerfileBase
+    #     dest: ./DockerfileBase
 
-    - name: Build backend base image
-      community.docker.docker_image_build:
-        path: "."
-        name: "solveploy-base"
-        dockerfile: "DockerfileBase"
-        rebuild: "always"
-        docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
-        tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
-        client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
-        client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
+    # - name: Build backend base image
+    #   community.docker.docker_image_build:
+    #     path: "."
+    #     name: "solveploy-base"
+    #     dockerfile: "DockerfileBase"
+    #     rebuild: "always"
+    #     docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
+    #     tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+    #     validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+    #     ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
+    #     client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
+    #     client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
 
-    - name: Copy mzn image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileMzn
-        dest: ./DockerfileMzn
+    # - name: Copy mzn image Dockerfile to target machine
+    #   copy:
+    #     src: ../../images/DockerfileMzn
+    #     dest: ./DockerfileMzn
 
-    - name: Build backend mzn image
-      community.docker.docker_image_build:
-        path: "."
-        name: "solveploy-mzn"
-        dockerfile: "DockerfileMzn"
-        rebuild: "always"
-        docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
-        tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
-        client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
-        client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
+    # - name: Build backend mzn image
+    #   community.docker.docker_image_build:
+    #     path: "."
+    #     name: "solveploy-mzn"
+    #     dockerfile: "DockerfileMzn"
+    #     rebuild: "always"
+    #     docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
+    #     tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+    #     validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+    #     ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
+    #     client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
+    #     client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
 
-    - name: Build Docker images
-      community.docker.docker_image_build:
-        path: "{{ item.context }}"
-        name: "{{ item.image }}"
-        dockerfile: "{{ item.dockerfile }}"
-        rebuild: "always"
-        docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
-        tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
-        client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
-        client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
-      async: 7200
-      poll: 0
-      register: docker_build
-      loop:
-        - {
-            image: "frontend",
-            dockerfile: "Dockerfile",
-            context: "../../services/frontend/",
-          }
-        - {
-            image: "api-gateway",
-            dockerfile: "Dockerfile",
-            context: "../../services/api_gateway/",
-          }
-        - {
-            image: "job-handler",
-            dockerfile: "Dockerfile",
-            context: "../../services/job_handler/",
-          }
-        - {
-            image: "knowledge-base",
-            dockerfile: "Dockerfile",
-            context: "../../services/knowledge_base/",
-          }
-        - {
-            image: "mzn-pod",
-            dockerfile: "Dockerfile",
-            context: "../../services/mzn_pod/",
-          }
-        - {
-            image: "sat-pod",
-            dockerfile: "Dockerfile",
-            context: "../../services/sat_pod/",
-          }
-        - {
-            image: "maxsat-pod",
-            dockerfile: "Dockerfile",
-            context: "../../services/maxsat_pod/",
-          }
+    # - name: Build Docker images
+    #   community.docker.docker_image_build:
+    #     path: "{{ item.context }}"
+    #     name: "{{ item.image }}"
+    #     dockerfile: "{{ item.dockerfile }}"
+    #     rebuild: "always"
+    #     docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
+    #     tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+    #     validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
+    #     ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
+    #     client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
+    #     client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
+    #   async: 7200
+    #   poll: 0
+    #   register: docker_build
+    #   loop:
+    #     - {
+    #         image: "frontend",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/frontend/",
+    #       }
+    #     - {
+    #         image: "api-gateway",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/api_gateway/",
+    #       }
+    #     - {
+    #         image: "job-handler",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/job_handler/",
+    #       }
+    #     - {
+    #         image: "knowledge-base",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/knowledge_base/",
+    #       }
+    #     - {
+    #         image: "mzn-pod",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/mzn_pod/",
+    #       }
+    #     - {
+    #         image: "sat-pod",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/sat_pod/",
+    #       }
+    #     - {
+    #         image: "maxsat-pod",
+    #         dockerfile: "Dockerfile",
+    #         context: "../../services/maxsat_pod/",
+    #       }
 
-    - name: Wait for Docker image builds to finish
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 300
-      loop: "{{ docker_build.results }}"
+    # - name: Wait for Docker image builds to finish
+    #   async_status:
+    #     jid: "{{ item.ansible_job_id }}"
+    #   register: job_result
+    #   until: job_result.finished
+    #   retries: 300
+    #   loop: "{{ docker_build.results }}"
 
-    - name: Get secret from rabbitmq-system namespace
-      kubernetes.core.k8s_info:
-        kind: Secret
-        name: message-broker-default-user
-        namespace: rabbitmq-system
-      register: secret_info
-      until: (secret_info.resources | default([])) | length > 0
-      retries: 20
-      delay: 10
+    # - name: Get secret from rabbitmq-system namespace
+    #   kubernetes.core.k8s_info:
+    #     kind: Secret
+    #     name: message-broker-default-user
+    #     namespace: rabbitmq-system
+    #   register: secret_info
+    #   until: (secret_info.resources | default([])) | length > 0
+    #   retries: 20
+    #   delay: 10
 
-    - name: Create secret in default namespace
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: "{{ secret_info.resources[0].metadata.name }}"
-            namespace: default
-          type: "{{ secret_info.resources[0].type }}"
-          data: "{{ secret_info.resources[0].data }}"
+    # - name: Create secret in default namespace
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     definition:
+    #       apiVersion: v1
+    #       kind: Secret
+    #       metadata:
+    #         name: "{{ secret_info.resources[0].metadata.name }}"
+    #         namespace: default
+    #       type: "{{ secret_info.resources[0].type }}"
+    #       data: "{{ secret_info.resources[0].data }}"
 
-    - name: Apply Kubernetes deployments and services
-      kubernetes.core.k8s:
-        definition: "{{ item }}"
-      loop:
-        - "{{ lookup('file', '../../k8s-manifests/role-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/cluster-role-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/api-gateway-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/api-gateway-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/job-handler-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/job-handler-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-database-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-database-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/knowledge-base-service.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
+    # - name: Apply Kubernetes deployments and services
+    #   kubernetes.core.k8s:
+    #     definition: "{{ item }}"
+    #   loop:
+    #     - "{{ lookup('file', '../../k8s-manifests/role-job-creator.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/cluster-role-job-creator.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/api-gateway-deployment.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/api-gateway-service.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/job-handler-deployment.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/job-handler-service.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/knowledge-base-database-deployment.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/knowledge-base-database-service.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/knowledge-base-deployment.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/knowledge-base-service.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
+    #     - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
   
     # - name: Add ngrok Helm repository
     #   ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller

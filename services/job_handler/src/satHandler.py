@@ -1,5 +1,5 @@
 import messageQueue as mq
-import k8Handler
+import k8sHandler
 from pathlib import Path
 import tempfile
 import sat_feat_py.generate_features as gf
@@ -9,7 +9,7 @@ def handle_new_sat_job(data):
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
 
-    k8Handler.start_solver_job(solver_name, identifier, "sat")
+    k8sHandler.start_solver_job(solver_name, identifier, "sat")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
     stop_sat_by_namespace()
 
@@ -28,12 +28,12 @@ def stop_sat_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
 
-    k8Handler.stop_solver_job_by_id(identifier)
+    k8sHandler.stop_solver_job_by_id(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 
 def stop_sat_by_namespace():
-    k8Handler.stop_solver_by_namespace("sat")
+    k8sHandler.stop_solver_by_namespace("sat")
 
 
 
