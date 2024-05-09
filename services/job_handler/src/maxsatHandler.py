@@ -1,5 +1,5 @@
 import messageQueue as mq
-import k8Handler
+import k8sHandler
 import sat_feat_py.generate_features as gf
 
 
@@ -8,7 +8,7 @@ def handle_new_maxsat_job(data):
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
 
-    k8Handler.start_solver_job(solver_name, identifier, "maxsat")
+    k8sHandler.start_solver_job(solver_name, identifier, "maxsat")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
     stop_maxsat_job_by_namespace()
@@ -28,12 +28,12 @@ def stop_maxsat_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
 
-    k8Handler.stop_solver_job_by_namespace(identifier)
+    k8sHandler.stop_solver_job_by_namespace(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
 
 def stop_maxsat_job_by_namespace():
-    k8Handler.stop_solver_by_namespace("maxsat")
+    k8sHandler.stop_solver_by_namespace("maxsat")
 
 
 def get_available_maxsat_solvers(data):

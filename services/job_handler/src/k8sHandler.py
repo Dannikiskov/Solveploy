@@ -1,3 +1,4 @@
+import base64
 import uuid
 from kubernetes import client, config
 
@@ -12,17 +13,27 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     job_name = f"{solver_name.lower()}-{image_prefix}-{str(uuid.uuid4())[:8]}"
 
 
+    config.load_incluster_config()
+
+    v1 = client.CoreV1Api()
+
+    # Get the secret
+    secret = v1.read_namespaced_secret("rabbitmq", "default")
+
+    # Decode the secret data
+    password = base64.b64decode(secret.data['rabbitmq-password']).decode()
+
     cpu = str(cpu) + "m"
     memory = str(memory) + "Mi"
 
     # Create solver job
-    solver_job = create_solver_job(job_name, str(identifier), image_prefix, cpu, memory)
+    solver_job = create_solver_job(job_name, str(identifier), image_prefix, cpu, memory, 'user', password)
     batch_api = client.BatchV1Api()
 
     batch_api.create_namespaced_job(namespace=image_prefix, body=solver_job)
     return job_name
 
-def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request):
+def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request, username, password):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
@@ -40,11 +51,11 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                                 ),
                                 client.V1EnvVar(
                                     name="RABBITMQ_USERNAME",
-                                    value=os.getenv("RABBITMQ_USERNAME"),
+                                    value=username,
                                 ),
                                 client.V1EnvVar(
                                     name="RABBITMQ_PASSWORD",
-                                    value=os.getenv("RABBITMQ_PASSWORD"),
+                                    value=password,
                                 ),
                             ],
                             resources=client.V1ResourceRequirements(

@@ -21,16 +21,5 @@ spec:
         - name: api-gateway
           image: api-gateway:latest
           imagePullPolicy: Never
-          env:
-            - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: message-broker-default-user
-                  key: username
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: message-broker-default-user
-                  key: password
           ports:
             - containerPort: 5000

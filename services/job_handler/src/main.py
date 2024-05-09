@@ -1,7 +1,7 @@
 import messageQueue as mq
-import k8Handler as k8h
+import k8sHandler as k8s
 
 if __name__ == '__main__':
     mq.rmq_init()
-    k8h.resource_init()
+    k8s.resource_init()
     mq.consume()

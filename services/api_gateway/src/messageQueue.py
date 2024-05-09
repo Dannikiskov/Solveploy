@@ -1,7 +1,9 @@
+import base64
 import json
 import pika
 import os
 import time
+from kubernetes import client, config
 
 def rmq_init():
     connection = _rmq_connect()
@@ -64,15 +66,29 @@ def consume_one(queue_name):
     return result
 
 def _rmq_connect():
+    # Load kube config
+    config.load_incluster_config()
+
+    v1 = client.CoreV1Api()
+
+    # Get the secret
+    secret = v1.read_namespaced_secret("rabbitmq", "default")
+
+    # Decode the secret data
+    password = base64.b64decode(secret.data['rabbitmq-password']).decode()
+
+
+    print(password, flush=True)
+
     while True:
         try:
             return pika.BlockingConnection(
                 pika.ConnectionParameters(
-                    host='message-broker.rabbitmq-system.svc.cluster.local',
-                    credentials=pika.PlainCredentials(
-                        os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
+                    host='rabbitmq.rabbitmq-system.svc.cluster.local',
+                    credentials=pika.PlainCredentials('user', password)
                 )
             )
+        
         except Exception as e:
             print(f"Connection failed. Retrying in 5 seconds...", flush=True)
             print(e, flush=True)
