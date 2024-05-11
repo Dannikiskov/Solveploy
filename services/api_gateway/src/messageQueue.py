@@ -45,6 +45,19 @@ def send_wait_receive(data):
     channel.start_consuming()
     return result
 
+# Service leaving call
+def send(data):
+    out_queue_name = data["queueName"]
+    in_queue_name = f'{data["queueName"]}-{data["identifier"]}'
+
+    connection = _rmq_connect()
+    channel = connection.channel()
+    channel.queue_declare(queue=in_queue_name)
+
+    json_data = json.dumps(data)
+    channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
+
+
 def consume_one(queue_name):
     connection = _rmq_connect()
     channel = connection.channel()

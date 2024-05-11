@@ -1,16 +1,26 @@
 ---
 - name: Install Ansible Galaxy roles
   hosts: kubernetes_hosts
-  become: true
-  # vars:
-  #   kubeconfig_path: "/home/ucloud/.kube/config"
-  # environment:
-  #   KUBECONFIG: "{{ kubeconfig_path }}"
-
+  connection: local
   tasks:
-  
+    - name: Include vars of vars.json
+      ansible.builtin.include_vars:
+        file: ../../.environmentals.json
+
+    - name: Print NGROK_AUTHTOKEN
+      ansible.builtin.debug:
+        var: NGROK_AUTHTOKEN
+
+    - name: Print NGROK_API_KEY
+      ansible.builtin.debug:
+        var: NGROK_API_KEY
+    
+    - name: Print ANSIBLE_USER
+      ansible.builtin.debug:
+        var: ANSIBLE_USER
     
     
-    - name: Initialize kube cluster
-      ansible.builtin.shell:
-        cmd: sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket=unix:///var/run/cri-dockerd.sock
+    - name: Print ANSIBLE_HOST
+      ansible.builtin.debug:
+        var: ANSIBLE_HOST
+      

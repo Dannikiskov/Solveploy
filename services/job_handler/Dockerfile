@@ -1,4 +1,4 @@
-FROM solveploy-mzn:latest
+FROM solveploy-base:latest
 
 # Copy the requirements.txt file into the container
 COPY requirements.txt .

@@ -100,9 +100,9 @@ def get_all_mzn_feature_vectors():
 
 def handle_mzn_instance(data):
     feature_vector = "{" + str(data["featureVector"]) + "}"
-    print("FTVC BEFORE: ", feature_vector, flush=True)
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
+    result = data["result"]
     
 
     query = f"SELECT id FROM mzn_solvers WHERE name = '{solver_name}'"
@@ -125,9 +125,9 @@ def handle_mzn_instance(data):
     if not existing_entry:
         if data["optVal"] != "" and data["optVal"] is not None:
             opt_value = data["optVal"]
-            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, opt_value, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{opt_value}', '{execution_time}')"
+            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, opt_value, execution_time, result) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{opt_value}', '{execution_time}, '{result}')"
         else: 
-            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
+            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, execution_time, result) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}', '{result}')"
         query_database(query)
 
     print_all_tables()
@@ -265,11 +265,6 @@ def set_allocatable_resources(data):
     query = f"INSERT INTO k8s_resources (allocatable_cpu, allocatable_memory) VALUES ({cpu}, {memory})"
     query_database(query)
 
-def update_in_use_resources(data):
-    cpu = data["cpu"]
-    memory = data["memory"][:-2]
-    query = f"UPDATE k8s_resources SET in_use_cpu = in_use_cpu + {cpu}, in_use_memory = in_use_memory + {memory}"
-    query_database(query)
 
 def get_available_k8s_resources():
     query = "SELECT * FROM k8s_resources"
@@ -302,7 +297,8 @@ def database_init():
             solver_id INT REFERENCES mzn_solvers(id),
             feature_vec_id INT REFERENCES mzn_feature_vectors(id),
             opt_value FLOAT,
-            execution_time FLOAT NOT NULL
+            execution_time FLOAT NOT NULL,
+            result VARCHAR(2047)
         );
     """
     query_database(query)
@@ -361,18 +357,6 @@ def database_init():
             solver_id INT REFERENCES maxsat_solvers(id),
             feature_vec_id INT REFERENCES maxsat_feature_vectors(id),
             execution_time FLOAT NOT NULL
-        );
-    """
-    query_database(query)
-
-    # General tables
-    query = """
-        CREATE TABLE IF NOT EXISTS k8s_resources (
-            id SERIAL PRIMARY KEY,
-            allocatable_cpu FLOAT NOT NULL,
-            allocatable_memory FLOAT NOT NULL,
-            in_use_cpu FLOAT,
-            in_use_memory FLOAT 
         );
     """
     query_database(query)

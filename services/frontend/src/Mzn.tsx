@@ -36,63 +36,6 @@ function Mzn() {
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
   const [optGoal, setOptGoal] = useState<string>("");
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null } }>({});
-  // useEffect(() => {
-  //   // console.log("Hello from Mzn component");
-  //   // console.log("runningMznJobs:", runningMznJobs);
-  //   const fetchResult = async () => {
-
-  //       try {
-  //         const response = await fetch("/api/results/mzn", {
-  //           method: "GET",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //         });
-  //         if (!response.ok) {
-  //           console.error("HALA HALA Error fetching results:", response.statusText);
-  //           return; // Exit early if response is not OK
-  //         }
-  //         const data = await response.json() as MznJobResult;
-
-  //         console.log("\n----NEW---\n");
-  //         console.log("DATA", data);
-  //         console.log("BESTRESULT", bestResult);
-  //         console.log("\n----\n");
-  //         if (data ==  null){
-  //           return;
-  //         }
-
-  //         else if (bestSet === false){
-  //           setBestResult(data);
-  //           setBestSet(true);
-  //         }
-  //         else if (optGoal === "minimize" && data.optValue < (bestResult?.optValue ?? 0)){
-  //           setBestResult(data);
-  //         }
-  //         else if (optGoal === "maximize" && data.optValue > (bestResult?.optValue ?? 0)){
-  //           setBestResult(data);
-  //         }
-  //         else if (bestResult && data.status === bestResult.status){
-  //           if (data.executionTime != null && data.executionTime < (bestResult?.executionTime ?? 0)){
-  //             setBestResult(data);
-  //           }
-  //         }
-          
-  //       } catch (error) {
-  //         console.error("Error fetching results:", error);
-  //       }
-
-  //   };
-  
-  //   // Fetch data initially
-  //   fetchResult();
-  
-  //   // Fetch data every second
-  //   const interval = setInterval(fetchResult, 5000);
-  
-  //   // Cleanup interval on unmount
-  //   return () => clearInterval(interval);
-  // }, []);
   
   useEffect(() => {
     fetchDataGet();
@@ -241,6 +184,7 @@ function Mzn() {
   }
 
   const fetchStartSolverWithContent = (item: MznSolverData, mznString: string, dataString: string, suffix: string) => {
+    console.log("ITEM: ", item)
     const updatedItem = {
       ...item,
       jobIdentifier: uuidv4().slice(0, 8),
@@ -259,6 +203,7 @@ function Mzn() {
       dataFileType: suffix,
       instructions: "StartMznJob",
       optVal: optVal,
+      noresult: true
       }),
     }).catch(error => {
       console.error("Error starting solvers:", error);

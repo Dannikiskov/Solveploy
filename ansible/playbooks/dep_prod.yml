@@ -6,7 +6,6 @@
     - darkwizard242.helm
 
   tasks:
-
     - name: Command turn of swap
       ansible.builtin.command:
         cmd: swapoff -a
@@ -179,18 +178,6 @@
         dockerfile: "DockerfileBase"
         rebuild: "always"
 
-    - name: Copy mzn image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileMzn
-        dest: ./DockerfileMzn
-
-    - name: Build backend mzn image
-      community.docker.docker_image_build:
-        path: "."
-        name: "solveploy-mzn"
-        dockerfile: "DockerfileMzn"
-        rebuild: "always"
-
     - name: Copy services to target machine
       copy:
         src: ../../services
@@ -270,6 +257,10 @@
         - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
 
+    - name: Include vars of vars.json
+      ansible.builtin.include_vars:
+        file: ../../.environmentals.json
+        
     - name: Install ngrok-ingress-controller
       kubernetes.core.helm:
         name: ngrok
@@ -278,7 +269,7 @@
         create_namespace: true
         values:
           credentials:
-            apiKey: "{{ NGROK_API_KEY }}"
+            apiKey: "{{ NGROK_API_KEY }}" 
             authtoken: "{{ NGROK_AUTHTOKEN }}"
     
     - name: Install Prometheus

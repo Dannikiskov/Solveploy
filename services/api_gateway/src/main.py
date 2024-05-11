@@ -7,6 +7,7 @@ import concurrent.futures
 import uuid
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024  # 50 Megabytes
 api = Api(app)
 CORS(app)
 
@@ -19,10 +20,13 @@ class Jobs(Resource):
         
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
-        result = async_execute(data)
-        result_json = json.loads(result)
-        print("RESULT POST JOB: ", result_json, flush=True)
-        return result_json
+        if "noresult" in data and data["noresult"] == True:
+            async_execute_no_response(data)
+        else:
+            result = async_execute(data)
+            result_json = json.loads(result)
+            print("RESULT POST JOB: ", result_json, flush=True)
+            return result_json
     
 
     def delete(self):
@@ -256,6 +260,12 @@ api.add_resource(results, '/api/results')
 def async_execute(data):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(lambda: mq.send_wait_receive(data))
+        response = future.result()
+        return response
+    
+def async_execute_no_response(data):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(lambda: mq.send(data))
         response = future.result()
         return response
     

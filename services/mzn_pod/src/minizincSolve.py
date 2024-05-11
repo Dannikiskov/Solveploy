@@ -21,6 +21,8 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             temp_data_file.close()
             instance.add_file(temp_data_file.name)
 
+    print("PARAMS:", params_dict, flush=True)
+
     try:
         result = instance.solve(**params_dict) if params_dict is not None else instance.solve()
     except Exception as e:
@@ -50,6 +52,8 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
         execution_time = result.statistics['time'].total_seconds() * 1000
     else:
         execution_time = "N/A"
+    
+
         
     print({"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}, flush=True)
     return {"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}

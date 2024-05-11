@@ -43,7 +43,7 @@ def handle_new_mzn_job(data):
     # print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
     
     if "executionTime" in k8_result and k8_result["executionTime"] != "N/A":
-        dict = {"optVal": data["optVal"], "featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleMznInstance", "queueName": "kbHandler"}
+        dict = {"optVal": data["optVal"], "featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "result": k8_result["result"], "instructions": "HandleMznInstance", "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
 
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')

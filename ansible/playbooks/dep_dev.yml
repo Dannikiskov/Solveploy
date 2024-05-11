@@ -2,21 +2,17 @@
 - name: Install Ansible Galaxy roles
   become: true
   hosts: kubernetes_hosts
+  connection: local
   vars:
-    kubeconfig_path: "/home/ucloud/.kube/config"
+    kubeconfig_path: "/home/hmbl/.kube/config"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  roles:
-    - geerlingguy.docker
-    - darkwizard242.helm
-    - gantsign.minikube
-    - robertdebock.kubectl
-    
+
   tasks:
     - name: Add user to docker group
       become: yes
       user:
-        name: "{{ ansible_user }}"
+        name: "hmbl"
         groups: docker
         append: yes
       tags: 
@@ -32,7 +28,7 @@
 
     - name: Start minikube
       become: false
-      command: minikube start --cpus=13 --memory=42000 --driver=docker
+      command: minikube start --cpus=2 --memory=2000 --driver=docker
 
     - name: install pip3
       ansible.builtin.package:
@@ -47,35 +43,70 @@
         - openshift
         - docker
         - PyYAML
+    
+    - name: Local Path Provisionar
+      ansible.builtin.shell:
+        cmd: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
 
+    - name: Annotate storageclass
+      ansible.builtin.shell:
+        cmd: kubectl annotate storageclass local-path storageclass.kubernetes.io/is-default-class=true
+    
     - name: Create namespaces
       kubernetes.core.k8s:
         state: present
         definition: "{{ lookup('file', '../../k8s-manifests/namespace-creation.yaml') | from_yaml_all }}"
+    
+    - name: Add ngrok Helm repository
+      ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
+    
+    - name: Add helm repo prometheus-community
+      ansible.builtin.command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    
+    - name: Add Bitnami Helm repository
+      ansible.builtin.command: helm repo add bitnami https://charts.bitnami.com/bitnami
 
-    - name: Apply rabbitmq operator
+    - name: Update Helm repositories
+      ansible.builtin.command: helm repo update
+
+    - name: Deploy RabbitMQ
+      kubernetes.core.helm:
+        name: rabbitmq
+        chart_ref: bitnami/rabbitmq
+        release_namespace: rabbitmq-system
+        values:
+          existingSecret: rabbitmq-credentials
+    
+    - name: Get secret from rabbitmq-system namespace
+      kubernetes.core.k8s_info:
+        kind: Secret
+        name: rabbitmq
+        namespace: rabbitmq-system
+      register: secret_info
+      until: (secret_info.resources | default([])) | length > 0
+      retries: 20
+      delay: 10
+
+    - name: Create secret in default namespace
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-operator.yaml') | from_yaml_all }}"
-
-    - name: Apply rabbitmq definition
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../../k8s-manifests/rabbitmq-definition.yaml') | from_yaml_all }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "rabbitmq"
+            namespace: default
+          type: "{{ secret_info.resources[0].type }}"
+          data: "{{ secret_info.resources[0].data }}"
 
     - name: Get minikube docker-env
       become: false
       shell: minikube docker-env
       register: minikube_docker_env
 
-    - name: Copy base image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileBase
-        dest: ./DockerfileBase
-
     - name: Build backend base image
       community.docker.docker_image_build:
-        path: "."
+        path: "../../images/"
         name: "solveploy-base"
         dockerfile: "DockerfileBase"
         rebuild: "always"
@@ -85,30 +116,6 @@
         ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
         client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
         client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
-
-    - name: Copy mzn image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileMzn
-        dest: ./DockerfileMzn
-
-    - name: Build backend mzn image
-      community.docker.docker_image_build:
-        path: "."
-        name: "solveploy-mzn"
-        dockerfile: "DockerfileMzn"
-        rebuild: "always"
-        docker_host: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_HOST=\"(.*?)\"', '\\1')) | first }}"
-        tls: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        validate_certs: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_TLS_VERIFY=\"(.*?)\"', '\\1')) | first | bool }}"
-        ca_path: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/ca.pem"
-        client_cert: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/cert.pem"
-        client_key: "{{ (minikube_docker_env.stdout | regex_search('export DOCKER_CERT_PATH=\"(.*?)\"', '\\1')) | first }}/key.pem"
-
-
-    - name: Copy services to target machine
-      copy:
-        src: ../../services
-        dest: .
 
     - name: Build Docker images
       community.docker.docker_image_build:
@@ -129,37 +136,37 @@
         - {
             image: "frontend",
             dockerfile: "Dockerfile",
-            context: "./services/frontend/",
+            context: "../../services/frontend/",
           }
         - {
             image: "api-gateway",
             dockerfile: "Dockerfile",
-            context: "./services/api_gateway/",
+            context: "../../services/api_gateway/",
           }
         - {
             image: "job-handler",
             dockerfile: "Dockerfile",
-            context: "./services/job_handler/",
+            context: "../../services/job_handler/",
           }
         - {
             image: "knowledge-base",
             dockerfile: "Dockerfile",
-            context: "./services/knowledge_base/",
+            context: "../../services/knowledge_base/",
           }
         - {
             image: "mzn-pod",
             dockerfile: "Dockerfile",
-            context: "./services/mzn_pod/",
+            context: "../../services/mzn_pod/",
           }
         - {
             image: "sat-pod",
             dockerfile: "Dockerfile",
-            context: "./services/sat_pod/",
+            context: "../../services/sat_pod/",
           }
         - {
             image: "maxsat-pod",
             dockerfile: "Dockerfile",
-            context: "./services/maxsat_pod/",
+            context: "../../services/maxsat_pod/",
           }
 
     - name: Wait for Docker image builds to finish
@@ -170,34 +177,13 @@
       retries: 300
       loop: "{{ docker_build.results }}"
 
-    - name: Get secret from rabbitmq-system namespace
-      kubernetes.core.k8s_info:
-        kind: Secret
-        name: message-broker-default-user
-        namespace: rabbitmq-system
-      register: secret_info
-      until: (secret_info.resources | default([])) | length > 0
-      retries: 20
-      delay: 10
-
-    - name: Create secret in default namespace
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: "{{ secret_info.resources[0].metadata.name }}"
-            namespace: default
-          type: "{{ secret_info.resources[0].type }}"
-          data: "{{ secret_info.resources[0].data }}"
 
     - name: Apply Kubernetes deployments and services
       kubernetes.core.k8s:
         definition: "{{ item }}"
       loop:
-        - "{{ lookup('file', '../../k8s-manifests/pv.yaml') | from_yaml_all }}"
-        - "{{ lookup('file', '../../k8s-manifests/pvc.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/postgres-pv.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/postgres-pvc.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/cluster-role-job-creator.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/clusterrolebinding-job-creator.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/api-gateway-deployment.yaml') | from_yaml_all }}"
@@ -210,38 +196,4 @@
         - "{{ lookup('file', '../../k8s-manifests/knowledge-base-service.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
-  
-    - name: Add ngrok Helm repository
-      ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
-    
-    - name: Add helm repo prometheus-community
-      ansible.builtin.command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-
-    - name: Update Helm repositories
-      ansible.builtin.command: helm repo update
-
-    - name: Install ngrok-ingress-controller
-      kubernetes.core.helm:
-        name: ngrok
-        chart_ref: ngrok/kubernetes-ingress-controller
-        release_namespace: ngrok-ingress-controller
-        create_namespace: true
-        values:
-          credentials:
-            apiKey: "{{ NGROK_API_KEY }}"
-            authtoken: "{{ NGROK_AUTHTOKEN }}"
-    
-    - name: Install Prometheus
-      kubernetes.core.helm:
-        name: prometheus-operator
-        chart_ref: prometheus-community/kube-prometheus-stack
-        release_namespace: monitoring
-
-    
-    - name: Apply Kubernetes deployments and services
-      kubernetes.core.k8s:
-        definition: "{{ item }}"
-      loop:
-        - "{{ lookup('file', '../../k8s-manifests/ngrok-ingress.yaml') | from_yaml_all }}"
-    
     

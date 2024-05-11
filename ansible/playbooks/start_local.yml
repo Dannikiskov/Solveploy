@@ -7,11 +7,6 @@
     kubeconfig_path: "/home/hmbl/.kube/config"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  roles:
-    - geerlingguy.docker
-    - darkwizard242.helm
-    - gantsign.minikube
-    - robertdebock.kubectl
     
   tasks:
     - name: Add user to docker group
@@ -216,17 +211,3 @@
         - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
   
-    # - name: Add ngrok Helm repository
-    #   ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
-    
-    # - name: Add helm repo prometheus-community
-    #   ansible.builtin.command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-
-    # - name: Update Helm repositories
-    #   ansible.builtin.command: helm repo update
-    
-    # - name: Install Prometheus
-    #   kubernetes.core.helm:
-    #     name: prometheus-operator
-    #     chart_ref: prometheus-community/kube-prometheus-stack
-    #     release_namespace: monitoring
