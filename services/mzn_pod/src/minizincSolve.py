@@ -1,4 +1,4 @@
-import re
+import time
 import minizinc
 import tempfile
 import os
@@ -21,10 +21,10 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             temp_data_file.close()
             instance.add_file(temp_data_file.name)
 
-    print("PARAMS:", params_dict, flush=True)
-
     try:
+        t1 = time.time()
         result = instance.solve(**params_dict) if params_dict is not None else instance.solve()
+        t2 = time.time() - t1
     except Exception as e:
         return {"result": "Error: " + str(e), "executionTime": "N/A", "status": "Error", "optValue": "N/A"}
 
@@ -35,24 +35,17 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
     if data_string is not None:
         os.remove(temp_data_file.name)
 
-    match = re.search(r'solve maximize (\w+);', model_string)
+    opt_val = result.solution.objective
 
-    if match:
-        objective = match.group(1)
-        opt_val = result.solution.__dict__[objective]
-    else:
-        match = re.search(r'solve minimize (\w+);', model_string)
-        if match:
-            objective = match.group(1)
-            opt_val = result.solution.__dict__[objective]
-        else:
-            opt_val = "N/A"
-
-    if 'time' in result.statistics:
-        execution_time = result.statistics['time'].total_seconds() * 1000
+    if params_dict is None:
+        execution_time = t2 * 1000
+    elif params_dict is not None and "--time-limit" in params_dict:
+        if t2 * 1000 >= params_dict["--time-limit"]:
+            execution_time = params_dict["--time-limit"]
+        else: 
+            execution_time = t2 * 1000
     else:
         execution_time = "N/A"
-    
 
         
     print({"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}, flush=True)

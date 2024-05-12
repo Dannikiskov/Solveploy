@@ -1,9 +1,7 @@
-import subprocess
 import psycopg2
-import re
 
 
-def query_database(query):
+def query_database(query, params=None):
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
         host="knowledge-base-database-service",
@@ -14,7 +12,7 @@ def query_database(query):
 
     cur = conn.cursor()
 
-    cur.execute(query)
+    cur.execute(query, params)
 
     if(cur.description):
         result = cur.fetchall()
@@ -91,8 +89,9 @@ def handle_sat_instance(data):
 
 # MZN
 def get_mzn_solver_id_by_name(solver_name):
-    query = f"SELECT id FROM mzn_solvers WHERE name = '{solver_name}'"
-    return query_database(query)
+    query = "SELECT id FROM mzn_solvers WHERE name = %s"
+    params = (solver_name,)
+    return query_database(query, params)
 
 def get_all_mzn_feature_vectors():
     query = "SELECT features FROM mzn_feature_vectors"
@@ -103,42 +102,55 @@ def handle_mzn_instance(data):
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
     result = data["result"]
-    
+    params = None
 
-    query = f"SELECT id FROM mzn_solvers WHERE name = '{solver_name}'"
-    solver_id = query_database(query)
+    query = "SELECT id FROM mzn_solvers WHERE name = %s"
+    params = (solver_name,)
+    solver_id = query_database(query, params)
     if not solver_id:
-        query = f"INSERT INTO mzn_solvers (name) VALUES ('{solver_name}') RETURNING id"
-        solver_id = query_database(query)
+        query = "INSERT INTO mzn_solvers (name) VALUES (%s) RETURNING id"
+        params = (solver_name,)
+        solver_id = query_database(query, params)
         
 
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector}'"
-    feat_id = query_database(query)
+    query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
+    params = (feature_vector,)
+    feat_id = query_database(query, params)
     if not feat_id:
         query = f"INSERT INTO mzn_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
-        feat_id = query_database(query)
+        feat_id = query_database(query, params)
 
 
-    query = f"SELECT * FROM mzn_solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
-    existing_entry = query_database(query)
+    query = """
+        SELECT * FROM mzn_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s AND execution_time = %s
+    """
+    params = (solver_id[0], feat_id[0], execution_time)
+    existing_entry = query_database(query, params)
 
     if not existing_entry:
         if data["optVal"] != "" and data["optVal"] is not None:
             opt_value = data["optVal"]
-            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, opt_value, execution_time, result) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{opt_value}', '{execution_time}, '{result}')"
+            query = """
+                INSERT INTO mzn_solver_featvec_time 
+                (solver_id, feature_vec_id, opt_value, execution_time) 
+                VALUES (%s, %s, %s)
+            """
+            params = (solver_id[0], feat_id[0], opt_value, execution_time, result)
         else: 
-            query = f"INSERT INTO mzn_solver_featvec_time (solver_id, feature_vec_id, execution_time, result) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}', '{result}')"
-        query_database(query)
-
+            query = """
+                INSERT INTO mzn_solver_featvec_time 
+                (solver_id, feature_vec_id, execution_time) 
+                VALUES (%s, %s, %s)
+            """
+            params = (solver_id[0], feat_id[0], execution_time, result)
+        query_database(query, params)
     print_all_tables()
 
 def is_instance_solved_mzn(instance, solver):
-    print_all_tables()
-    print("INSTANCE: ", instance, flush=True)
-    print("SOLVER: ", solver["name"], flush=True)
-    query = f"SELECT id FROM mzn_solvers WHERE name = '{solver["name"]}'"
-    solver_id = query_database(query)
-    print("solver_id", solver_id, flush=True)
+    query = "SELECT id FROM mzn_solvers WHERE name = %s"
+    params = (solver["name"],)
+    solver_id = query_database(query, params)
 
     if not solver_id:
         return "Solver not found"
@@ -147,18 +159,19 @@ def is_instance_solved_mzn(instance, solver):
     instance = instance.replace('[', '')
     instance = instance.replace(']', '')
     instance = "{" + instance + "}"
-    print("NEW INSTANCE: ", instance, flush=True)
 
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{instance}'"
-    feature_vector_id = query_database(query)
+    query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
+    params = (instance,)
+    feature_vector_id = query_database(query, params)
     if not feature_vector_id:
         return "Feature vector not found"
-    
-    print("FV ID: ", feature_vector_id, flush=True)
 
-    query = f"SELECT * FROM mzn_solver_featvec_time WHERE solver_id = {solver_id[0]} AND feature_vec_id = {feature_vector_id[0]}"
-    result = query_database(query)
-    print("RESULT: ", result, flush=True)
+    query = """
+        SELECT * FROM mzn_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s
+    """
+    params = (solver_id[0], feature_vector_id[0])
+    result = query_database(query, params)
 
     return result
 
@@ -169,17 +182,11 @@ def get_all_solved_mzn():
 
 
 def get_mzn_feature_vector_id(feature_vector):
-    print("\n\n\n", "\n\n\n", flush=True)
-    
-    print_all_tables()
-    print("\n", flush=True)
-
     feature_vector = "{" + str(feature_vector) + "}"
-    print("FTVC: ", feature_vector, flush=True)
 
-    query = f"SELECT id FROM mzn_feature_vectors WHERE features = '{feature_vector}'"
-    result = query_database(query)
-    print(" get_mzn_feature_vector_id RESULT: ", result, flush=True)
+    query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
+    params = (feature_vector,)
+    result = query_database(query, params)
 
     if not result:
         return None
@@ -205,13 +212,12 @@ def get_insts_times_mzn(similar_insts):
 
     for id in sim_inst_ids:
         print("ID: ", id, flush=True)
-        query = f"SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = {id}"
-        result = query_database(query)[0][0]
+        query = "SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = %s"
+        params = (id,)
+        result = query_database(query, params)[0][0]
         solved_times[id] = result
 
-    print("SOLVED TIMES: ", solved_times, flush=True)
     return {"solvedTimesDict": solved_times}
-
 
 def get_solver_times_mzn(solver_name, insts):
 
@@ -231,14 +237,15 @@ def get_solver_times_mzn(solver_name, insts):
     solved_times = []
 
     for id in sim_inst_ids:
-        print("ID: ", id, flush=True)
-        query = f"SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = {solver_id[0]} AND feature_vec_id = {id} ORDER BY execution_time ASC"
-        result = query_database(query)[0]
-        print("db RESULT: ", result, flush=True)
-        print("db type RESULT: ", type(result), flush=True)
+        query = """
+            SELECT execution_time FROM mzn_solver_featvec_time 
+            WHERE solver_id = %s AND feature_vec_id = %s 
+            ORDER BY execution_time ASC
+        """
+        params = (solver_id[0], id)
+        result = query_database(query, params)[0]
         solved_times.append(result)
 
-    print("SOLVED TIMES: ", solved_times, flush=True)
     return solved_times
 
 
@@ -257,18 +264,7 @@ def print_all_tables():
             print(table[0], ": ", flush=True)
             query = f"SELECT * FROM {table[0]}"
             print(query_database(query), flush=True)
-    print("\n\n-----------------------------------\n", flush=True)
-
-def set_allocatable_resources(data):
-    cpu = data["allocatable_cpu"]
-    memory = data["allocatable_memory"][:-2]
-    query = f"INSERT INTO k8s_resources (allocatable_cpu, allocatable_memory) VALUES ({cpu}, {memory})"
-    query_database(query)
-
-
-def get_available_k8s_resources():
-    query = "SELECT * FROM k8s_resources"
-    return query_database(query)
+            print("\n\n-----------------------------------\n\n-----------------------------------\n", flush=True)
 
 def database_init():
 

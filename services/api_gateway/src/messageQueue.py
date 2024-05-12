@@ -4,6 +4,7 @@ import pika
 import os
 import time
 from kubernetes import client, config
+i = 0
 
 def rmq_init():
     connection = _rmq_connect()
@@ -47,6 +48,9 @@ def send_wait_receive(data):
 
 # Service leaving call
 def send(data):
+    global i
+    i = i + 1
+    print(f"i = {i} from api messageQueue", flush=True)
     out_queue_name = data["queueName"]
     in_queue_name = f'{data["queueName"]}-{data["identifier"]}'
 

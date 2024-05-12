@@ -11,6 +11,7 @@ import maxsatHandler
 import sunny
 from multiprocessing import Process
 from kubernetes import client, config
+i = 0
 
 def rmq_init():
     connection = _rmq_connect()
@@ -23,10 +24,11 @@ def rmq_init():
 def consume():
     channel = _rmq_connect().channel()
     def callback(ch, method, properties, body):
-        
+        global i
+        i = i + 1
+        print(f"i = {i} from jobhandler mq ", flush=True)
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
-        print(" [x] Received:\n %r" % data, "\n-----------------", flush=True)
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
@@ -101,6 +103,8 @@ def send_wait_receive_k8(data, queue_name):
 
     channel.basic_consume(queue=in_queue_name, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
+    channel.queue_delete(queue=out_queue_name)
+    channel.queue_delete(queue=in_queue_name)
     return result
 
 
@@ -179,8 +183,6 @@ def _rmq_connect():
 
     # Decode the secret data
     password = base64.b64decode(secret.data['rabbitmq-password']).decode()
-
-    print(password, flush=True)
 
     while True:
         try:

@@ -28,7 +28,7 @@
 
     - name: Start minikube
       become: false
-      command: minikube start --cpus=2 --memory=2000 --driver=docker
+      command: minikube start --cpus=4 --memory=5000 --driver=docker
 
     - name: install pip3
       ansible.builtin.package:
@@ -76,6 +76,12 @@
         release_namespace: rabbitmq-system
         values:
           existingSecret: rabbitmq-credentials
+          replicaCount: 3
+          persistence:
+            enabled: true
+          rabbitmq:
+            rabbitmq.conf: |
+              heartbeat_timeout = 3600
     
     - name: Get secret from rabbitmq-system namespace
       kubernetes.core.k8s_info:

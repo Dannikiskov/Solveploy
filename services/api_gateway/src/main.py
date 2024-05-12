@@ -7,10 +7,10 @@ import concurrent.futures
 import uuid
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024  # 50 Megabytes
+app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024 # 1000MB
 api = Api(app)
 CORS(app)
-
+i = 0
 class Jobs(Resource):
 
     def post(self):
@@ -21,6 +21,9 @@ class Jobs(Resource):
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
         if "noresult" in data and data["noresult"] == True:
+            global i
+            i = i + 1
+            print(f"i = {i} from api main", flush=True)
             async_execute_no_response(data)
         else:
             result = async_execute(data)

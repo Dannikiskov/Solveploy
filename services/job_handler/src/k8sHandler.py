@@ -60,8 +60,8 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                             ],
                             resources=client.V1ResourceRequirements(
                                 requests={
-                                    "cpu": cpu_request,
-                                    "memory": memory_request
+                                    "cpu": "250m",#cpu_request,
+                                    "memory": "125Mi"#memory_request
                                 }
                             )
                         )

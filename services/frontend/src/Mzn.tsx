@@ -35,7 +35,7 @@ function Mzn() {
   const [optVal, setOptVal] = useState<string>("");
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
   const [optGoal, setOptGoal] = useState<string>("");
-  const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null } }>({});
+  const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null, json: { file: File, content: string } | null} }>({});
   
   useEffect(() => {
     fetchDataGet();
@@ -185,6 +185,9 @@ function Mzn() {
 
   const fetchStartSolverWithContent = (item: MznSolverData, mznString: string, dataString: string, suffix: string) => {
     console.log("ITEM: ", item)
+    console.log("MZN: ", mznString)
+    console.log("DATA: ", dataString)
+    console.log("SUFFIX: ", suffix)
     const updatedItem = {
       ...item,
       jobIdentifier: uuidv4().slice(0, 8),
@@ -302,7 +305,9 @@ function Mzn() {
 
   const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const fileMapping: { [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null } } = {};
+      const fileMapping: { [key: string]: {
+        mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null, json: { file: any; content: string; } | null 
+} } = {};
   
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i] as any;
@@ -310,7 +315,7 @@ function Mzn() {
         const folder = pathParts[pathParts.length - 2]; // Get the parent folder name
   
         if (!fileMapping[folder]) {
-          fileMapping[folder] = { mzn: null, dzn: null };
+          fileMapping[folder] = { mzn: null, dzn: null , json: null};
         }
   
         const fileContent = await new Promise<string>((resolve, reject) => {
@@ -324,6 +329,8 @@ function Mzn() {
           fileMapping[folder].mzn = { file, content: fileContent };
         } else if (file.name.endsWith('.dzn')) {
           fileMapping[folder].dzn = { file, content: fileContent };
+        } else if (file.name.endsWith('.json')) {
+          fileMapping[folder].json = { file, content: fileContent };
         }
       }
   
@@ -335,14 +342,20 @@ function Mzn() {
   const startSolverWithAllFiles = async () => {
     for (const solver of selectedMznSolvers) {
       for (const folder in folderMapping) {
-        const { mzn, dzn } = folderMapping[folder];
-        if (mzn && dzn) {
+        const { mzn, dzn, json } = folderMapping[folder];
+        if ((mzn && dzn)) {
           setOptVal("");
-          await fetchStartSolverWithContent(solver, mzn.content, dzn.content, dzn.file.name.endsWith('.json') ? '.json' : '.dzn');
+          fetchStartSolverWithContent(solver, mzn.content, dzn.content, '.dzn');
         }
-        else if (mzn && !dzn) {
+        else if (mzn && json) {
+          console.log("JSON");
+          console.log(mzn, json);
           setOptVal("");
-          await fetchStartSolverWithContent(solver, mzn.content, "", "");
+          fetchStartSolverWithContent(solver, mzn.content, json.content, '.json');
+        }
+        else if(mzn) {
+          setOptVal("");
+          fetchStartSolverWithContent(solver, mzn.content, "", "");
         }
       }
     }
