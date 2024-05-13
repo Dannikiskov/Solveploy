@@ -14,6 +14,7 @@ def rmq_init():
     channel = connection.channel()
     channel.queue_declare(queue="kbHandler")
     channel.close()
+    connection.close()
 
     
 def consume():

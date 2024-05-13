@@ -5,10 +5,9 @@ from pathlib import Path
 import tempfile
 import subprocess
 
-i = 0
+
+
 def handle_new_mzn_job(data):
-    global i
-    print(f"i = {i} from mznHandler", flush=True)
     dznIncluded = False
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
@@ -18,12 +17,8 @@ def handle_new_mzn_job(data):
     
     k8sHandler.start_solver_job(solver_name, identifier, "mzn", cpu, memory)
     
-    i = i + 1
-    print(f"i = {i} from mznHandler", flush=True)
-    k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-    for key in k8_result:
-        print(f"{key}: {k8_result[key]}  -\n-", flush=True)
 
+    k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file_mzn.write(data['mznFileContent'].encode())
@@ -38,19 +33,21 @@ def handle_new_mzn_job(data):
 
     # Get feature vector
     if dznIncluded:
+        print("\ndznIncluded\n", flush=True)
         command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
     else:
         command = ["mzn2feat", "-i", temp_file_mzn.name]
 
     cmd_result = subprocess.run(command, capture_output=True, text=True)
     
+    
     feature_vector = cmd_result.stdout.strip()
     feature_vector = feature_vector.split(',')
     feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
     feature_vector = ','.join(feature_vector)
-    # print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
+    print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
     
-    if "executionTime" in k8_result and k8_result["executionTime"] != "N/A":
+    if k8_result["status"] not in ["ERROR", "FAILED"]:
         dict = {"optVal": data["optVal"], "featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "result": k8_result["result"], "instructions": "HandleMznInstance", "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
 

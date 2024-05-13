@@ -3,7 +3,7 @@ import minizinc
 import tempfile
 import os
 
-def run_minizinc_model(model_string, solver_name, data_string=None, data_type=None, params_dict=None):
+def run_minizinc_model(model_string, solver_name, data_string=None, data_type=None, params_dict=None, objective_list=None):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.mzn', delete=False) as temp_model_file:
         temp_model_file.write(model_string)
         temp_model_path = temp_model_file.name
@@ -21,21 +21,30 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             temp_data_file.close()
             instance.add_file(temp_data_file.name)
 
-    try:
+    print("PARAMS DICT: ", params_dict, flush=True)
+    print("Start solving...", flush=True)
+
+    if params_dict is not None:
         t1 = time.time()
-        result = instance.solve(**params_dict) if params_dict is not None else instance.solve()
+        result = instance.solve(**params_dict)
         t2 = time.time() - t1
-    except Exception as e:
-        return {"result": "Error: " + str(e), "executionTime": "N/A", "status": "Error", "optValue": "N/A"}
+    else:
+        t1 = time.time()
+        result = instance.solve()
+        t2 = time.time() - t1
+
 
     output = str(result.solution)
-
+    print(output, flush=True)
     os.remove(temp_model_path)
 
     if data_string is not None:
         os.remove(temp_data_file.name)
 
-    opt_val = result.solution.objective
+    if objective_list is not None:
+        opt_val = [result.objective(x) for x in objective_list]
+    else:
+        opt_val = "N/A"
 
     if params_dict is None:
         execution_time = t2 * 1000

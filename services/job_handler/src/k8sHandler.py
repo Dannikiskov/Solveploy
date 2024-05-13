@@ -60,8 +60,8 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                             ],
                             resources=client.V1ResourceRequirements(
                                 requests={
-                                    "cpu": "250m",#cpu_request,
-                                    "memory": "125Mi"#memory_request
+                                    "cpu": cpu_request,
+                                    "memory": memory_request
                                 }
                             )
                         )
@@ -129,16 +129,3 @@ def stop_solver_by_namespace(namespace):
     for pod in pods.items:
         print("Deleting: ", pod.metadata.name, flush=True)
         core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
-
-
-def resource_init():
-    config.load_incluster_config()
-    v1 = client.CoreV1Api()
-
-    nodes = v1.list_node().items
-
-    mq.send_to_queue( {"instructions": "SetAllocatableResources", "allocatable_cpu": nodes[0].status.allocatable["cpu"], "allocatable_memory": nodes[0].status.allocatable["memory"]}, "kbHandler" )
-
-
-def update_in_use_resources(cpu, memory):
-    mq.send_to_queue( {"instructions": "UpdateInUseResources", "in_use_cpu": cpu, "in_use_memory": memory}, "kbHandler" )

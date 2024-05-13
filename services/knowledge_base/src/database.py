@@ -101,7 +101,6 @@ def handle_mzn_instance(data):
     feature_vector = "{" + str(data["featureVector"]) + "}"
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
-    result = data["result"]
     params = None
 
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
@@ -136,14 +135,14 @@ def handle_mzn_instance(data):
                 (solver_id, feature_vec_id, opt_value, execution_time) 
                 VALUES (%s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], opt_value, execution_time, result)
+            params = (solver_id[0], feat_id[0], opt_value, execution_time)
         else: 
             query = """
                 INSERT INTO mzn_solver_featvec_time 
                 (solver_id, feature_vec_id, execution_time) 
                 VALUES (%s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], execution_time, result)
+            params = (solver_id[0], feat_id[0], execution_time)
         query_database(query, params)
     print_all_tables()
 
@@ -292,7 +291,7 @@ def database_init():
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES mzn_solvers(id),
             feature_vec_id INT REFERENCES mzn_feature_vectors(id),
-            opt_value FLOAT,
+            opt_value VARCHAR(2047),
             execution_time FLOAT NOT NULL,
             result VARCHAR(2047)
         );

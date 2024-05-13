@@ -41,6 +41,10 @@ function Mzn() {
     fetchDataGet();
   }, []);
 
+  useEffect(() => {
+    console.log("Selected solvers:", selectedMznSolvers);
+  }, [selectedMznSolvers]);
+
   const fetchStopJob = async (item: MznSolverData) => {
     setRunningMznJobs((prevItems: Array<MznSolverData>) =>
       prevItems.filter((i) => i.name !== item.name)

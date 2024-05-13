@@ -200,7 +200,6 @@ class results(Resource):
         
         while result is not None:
             resultsList.append(json.loads(result))
-            print("RESULT LIST INSIDE: ", resultsList, flush=True)
             result = mq.consume_one(f"{data['type']}-result-queue")
 
         print("optgoal: ", data["optGoal"], flush=True)
@@ -215,8 +214,7 @@ class results(Resource):
                         return lowest
                     else:
                         print("Returning None", flush=True)
-                        return None
-                    
+                        return None      
             elif data["optGoal"] == "maximize":
                 highest = resultsList[0]["optValue"]
                 for res in resultsList:
@@ -227,8 +225,7 @@ class results(Resource):
                         return highest
                     else:
                         print("Returning None", flush=True)
-                        return None
-                    
+                        return None  
             else:
                 fastest = resultsList[0]
                 for res in resultsList:

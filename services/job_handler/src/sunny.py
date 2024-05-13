@@ -10,7 +10,7 @@ import ast
 
 def sunny(inst, dataFile, dataType, solvers, bkup_solver, k, T, identifier, solver_type):
     # Get features vector for the given instance
-    print("printing arguments", inst, k, T, identifier, flush=True)
+    print("printing arguments", k, T, identifier, dataType, flush=True)
     print("\n\nGetting features vector for the given instance", flush=True)
     feat_vect = get_features(inst, dataFile, dataType)
 
@@ -51,22 +51,26 @@ def sunny(inst, dataFile, dataType, solvers, bkup_solver, k, T, identifier, solv
 
 def get_features(inst, data, data_type):
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
-    temp_file_mzn.write(inst.encode())
-    temp_file_mzn.close()  # Close the file after writing
-    
-    if data is not None and data != "":
+    temp_file_mzn.write(data['mznFileContent'].encode())
+    temp_file_mzn.close()
+
+    if data['dataFileContent'] is not None and data['dataFileContent'] != "":
         temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
-        temp_file_dzn.write(data.encode())
+        temp_file_dzn.write(data['dataFileContent'].encode())
         temp_file_dzn.close()
         dznIncluded = True
 
+
     # Get feature vector
-    if data is not None and data != "":
+    if dznIncluded:
+        print("\ndznIncluded\n", flush=True)
         command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
     else:
         command = ["mzn2feat", "-i", temp_file_mzn.name]
-    cmd_result = subprocess.run(command, capture_output=True, text=True)
 
+    cmd_result = subprocess.run(command, capture_output=True, text=True)
+    
+    
     feature_vector = cmd_result.stdout.strip()
     feature_vector = feature_vector.split(',')
     feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]

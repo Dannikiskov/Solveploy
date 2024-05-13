@@ -50,7 +50,7 @@ if __name__ == '__main__':
     decoded_body = outer_body.decode("utf-8")
     message_data = json.loads(decoded_body)
 
-    print(f" [.] message consumed! Got and\n-------------\n {message_data} \n-------------", flush=True)
+    print(f" [.] message consumed!", flush=True)
     solver_name = message_data["item"]["name"]
     params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
     mzn_string = message_data["mznFileContent"]
@@ -62,8 +62,8 @@ if __name__ == '__main__':
         result["name"] = solver_name
         result["version"] = message_data["item"]["version"]
     except Exception as e:
-        print(e, "\n--------", flush=True)
-        result = {"result": f"Minizinc Solver failed: {str(e)}", "executionTime": "N/A"}
+        print(e, "\n*--------*", flush=True)
+        result = {"result": f"Minizinc Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
 
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)

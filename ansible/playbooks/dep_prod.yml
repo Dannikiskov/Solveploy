@@ -146,12 +146,9 @@
           replicaCount: 3
           persistence:
             enabled: true
-          rabbitmq:
-            rabbitmq.conf: |
-              heartbeat_timeout = 3600
-        resources:
-          limits:
-            memory: 16Gi
+          resources:
+            limits:
+              memory: 16Gi
     
     - name: Get secret from rabbitmq-system namespace
       kubernetes.core.k8s_info:
