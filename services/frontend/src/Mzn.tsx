@@ -36,7 +36,8 @@ function Mzn() {
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
   const [optGoal, setOptGoal] = useState<string>("");
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null, json: { file: File, content: string } | null} }>({});
-  
+  const [oneProb, setprob] = useState<boolean>(true);
+
   useEffect(() => {
     fetchDataGet();
   }, []);
@@ -398,28 +399,36 @@ function Mzn() {
   return (
     <>
     <br />
-    <h2>Upload Files</h2>
-      <div className="result-container">
+    <div>
+      <button onClick={() => setprob(true)}>One Problem</button>
+      <button onClick={() => setprob(false)}>Multiple Problems</button>
+    </div>
+    <div>
+      {oneProb ? (
         <div>
-          <h3>Upload MZN file</h3>
-          <input onChange={handleMznFileChange} type="file" />
+          <div>
+            <h3>Upload MZN file</h3>
+            <input onChange={handleMznFileChange} type="file" />
+          </div>
+          <br></br>
+          <div>
+            <h3>Upload Data file</h3>
+            <input onChange={handleDataFileChange} type="file" />
+          </div>
         </div>
-        <br></br>
+      ) : (
         <div>
-          <h3>Upload Data file</h3>
-          <input onChange={handleDataFileChange} type="file" />
+          <h3>Upload folder</h3>
+          {React.createElement('input', {
+            type: 'file',
+            webkitdirectory: '',
+            mozdirectory: '',
+            directory: '',
+            onChange: handleFolderChange
+          })}
         </div>
-      </div>
-      <div className="result-container">
-        <h3>Upload folder</h3>
-        {React.createElement('input', {
-          type: 'file',
-          webkitdirectory: '',
-          mozdirectory: '',
-          directory: '',
-          onChange: handleFolderChange
-        })}
-      </div>
+      )}
+    </div>
       <br />
       <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
       <br />
@@ -443,9 +452,8 @@ function Mzn() {
         </div>
         
       )}
-      <div className="result-container">
+      <div>
         <br />
-        <h4>Optimization value</h4>
         <input
           type="string"
           placeholder="Optimization value"
@@ -486,13 +494,19 @@ function Mzn() {
         ))}
       </div>
       <br />
-      <div className="result-container">
-        <button onClick={startSolverWithAllFiles}>Start Solvers with all files</button>
-      </div>
+      <div>
+      {oneProb ? (
+        <div>
+          <button onClick={handleStartSolvers}>Start Solvers</button>
+        </div>
+      ) : (
+        <div>
+          <button onClick={startSolverWithAllFiles}>Start Solvers</button>
+        </div>
+      )}
+    </div>
       <br />
-      <button onClick={handleStartSolvers}>Start Solvers</button>
-      <br />
-      <div className="result-container">
+      <div >
         <h2>Running Solvers</h2>
         <div className="grid">
           {runningMznJobs.map((item, index) => (
