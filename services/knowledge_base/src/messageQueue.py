@@ -48,14 +48,6 @@ def consume():
         elif instructions == "GetSolved":
             response = database.get_solved(content['solvers'], content['similarInsts'], content['T'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
-        
-        elif instructions == "GetInstsTimesMzn":
-            response = database.get_insts_times_mzn(content['similarInsts'])
-            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
-        
-        elif instructions == "GetSolverTimesMzn":
-            response = database.get_solver_times_mzn(content['solverName'], content['similarInsts'])
-            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetAllSolvedMzn":
             response = database.get_all_solved_mzn()
@@ -63,6 +55,10 @@ def consume():
 
         elif instructions == "isInstanceSolvedMzn":
             response = database.is_instance_solved_mzn(content['instance'], content['solver'])
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+
+        elif instructions == "GetSolvedTimesMzn":
+            response = database.get_solved_times_mzn(content['solverName'], content['similarInsts'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesSat":

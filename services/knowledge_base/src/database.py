@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import sql
 
 
 def query_database(query, params=None):
@@ -36,13 +37,13 @@ def handle_maxsat_instance(data):
 
     query = f"SELECT id FROM maxsat_solvers WHERE name = '{solver_name}'"
     solver_id = query_database(query)
-    if not solver_id:
+    if len(solver_id) > 0:
         query = f"INSERT INTO maxsat_solvers (name) VALUES ('{solver_name}') RETURNING id"
         solver_id = query_database(query)
 
     query = f"SELECT id FROM maxsat_feature_vectors WHERE features = '{feature_vector}'"
     feat_id = query_database(query)
-    if not feat_id:
+    if len(feat_id) > 0:
         query = f"INSERT INTO maxsat_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
         feat_id = query_database(query)
 
@@ -50,12 +51,10 @@ def handle_maxsat_instance(data):
 
     query = f"SELECT * FROM maxsat_solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
     existing_entry = query_database(query)
-
-    if not existing_entry:
+    if len(existing_entry) > 0:
         query = f"INSERT INTO maxsat_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
         query_database(query)
 
-    print_all_tables()
 
 # SAT
 def handle_sat_instance(data):
@@ -91,62 +90,78 @@ def handle_sat_instance(data):
 def get_mzn_solver_id_by_name(solver_name):
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
     params = (solver_name,)
-    return query_database(query, params)
+    return query_database(query, params)[0]
 
 def get_all_mzn_feature_vectors():
     query = "SELECT features FROM mzn_feature_vectors"
-    return query_database(query)
+    result = query_database(query)
+    extracted_result = [t[0] for t in result]
+    print("g_a_m_f_v: ", extracted_result, flush=True)
+    print("type: ", type(extracted_result), flush=True)
+    print("inner type, ", type(extracted_result[0]), flush=True)
+    return extracted_result
 
 def handle_mzn_instance(data):
-    feature_vector = "{" + str(data["featureVector"]) + "}"
+    feature_vector = data["featureVector"]
+    feature_vector_str = "{" + feature_vector + "}"
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
+    status = data["status"]
     params = None
 
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
     params = (solver_name,)
     solver_id = query_database(query, params)
-    if not solver_id:
+    if len(solver_id) == 0:
+        print("inserting solver", flush=True)
         query = "INSERT INTO mzn_solvers (name) VALUES (%s) RETURNING id"
         params = (solver_name,)
         solver_id = query_database(query, params)
         
 
     query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
-    params = (feature_vector,)
+    params = (feature_vector_str,)
     feat_id = query_database(query, params)
-    if not feat_id:
-        query = f"INSERT INTO mzn_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
+    print("feat_id", feat_id, flush=True)
+    if len(feat_id) == 0:
+        print("inserting feature", flush=True)
+        query = "INSERT INTO mzn_feature_vectors (features) VALUES (%s) RETURNING id"
+        params = (feature_vector_str,)
         feat_id = query_database(query, params)
 
 
     query = """
         SELECT * FROM mzn_solver_featvec_time 
-        WHERE solver_id = %s AND feature_vec_id = %s AND execution_time = %s
+        WHERE solver_id = %s AND feature_vec_id = %s
     """
-    params = (solver_id[0], feat_id[0], execution_time)
+    params = (solver_id[0], feat_id[0])
     existing_entry = query_database(query, params)
-
-    if not existing_entry:
+    if len(existing_entry) == 0:
+        print("inserting mzn_solver_featvec_time", flush=True)
         if data["optVal"] != "" and data["optVal"] is not None:
             opt_value = data["optVal"]
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, opt_value, execution_time) 
-                VALUES (%s, %s, %s)
+                (solver_id, feature_vec_id, opt_value, execution_time, status) 
+                VALUES (%s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], opt_value, execution_time)
+            params = (solver_id[0], feat_id[0], opt_value, execution_time, status)
         else: 
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, execution_time) 
-                VALUES (%s, %s, %s)
+                (solver_id, feature_vec_id, execution_time, status) 
+                VALUES (%s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], execution_time)
+            params = (solver_id[0], feat_id[0], execution_time, status)
+
         query_database(query, params)
-    print_all_tables()
+
+    print_stuff()
 
 def is_instance_solved_mzn(instance, solver):
+    print("from is_instance_solved_mzn", flush=True)
+    print("instance", instance, flush=True)
+    print("solver", solver, flush=True)
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
     params = (solver["name"],)
     solver_id = query_database(query, params)
@@ -170,7 +185,13 @@ def is_instance_solved_mzn(instance, solver):
         WHERE solver_id = %s AND feature_vec_id = %s
     """
     params = (solver_id[0], feature_vector_id[0])
-    result = query_database(query, params)
+    result = query_database(query, params)[0]
+    if result:
+        result = True
+    else:
+        result = False
+
+    print("result", result, flush=True)
 
     return result
 
@@ -181,13 +202,17 @@ def get_all_solved_mzn():
 
 
 def get_mzn_feature_vector_id(feature_vector):
+    print("g_m_feature_vector", feature_vector, flush=True)
+    feature_vector = str(feature_vector).replace(' ', '')
+    feature_vector = feature_vector.replace('[', '')
+    feature_vector = feature_vector.replace(']', '')
     feature_vector = "{" + str(feature_vector) + "}"
 
     query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
     params = (feature_vector,)
     result = query_database(query, params)
 
-    if not result:
+    if len(result) == 0:
         return None
     
     return result[0]
@@ -198,51 +223,38 @@ def all_mzn_feature_vectors():
     return query_database(query)
 
 
-def get_insts_times_mzn(similar_insts):
-
-    sim_inst_ids= []
-    for vect in similar_insts:
-        vect = str(vect).replace(' ', '')
-        vect = vect.replace('[', '')
-        vect = vect.replace(']', '')
-        sim_inst_ids.append(get_mzn_feature_vector_id(vect))
-
-    solved_times = {}
-
-    for id in sim_inst_ids:
-        print("ID: ", id, flush=True)
-        query = "SELECT execution_time FROM mzn_solver_featvec_time WHERE solver_id = %s"
-        params = (id,)
-        result = query_database(query, params)[0][0]
-        solved_times[id] = result
-
-    return {"solvedTimesDict": solved_times}
-
-def get_solver_times_mzn(solver_name, insts):
+def get_solved_times_mzn(solver_name, insts):
+    print("solver_name", solver_name, flush=True)
+    print("insts length", len(insts), flush=True)
 
     solver_id = get_mzn_solver_id_by_name(solver_name)
+    print("solver_id", solver_id, flush=True)
+
     if not solver_id:
+        print("Solver not found", flush=True)
         return "Solver not found"
 
     sim_inst_ids= []
     for vect in insts:
-        vect = str(vect).replace(' ', '')
-        vect = vect.replace('[', '')
-        vect = vect.replace(']', '')
+        print("vect", vect, flush=True)
         feat_vec_id = get_mzn_feature_vector_id(vect)
+        print("feat_vec_id", feat_vec_id, flush=True)
         if feat_vec_id:
+            print("appending: ", feat_vec_id, flush=True)
             sim_inst_ids.append(feat_vec_id)
 
     solved_times = []
 
     for id in sim_inst_ids:
+        print("ID: ", id, flush=True)
         query = """
             SELECT execution_time FROM mzn_solver_featvec_time 
             WHERE solver_id = %s AND feature_vec_id = %s 
             ORDER BY execution_time ASC
         """
-        params = (solver_id[0], id)
+        params = (solver_id, id)
         result = query_database(query, params)[0]
+        print("result", result, flush=True)
         solved_times.append(result)
 
     return solved_times
@@ -253,6 +265,11 @@ def get_mzn_solvers():
     return query_database(query)
 
 
+def print_stuff():
+    query = "SELECT * FROM mzn_solver_featvec_time"
+    result = query_database(query)
+    print(result, flush=True)
+
 # General
 def print_all_tables():
     query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
@@ -262,7 +279,7 @@ def print_all_tables():
         for table in tables:
             print(table[0], ": ", flush=True)
             query = f"SELECT * FROM {table[0]}"
-            print(query_database(query), flush=True)
+            print(query_database(query)[0], flush=True)
             print("\n\n-----------------------------------\n\n-----------------------------------\n", flush=True)
 
 def database_init():
@@ -293,6 +310,7 @@ def database_init():
             feature_vec_id INT REFERENCES mzn_feature_vectors(id),
             opt_value VARCHAR(2047),
             execution_time FLOAT NOT NULL,
+            status VARCHAR(2047),
             result VARCHAR(2047)
         );
     """

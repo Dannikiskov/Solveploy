@@ -40,23 +40,23 @@ def get_all_solved(solver_type):
     return result
 
 
-def get_insts_times(similar_insts, solver_type):
-    if solver_type == 'mzn':
-        data = create_dict('GetInstsTimesMzn', {'similarInsts': similar_insts})
-    if solver_type == 'sat':
-        data = create_dict('GetInstsTimesSat', {'similarInsts': similar_insts})
-    if solver_type == 'maxsat':
-        data = create_dict('GetInstsTimesMaxSat', {'similarInsts': similar_insts})
-    result = mq.send_wait_receive(data)
-    return result
+# def get_insts_times(similar_insts, solver_type):
+#     if solver_type == 'mzn':
+#         data = create_dict('GetInstsTimesMzn', {'similarInsts': similar_insts})
+#     if solver_type == 'sat':
+#         data = create_dict('GetInstsTimesSat', {'similarInsts': similar_insts})
+#     if solver_type == 'maxsat':
+#         data = create_dict('GetInstsTimesMaxSat', {'similarInsts': similar_insts})
+#     result = mq.send_wait_receive(data)
+#     return result
 
 def get_solver_times(solver_name, similar_insts, solver_type):
     if solver_type == 'mzn':
-        data = create_dict('GetSolverTimesMzn', {'solverName': solver_name, 'similarInsts': similar_insts})
+        data = create_dict('GetSolvedTimesMzn', {'solverName': solver_name, 'similarInsts': similar_insts})
     if solver_type == 'sat':
-        data = create_dict('GetSolverTimesSat', {'solverName': solver_name})
+        data = create_dict('GetSolvedTimesSat', {'solverName': solver_name})
     if solver_type == 'maxsat':
-        data = create_dict('GetSolverTimesMaxSat', {'solverName': solver_name})
+        data = create_dict('GetSolvedTimesMaxSat', {'solverName': solver_name})
     result = mq.send_wait_receive(data)
     return result
 

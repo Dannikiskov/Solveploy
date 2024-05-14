@@ -8,19 +8,25 @@ import ast
 
 
 
-def sunny(inst, dataFile, dataType, solvers, bkup_solver, k, T, identifier, solver_type):
+def sunny(inst, data_file, data_type, solvers, bkup_solver, k, T, identifier, solver_type):
     # Get features vector for the given instance
-    print("printing arguments", k, T, identifier, dataType, flush=True)
+    print("printing arguments", k, T, identifier, data_type, flush=True)
     print("\n\nGetting features vector for the given instance", flush=True)
-    feat_vect = get_features(inst, dataFile, dataType)
+    feat_vect = get_features(inst, data_file, data_type)
+    print("feat_vect: ", feat_vect, flush=True)
+    print("type feat_vect: ", type(feat_vect), flush=True)
 
     # Find k-nearest neighbors
     print("Finding k-nearest neighbors", flush=True)
     similar_insts = get_nearest_neighbors(feat_vect, k)
+    print("similar_insts: ", similar_insts, flush=True)
+    print("similar_insts type: ", type(similar_insts), flush=True)
+    print("sim insts length", len(similar_insts), flush=True)
 
     # Get sub-portfolio
     print("Getting sub-portfolio", flush=True)
     sub_portfolio = get_sub_portfolio(similar_insts, solvers, solver_type)
+    print("sub_portfolio", sub_portfolio, flush=True)
 
     # Initialize variables
     print("Initializing variables", flush=True)
@@ -45,18 +51,19 @@ def sunny(inst, dataFile, dataType, solvers, bkup_solver, k, T, identifier, solv
         schedule[bkup_solver["name"]] += T - tot_time
 
     # Return sorted schedule
-    print("Returning sorted schedule: ", sorted(schedule.items(), key=lambda x: x[1]), flush=True)
-    mq.send_to_queue(sorted(schedule.items(), key=lambda x: x[1]), f"jobhandler-{identifier}")
+    result = sorted(schedule.items(), key=lambda x: x[1])
+    print("Returning sorted schedule: ", result, flush=True)
+    mq.send_to_queue({"result": result}, f"jobhandler-{identifier}")
 
 
 def get_features(inst, data, data_type):
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
-    temp_file_mzn.write(data['mznFileContent'].encode())
+    temp_file_mzn.write(inst.encode())
     temp_file_mzn.close()
 
-    if data['dataFileContent'] is not None and data['dataFileContent'] != "":
+    if data is not None:
         temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
-        temp_file_dzn.write(data['dataFileContent'].encode())
+        temp_file_dzn.write(data.encode())
         temp_file_dzn.close()
         dznIncluded = True
 
@@ -84,21 +91,33 @@ def get_features(inst, data, data_type):
 def get_nearest_neighbors(feat_vect, k):
     print("\n\n", flush=True)
     print("feat_vect: ", feat_vect, flush=True)
-    print("\n\n", flush=True)
-    kb_features = kb.get_all_feature_vectors()
 
-    kb_features =[kb_features]  # Now convert kb_features
-    if kb_features is not None and len(kb_features) >= k:
-        # Calculate distances to all feature vectors
-        distances = [euclidean_distance(feat_vect, kb_features) for kb_feature in kb_features]
+    feat_vect = [float(i) for i in feat_vect.split(',')]
+
+    print("feat_vect: ", feat_vect, flush=True)
+    print("type feat_vect: ", type(feat_vect), flush=True)
+
+    kb_features = kb.get_all_feature_vectors()
+    kb_features = ast.literal_eval(kb_features)
+    kb_features.remove(feat_vect)
+
+    print("kb_features: ", kb_features, flush=True)
+    
+    print("len(kb_features): ", len(kb_features), flush=True)
+    print("k: ", k, flush=True)
+    if len(kb_features) >= k:
+        distances = [euclidean_distance(feat_vect, kb_feature) for kb_feature in kb_features]
     else:  
         return kb_features
 
-    # Get indices of k smallest distancesk
-    nearest_indices = np.argsort(distances)[:k]
+    print("distance: ", distances, flush=True)
 
-    # Return the k nearest neighbors and their distances
+    nearest_indices = np.argsort(distances)[:k]
+    print("nearest_indices: ", nearest_indices, flush=True)
+
     nearest_neighbors = [(kb_features[i], distances[i]) for i in nearest_indices]
+    print("nearest_neighbors: ", nearest_neighbors, flush=True)
+    print("\n\n", flush=True)
     return nearest_neighbors
 
 
@@ -118,6 +137,11 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
         
         # Check how many instances can be solved using the current subset
         for instance in similar_insts:
+            print("instance: ", instance, flush=True) # INSTANCE IS [[2.0, 3.16993, 1.58496, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.0, 14.98, 2.0, 3.16993, 1.58496, 2.0, 3.16993, 
+                                                      # 1.58496, 9.0, 0.0, 1.28571, 27.0, 28.5293, 14.2647, 0.0, 0.0, 0.0, 0.0, 0.0, 9.0, 7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 
+                                                      # 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.57143, 3.0, 0.942857, 
+                                                      #0.388889, 0.0, 0.0, 0.0, 1.84237, 0.0, 1.37878, 0.0, 9.07682, 11.0947, 5.0, 3.0, 1.5, 0.0, 3.0, 0.6, 0.0, 2.0, 7.0, 0.285714, 0.777778, 18.0, 21.0, 
+                                                      #6.6], 715.2500762509947]
             for solver in subset:
                 if kb.is_instance_solved(instance, solver, solver_type):
                     solved_instances += 1
@@ -127,7 +151,6 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             max_solved = solved_instances
             selected_solvers = list(subset)
     
-
     return selected_solvers
 
 
@@ -141,7 +164,7 @@ def get_max_solved(solvers, similar_insts, T, solver_type):
     for solver in solvers:
         solver_solves_instances = kb.get_solver_times(solver["name"], similar_insts, solver_type)
         solver_solves_instances = ast.literal_eval(solver_solves_instances)
-        print("solver_solves_instances", solver_solves_instances, flush=True)
+        print("solver ", solver, "solves: ", solver_solves_instances, flush=True)
 
         time_spent = 0
         i = 0

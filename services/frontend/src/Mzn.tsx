@@ -400,8 +400,8 @@ function Mzn() {
     <>
     <br />
     <div>
-      <button onClick={() => setprob(true)}>One Problem</button>
-      <button onClick={() => setprob(false)}>Multiple Problems</button>
+      <button onClick={() => setprob(true)}>Solve problem</button>
+      <button onClick={() => setprob(false)}>Knowledge base expansion</button>
     </div>
     <div>
       {oneProb ? (
