@@ -41,6 +41,7 @@ def send_wait_receive(data):
         nonlocal result
         result = decoded_body
         ch.stop_consuming()
+        ch.queue_delete(queue=in_queue_name)
 
     channel.basic_consume(queue=in_queue_name, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()

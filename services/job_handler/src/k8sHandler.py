@@ -6,12 +6,13 @@ import os
 import messageQueue as mq
 
 def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
+    global i
     # Load Kubernetes configuration
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"{solver_name.lower()}-{image_prefix}-{str(uuid.uuid4())[:8]}"
-
+    job_name = f"{solver_name.lower()}-{identifier}"
+    print("Job name: ", job_name, flush=True)
 
     config.load_incluster_config()
 
@@ -31,6 +32,7 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     batch_api = client.BatchV1Api()
 
     batch_api.create_namespaced_job(namespace=image_prefix, body=solver_job)
+
     return job_name
 
 def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request, username, password):
@@ -73,40 +75,9 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
         )
     )
 
+
+def stop_namespaced_jobs(namespace):
     
-
-def stop_solver_job_by_id(identifier):
-    # Load Kubernetes configuration
-    config.load_incluster_config()
-
-    # Create Kubernetes API client
-    batch_api = client.BatchV1Api()
-    core_api = client.CoreV1Api()
-
-    # Get all pods in the default namespace
-    jobs = batch_api.list_namespaced_job(namespace="default")
-
-    # Iterate over the pods and delete the one with the specified job name
-    for job in jobs.items:
-        print("Looking at: ", job.metadata.name, flush=True)
-        if f"solver-job-{identifier}.id" in job.metadata.name:
-            print("Deleting: ", job.metadata.name, flush=True)
-            batch_api.delete_namespaced_job(name=job.metadata.name, namespace="default")
-            break
-    
-    # Get all pods in the default namespace
-    pods = core_api.list_namespaced_pod(namespace="default")
-
-    # Iterate over the pods and delete the one with the specified job name
-    for pod in pods.items:
-        print("Looking at: ", pod.metadata.name, flush=True)
-        if f"solver-job-{identifier}.id" in pod.metadata.name:
-            print("Deleting: ", pod.metadata.name, flush=True)
-            core_api.delete_namespaced_pod(name=pod.metadata.name, namespace="default")
-            break
-    
-
-def stop_solver_by_namespace(namespace):
     # Load Kubernetes configuration
     config.load_incluster_config()
 
@@ -129,3 +100,34 @@ def stop_solver_by_namespace(namespace):
     for pod in pods.items:
         print("Deleting: ", pod.metadata.name, flush=True)
         core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
+    
+def stop_specific_job(namespace, identifier):
+    # Load Kubernetes configuration
+    config.load_incluster_config()
+    print("Namespace: ", namespace, flush=True)
+    print("Identifier: ", identifier, flush=True)
+    # Create Kubernetes API client
+    batch_api = client.BatchV1Api()
+    core_api = client.CoreV1Api()
+
+    # Get all pods in the default namespace
+    jobs = batch_api.list_namespaced_job(namespace=namespace)
+
+    # Iterate over the pods and delete the one with the specified job name
+    for job in jobs.items:
+        print("Looking at: ", job.metadata.name, flush=True)
+        if identifier in job.metadata.name:
+            print("Deleting: ", job.metadata.name, flush=True)
+            batch_api.delete_namespaced_job(name=job.metadata.name, namespace=namespace)
+            break
+    
+    # Get all pods in the default namespace
+    pods = core_api.list_namespaced_pod(namespace=namespace)
+
+    # Iterate over the pods and delete the one with the specified job name
+    for pod in pods.items:
+        print("Looking at: ", pod.metadata.name, flush=True)
+        if identifier in pod.metadata.name:
+            print("Deleting: ", pod.metadata.name, flush=True)
+            core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
+            break

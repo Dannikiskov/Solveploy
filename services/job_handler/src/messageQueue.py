@@ -11,7 +11,9 @@ import maxsatHandler
 import sunny
 from multiprocessing import Process
 from kubernetes import client, config
-i = 0
+import k8sHandler as k8s
+
+k8s_queues = []
 
 def rmq_init():
     connection = _rmq_connect()
@@ -25,11 +27,9 @@ def rmq_init():
 def consume():
     channel = _rmq_connect().channel()
     def callback(ch, method, properties, body):
-        global i
-        i = i + 1
-        print(f"i = {i} from jobhandler mq ", flush=True)
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
+        print(" [x] Received ", data, flush=True)
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
@@ -51,6 +51,24 @@ def consume():
             threading.Thread(target=maxsatHandler.get_available_maxsat_solvers, args=(data,)).start()
         
         elif instructions == "StopMznJob":
+            threading.Thread(target=k8s.stop_specific_job, args=("mzn", data["identifier"],)).start()
+
+        elif instructions == "StopSatJob":
+            threading.Thread(target=k8s.stop_specific_job, args=("sat", data["identifier"],)).start()
+        
+        elif instructions == "StopMaxsatJob":
+            threading.Thread(target=k8s.stop_specific_job, args=("maxsat", data["identifier"],)).start()
+            
+        elif instructions == "StopMznJobs":
+            threading.Thread(target=k8s.stop_namespaced_jobs, args=("mzn",)).start()
+        
+        elif instructions == "StopSatJobs":
+            threading.Thread(target=k8s.stop_namespaced_jobs, args=("sat",)).start()
+        
+        elif instructions == "StopMaxsatJobs":
+            threading.Thread(target=k8s.stop_namespaced_jobs, args=("maxsat",)).start()
+
+        elif instructions == "StopAllJobs":
             threading.Thread(target=mznHandler.stop_job, args=(data,)).start()
 
         elif instructions == "StopSatJob":
@@ -71,10 +89,21 @@ def consume():
     # print("Starting Consume..", flush=True)
     channel.start_consuming()
 
+def delete_k8_queues():
+    global k8s_queues
+    connection = _rmq_connect()
+    for queue in k8s_queues:
+        channel = connection.channel()
+        channel.queue_delete(queue=queue)
+        connection.close()
 
 def send_wait_receive_k8(data, queue_name):
+    global k8s_queues
+    
     out_queue_name = queue_name
     in_queue_name = f'{out_queue_name}-result'
+
+    k8s_queues.append(out_queue_name, in_queue_name)
 
     connection = _rmq_connect()
     channel = connection.channel()

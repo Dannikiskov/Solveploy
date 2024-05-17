@@ -10,9 +10,7 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024 # 1000MB
 api = Api(app)
 CORS(app)
-i = 0
 class Jobs(Resource):
-
     def post(self):
         data = request.json
         if data["mznFileContent"] is None or data["mznFileContent"] == "":
@@ -20,10 +18,9 @@ class Jobs(Resource):
         
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
+        print(data["optGoal"], flush=True)
+
         if "noresult" in data and data["noresult"] == True:
-            global i
-            i = i + 1
-            print(f"i = {i} from api main", flush=True)
             async_execute_no_response(data)
         else:
             result = async_execute(data)
@@ -32,17 +29,27 @@ class Jobs(Resource):
             return result_json
     
 
-    def delete(self):
-        try:
-            data = request.json
-        except Exception as e:
-            return {"result": "Invalid request body"}
-        data["identifier"] = data["item"]["jobIdentifier"]
-        data["instructions"] = "StopJob"
-        data["queueName"] = "jobHandler"
-        result = async_execute(data)
-
-        return result
+    def delete(self, solver_type=None, identifier=None):
+        data = None
+        if solver_type == "mzn":
+            if identifier is not None:
+                print("Stopping specific job", flush=True)
+                data = {"identifier": identifier, "instructions": "StopMznJob", "queueName": "jobHandler"}  
+            else:
+                data = {"instructions": "StopMznJobs", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
+        elif solver_type == "sat":
+            if identifier is not None:
+                data = {"identifier": identifier, "instructions": "StopSatJob", "queueName": "jobHandler"}
+            else:
+                data = {"instructions": "StopSatJobs", "queueName": "jobHandler"}
+        elif solver_type == "maxsat":
+            if identifier is not None:
+                data = {"identifier": identifier, "instructions": "StopMaxsatJob", "queueName": "jobHandler"}
+            else:
+                data = {"instructions": "StopMaxsatJobs", "queueName": "jobHandler"}
+        
+        async_execute_no_response(data)
+        return "Job stop message sent"
 
 class Sunny(Resource):
 
@@ -196,8 +203,12 @@ class results(Resource):
         result = mq.consume_one(f"{data['type']}-result-queue")
         print("RESULT: ", result, flush=True)
         print("DATA: ", data, flush=True)
-        resultsList = []
         
+        
+        if result is None:
+            return None
+        
+        resultsList = []
         while result is not None:
             resultsList.append(json.loads(result))
             result = mq.consume_one(f"{data['type']}-result-queue")
@@ -205,50 +216,68 @@ class results(Resource):
         print("optgoal: ", data["optGoal"], flush=True)
         try:
             if data["optGoal"] == "minimize":
-                lowest = resultsList[0]["optValue"]
+                lowest = resultsList[0]
                 for res in resultsList:
-                    if res["optValue"] < lowest:
-                        lowest = res["optValue"]
-                    if lowest < data["item"]["optValue"]:
-                        print("Returning result: ", result, flush=True)
+                    if lowest["status"] == "SATISFIED" and res["status"] == "OPTIMAL_SOLUTION":
+                        lowest = res
+                    elif res["optValue"] < lowest["optValue"]:
+                        lowest = res
+                    elif res["optValue"] == lowest["optValue"] and res["executionTime"] < lowest["executionTime"]:
+                        lowest = res
+                if data["item"] != None:
+                    if data["item"]["status"] == "SATISFIED" and lowest["status"] == "OPTIMAL_SOLUTION":
+                        return lowest
+                    elif lowest["optValue"] < data["item"]["optValue"]:
+                        return lowest
+                    elif lowest["optValue"] == data["item"]["optValue"] and lowest["executionTime"] < data["item"]["executionTime"]:
                         return lowest
                     else:
-                        print("Returning None", flush=True)
-                        return None      
-            elif data["optGoal"] == "maximize":
-                highest = resultsList[0]["optValue"]
+                        return None
+                else:
+                    return lowest
+                
+            if data["optGoal"] == "maximize":
+                highest = resultsList[0]
                 for res in resultsList:
-                    if res["optValue"] > highest:
-                        highest = res["optValue"]
-                    if highest > data["item"]["optValue"]:
-                        print("Returning result: ", result, flush=True)
+                    if highest["status"] == "SATISFIED" and res["status"] == "OPTIMAL_SOLUTION":
+                        highest = res
+                    elif res["optValue"] > highest["optValue"]:
+                        highest = res
+                    elif res["optValue"] == highest["optValue"] and res["executionTime"] < highest["executionTime"]:
+                        highest = res
+                if data["item"] != None:
+                    if data["item"]["status"] == "SATISFIED" and highest["status"] == "OPTIMAL_SOLUTION":
+                        return highest
+                    elif highest["optValue"] > data["item"]["optValue"]:
+                        return highest
+                    elif highest["optValue"] == data["item"]["optValue"] and highest["executionTime"] < data["item"]["executionTime"]:
                         return highest
                     else:
-                        print("Returning None", flush=True)
-                        return None  
-            else:
+                        return None
+                else:
+                    return highest
+                
+            elif data["optGoal"] == "satisfy":
                 fastest = resultsList[0]
                 for res in resultsList:
+                    print("res: ", res, flush=True)
+                    print(res["status"] == "SATISFIED" and fastest["status"] == "SATISFIED")
                     if res["status"] == "SATISFIED" and fastest["status"] == "SATISFIED":
                         if res["executionTime"] < fastest["executionTime"]:
+                            print("res was faster", flush=True)
                             fastest = res
-                if data["item"] == None or fastest["executionTime"] < data["item"]["executionTime"]:
-                    print("Returning result: ", fastest, flush=True)
-                    return fastest
+                if data["item"] != None and data["item"]["executionTime"] < fastest["executionTime"]:
+                    print("Returning None", flush=True)
+                    return None
+                return fastest
                 
         except Exception as e:
             print("Error: ", e, flush=True)
             return None
-            
-            
-
         
-        if result is None:
-            return None
-        
-        return json.loads(result)
+        return None
 
-api.add_resource(Jobs, '/api/jobs')
+api.add_resource(Jobs, '/api/jobs', '/api/jobs/<string:solver_type>', '/api/jobs/<string:solver_type>/<string:identifier>')
 api.add_resource(Sunny, '/api/jobs/sunny')
 api.add_resource(SolversMzn, '/api/solvers/mzn')
 api.add_resource(SolversSat, '/api/solvers/sat')

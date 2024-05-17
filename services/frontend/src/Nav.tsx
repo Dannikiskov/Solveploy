@@ -7,10 +7,10 @@ const Nav: React.FC = () => {
     <div>
       <h1>Solveploy</h1>
       <Link to="/mzn">
-        <button>MZN</button>
+        <button style={{ marginRight: '5px' }}>MZN</button>
       </Link>
       <Link to="/sat">
-        <button>SAT</button>
+        <button style={{ marginRight: '5px' }}>SAT</button>
       </Link>
       <Link to="/maxsat">
         <button>MAXSAT</button>

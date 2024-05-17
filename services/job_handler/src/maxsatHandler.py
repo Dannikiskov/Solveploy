@@ -11,7 +11,6 @@ def handle_new_maxsat_job(data):
     k8sHandler.start_solver_job(solver_name, identifier, "maxsat")
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
-    stop_maxsat_job_by_namespace()
     
     # Get feature vector and sent to kb
     try:
@@ -30,10 +29,6 @@ def stop_maxsat_job_by_id(data):
 
     k8sHandler.stop_solver_job_by_namespace(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
-
-
-def stop_maxsat_job_by_namespace():
-    k8sHandler.stop_solver_by_namespace("maxsat")
 
 
 def get_available_maxsat_solvers(data):

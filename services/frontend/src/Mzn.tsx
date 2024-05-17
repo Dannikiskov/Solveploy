@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";;
 import "./App.css";
-import React from "react";
+import React, { useRef } from 'react';
+import { saveAs } from 'file-saver';
+
 
 interface MznSolverData {
   name: string;
@@ -21,6 +23,8 @@ interface MznJobResult extends MznSolverData {
 }
 
 function Mzn() {
+  const dataFileInput = useRef(null);
+  const mznFileInput = useRef(null);
   const [mznSolverList, setMznSolverList] = useState<MznSolverData[]>([]);
   const [selectedMznSolvers, setSelectedMznSolvers] = useState<MznSolverData[]>(
     []
@@ -32,9 +36,11 @@ function Mzn() {
   const [mznFileContent, setMznFileContent] = useState<string>("");
   const [dataFileContent, setDataFileContent] = useState<string>("");
   const [runningMznJobs, setRunningMznJobs] = useState<MznSolverData[]>([]);
+  const [optGoalList] = useState<(string | null)[]>(["satisfy", "maximize", "minimize"]);
   const [optVal, setOptVal] = useState<string>("");
   const [bestResult, setBestResult] = useState<MznJobResult | null>(null);
-  const [optGoal, setOptGoal] = useState<string>("");
+  const [lastOptGoal, setLastOptGoal] = useState<string | null>();
+  const [optGoal, setOptGoal] = useState<string | null>();
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null, json: { file: File, content: string } | null} }>({});
   const [oneProb, setprob] = useState<boolean>(true);
 
@@ -46,18 +52,30 @@ function Mzn() {
     console.log("Selected solvers:", selectedMznSolvers);
   }, [selectedMznSolvers]);
 
+  useEffect(() => {
+    console.log("Running solvers:", runningMznJobs);
+  }, [runningMznJobs]);
+
+  const clearFiles = () => {
+    setDataFileContent("");
+    setMznFileContent("");
+    if (dataFileInput.current) (dataFileInput.current as HTMLInputElement).value = "";
+    if (mznFileInput.current) (mznFileInput.current as HTMLInputElement).value = "";
+  };
+
   const fetchStopJob = async (item: MznSolverData) => {
     setRunningMznJobs((prevItems: Array<MznSolverData>) =>
       prevItems.filter((i) => i.name !== item.name)
     );
 
+    const solverId = item.jobIdentifier;
+    console.log("Solver ID: ", solverId)
     try {
-      const response = await fetch("/api/jobs", {
+      const response = await fetch(`/api/jobs/mzn/${solverId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ item }),
       });
 
       if (!response.ok) {
@@ -105,6 +123,8 @@ function Mzn() {
   };
 
   const handleStartSolvers = () => {
+    setLastOptGoal(optGoal);
+    setOptGoal("")
     setBestResult(null);
     setRunningMznJobs(selectedMznSolvers);
     selectedMznSolvers.forEach(fetchStartSolvers);
@@ -152,11 +172,8 @@ function Mzn() {
       console.log(item.params);
   }
 
-  const updateOptVal = (s : string) => {
-    setOptVal(s);
-  }
-
   const fetchStartSolvers = async (item: MznSolverData) => {
+    console.log("ITEM: ", item)
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
@@ -170,16 +187,24 @@ function Mzn() {
           dataFileType: dznOrJson,
           instructions: "StartMznJob",
           optVal: optVal,
+          optGoal: optGoal
         }),
       });
 
       const data = await response.json() as any;
       //console.log(data);
+      fetch("/api/jobs/mzn", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
       // Remove the item from runningMznSolvers list
       setRunningMznJobs((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
-      if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && optGoal === "solve")) {
+      if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && optGoal === "satisfy")) {
         stopAllSolvers();
       }
 
@@ -211,6 +236,7 @@ function Mzn() {
       dataFileType: suffix,
       instructions: "StartMznJob",
       optVal: optVal,
+      optGoal: optGoal,
       noresult: true
       }),
     }).catch(error => {
@@ -226,15 +252,6 @@ function Mzn() {
       reader.onload = () => {
         const fileContent = reader.result as string;
         setMznFileContent(fileContent);
-        if (fileContent.includes("solve minimize")){
-          setOptGoal("minimize");
-        }
-        else if (fileContent.includes("solve maximize")){
-          setOptGoal("maximize");
-        }
-        else if (fileContent.includes("solve satisfy")){
-          setOptGoal("solve");
-        }
       };
       reader.readAsText(file);
     }
@@ -260,10 +277,29 @@ function Mzn() {
 
   };
 
+  const downloadResult = () => {
+    if (!bestResult) return;
+  
+    const content = `Solver Information
+Name: ${bestResult.name}
+Version: ${bestResult.version}
+Output
+Status: ${bestResult.status}
+Goal: ${lastOptGoal}
+Execution Time: ${bestResult.executionTime} milliseconds
+Result: 
+${bestResult.result}
+    `;
+  
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, 'result.txt');
+  };
+
 
   const stopAllSolvers = async () => {
+    setRunningMznJobs([]);
     try {
-      const response = await fetch("/api/jobs", {
+      const response = await fetch("/api/jobs/mzn", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -345,21 +381,18 @@ function Mzn() {
   }
 
   const startSolverWithAllFiles = async () => {
+    setLastOptGoal(optGoal);
+    setOptGoal(""); 
     for (const solver of selectedMznSolvers) {
       for (const folder in folderMapping) {
         const { mzn, dzn, json } = folderMapping[folder];
         if ((mzn && dzn)) {
-          setOptVal("");
           fetchStartSolverWithContent(solver, mzn.content, dzn.content, '.dzn');
         }
         else if (mzn && json) {
-          console.log("JSON");
-          console.log(mzn, json);
-          setOptVal("");
           fetchStartSolverWithContent(solver, mzn.content, json.content, '.json');
         }
         else if(mzn) {
-          setOptVal("");
           fetchStartSolverWithContent(solver, mzn.content, "", "");
         }
       }
@@ -376,7 +409,8 @@ function Mzn() {
         body: JSON.stringify({
           item: bestResult,
           type: "mzn",
-          optGoal
+          optGoal: lastOptGoal,
+          optVal
         }),
       });
       if (!response.ok) {
@@ -387,6 +421,7 @@ function Mzn() {
       console.log("DATA", data);
       if (data != null){
         setBestResult(data);
+        setOptVal(data.optValue.toString());
       }
       
       
@@ -400,20 +435,25 @@ function Mzn() {
     <>
     <br />
     <div>
-      <button onClick={() => setprob(true)}>Solve problem</button>
-      <button onClick={() => setprob(false)}>Knowledge base expansion</button>
+      <button className="small-button" style={{ marginRight: '5px' }} onClick={() => setprob(true)}>Solve problem</button>
+      <button className="small-button" onClick={() => setprob(false)}>Knowledge base expansion</button>
+    </div>
+    <div>
+      <hr style={{margin: '20px'}} />
     </div>
     <div>
       {oneProb ? (
         <div>
           <div>
             <h3>Upload MZN file</h3>
-            <input onChange={handleMznFileChange} type="file" />
+            <input ref={mznFileInput} onChange={handleMznFileChange} type="file" />
           </div>
           <br></br>
           <div>
             <h3>Upload Data file</h3>
-            <input onChange={handleDataFileChange} type="file" />
+            <input ref={dataFileInput} onChange={handleDataFileChange} type="file" />
+            <br></br>
+            <button className="small-button" style={{margin: '20px'}} onClick={clearFiles}>Clear files</button>
           </div>
         </div>
       ) : (
@@ -429,6 +469,7 @@ function Mzn() {
         </div>
       )}
     </div>
+    <hr style={{margin: '20px'}} />
       <br />
       <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
       <br />
@@ -454,11 +495,6 @@ function Mzn() {
       )}
       <div>
         <br />
-        <input
-          type="string"
-          placeholder="Optimization value"
-          onChange={(e) => {updateOptVal(e.target.value)}}
-        />
       </div>
       <br />
       <h2>Available Solvers</h2>
@@ -484,24 +520,39 @@ function Mzn() {
                 placeholder="Memory"
                 onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
               />
-            </div>
-            <br />
+            <br style={{marginBottom: '5px'}} />
             <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
             <br />
-            <button className="small-button" onClick={() => handleItemClick(item)}>Select</button>
-          </div>
-          
+            <button className="small-button" onClick={() => handleItemClick(item)} disabled={!item.memory || !item.cpu}>Select</button>
+            </div>
+            </div>
+      
         ))}
       </div>
       <br />
+      <hr style={{margin: '20px'}} />
       <div>
+        <div style={{ marginBottom: '20px' }}>
+        Choose Goal
+        <br />
+        <select
+          value={optGoal ?? ""}
+          onChange={(e) => {setOptGoal(e.target.value)}}
+        >
+        <option value=""></option>
+        {optGoalList.map((value, index) => (
+          <option key={index} value={value ?? ""}>{value}</option>
+        ))}
+      </select>
+        </div>
       {oneProb ? (
         <div>
-          <button onClick={handleStartSolvers}>Start Solvers</button>
+
+        <button  onClick={handleStartSolvers} disabled={!optGoal}>Start Solvers</button>  
         </div>
       ) : (
         <div>
-          <button onClick={startSolverWithAllFiles}>Start Solvers</button>
+          <button onClick={startSolverWithAllFiles} disabled={!optGoal}>Start Solvers</button>
         </div>
       )}
     </div>
@@ -513,11 +564,12 @@ function Mzn() {
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
               <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button>
-            </div>
+        </div>
           ))}
-          
+        
         </div>
         </div>
+        <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button>
         <div>
         <br />
         <h2>Result</h2>
@@ -529,13 +581,15 @@ function Mzn() {
               <div>Version: {bestResult.version}</div>
               <h4>Output</h4>
               <div>Status: {bestResult.status}</div>
+              <div>Goal: {lastOptGoal}</div>
               <div>Execution Time: {bestResult.executionTime} milliseconds</div>
               <div>Result: {bestResult.result}</div>
+              <br />
+              <button onClick={downloadResult}>Download Result</button>
             </div>
-
           )}
         </div>
-        <div>
+        <div style={{ marginBottom: '20px' }}>
           <button onClick={handleRefresh}>Refresh Result</button>
         </div>
       </div>

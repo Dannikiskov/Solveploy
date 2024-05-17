@@ -21,8 +21,6 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             temp_data_file.close()
             instance.add_file(temp_data_file.name)
 
-    print("PARAMS DICT: ", params_dict, flush=True)
-    print("Start solving...", flush=True)
 
     if params_dict is not None:
         t1 = time.time()
@@ -33,7 +31,7 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
         result = instance.solve()
         t2 = time.time() - t1
 
-
+    print("result: ", result, "\n", flush=True)
     output = str(result.solution)
     print(output, flush=True)
     os.remove(temp_model_path)
@@ -41,8 +39,9 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
     if data_string is not None:
         os.remove(temp_data_file.name)
 
-    if objective_list is not None:
-        opt_val = [result.objective(x) for x in objective_list]
+    print(result.objective)
+    if result.objective is not None:
+        opt_val = result.objective
     else:
         opt_val = "N/A"
 
@@ -58,4 +57,4 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
 
         
     print({"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}, flush=True)
-    return {"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}
+    return {"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val, "optGoal": objective_list}

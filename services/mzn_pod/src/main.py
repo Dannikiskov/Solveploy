@@ -56,11 +56,13 @@ if __name__ == '__main__':
     mzn_string = message_data["mznFileContent"]
     data_string = message_data["dataFileContent"] if message_data["dataFileContent"] != "" else None
     data_type = message_data["dataFileType"] if message_data["dataFileType"] != "" else None
+    opt_goal = message_data["optGoal"] if message_data["optGoal"] != "" else None
 
     try:
         result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type, params)
         result["name"] = solver_name
         result["version"] = message_data["item"]["version"]
+        result["optGoal"] = opt_goal
     except Exception as e:
         print(e, "\n*--------*", flush=True)
         result = {"result": f"Minizinc Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}

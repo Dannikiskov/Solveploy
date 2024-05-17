@@ -98,7 +98,11 @@ def get_nearest_neighbors(feat_vect, k):
     print("type feat_vect: ", type(feat_vect), flush=True)
 
     kb_features = kb.get_all_feature_vectors()
+    if kb_features == None:
+        return feat_vect
+    
     kb_features = ast.literal_eval(kb_features)
+    print("before removal: ", kb_features, flush=True)
     kb_features.remove(feat_vect)
 
     print("kb_features: ", kb_features, flush=True)
@@ -115,7 +119,7 @@ def get_nearest_neighbors(feat_vect, k):
     nearest_indices = np.argsort(distances)[:k]
     print("nearest_indices: ", nearest_indices, flush=True)
 
-    nearest_neighbors = [(kb_features[i], distances[i]) for i in nearest_indices]
+    nearest_neighbors = [kb_features[i] for i in nearest_indices]
     print("nearest_neighbors: ", nearest_neighbors, flush=True)
     print("\n\n", flush=True)
     return nearest_neighbors
@@ -137,14 +141,11 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
         
         # Check how many instances can be solved using the current subset
         for instance in similar_insts:
-            print("instance: ", instance, flush=True) # INSTANCE IS [[2.0, 3.16993, 1.58496, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.0, 14.98, 2.0, 3.16993, 1.58496, 2.0, 3.16993, 
-                                                      # 1.58496, 9.0, 0.0, 1.28571, 27.0, 28.5293, 14.2647, 0.0, 0.0, 0.0, 0.0, 0.0, 9.0, 7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 
-                                                      # 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.57143, 3.0, 0.942857, 
-                                                      #0.388889, 0.0, 0.0, 0.0, 1.84237, 0.0, 1.37878, 0.0, 9.07682, 11.0947, 5.0, 3.0, 1.5, 0.0, 3.0, 0.6, 0.0, 2.0, 7.0, 0.285714, 0.777778, 18.0, 21.0, 
-                                                      #6.6], 715.2500762509947]
+            print("instance: ", instance, flush=True) 
             for solver in subset:
                 if kb.is_instance_solved(instance, solver, solver_type):
                     solved_instances += 1
+        print("subset: ", subset,  "solves ", solved_instances, " instances", flush=True)
         
         # Update the maximum number of solved instances and the selected solvers
         if solved_instances > max_solved:

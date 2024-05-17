@@ -95,6 +95,8 @@ def get_mzn_solver_id_by_name(solver_name):
 def get_all_mzn_feature_vectors():
     query = "SELECT features FROM mzn_feature_vectors"
     result = query_database(query)
+    if len == 0:
+        return None
     extracted_result = [t[0] for t in result]
     print("g_a_m_f_v: ", extracted_result, flush=True)
     print("type: ", type(extracted_result), flush=True)
@@ -106,6 +108,7 @@ def handle_mzn_instance(data):
     feature_vector_str = "{" + feature_vector + "}"
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
+    opt_goal = data["optGoal"]
     status = data["status"]
     params = None
 
@@ -138,21 +141,21 @@ def handle_mzn_instance(data):
     existing_entry = query_database(query, params)
     if len(existing_entry) == 0:
         print("inserting mzn_solver_featvec_time", flush=True)
-        if data["optVal"] != "" and data["optVal"] is not None:
+        if data["optVal"] != "N/A" and data["optVal"] is not None:
             opt_value = data["optVal"]
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, opt_value, execution_time, status) 
-                VALUES (%s, %s, %s, %s, %s)
+                (solver_id, feature_vec_id, opt_value, opt_goal, execution_time, status) 
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], opt_value, execution_time, status)
+            params = (solver_id[0], feat_id[0], opt_value, opt_goal, execution_time, status)
         else: 
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, execution_time, status) 
-                VALUES (%s, %s, %s, %s)
+                (solver_id, feature_vec_id, execution_time, status, opt_goal) 
+                VALUES (%s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], execution_time, status)
+            params = (solver_id[0], feat_id[0], execution_time, status, opt_goal)
 
         query_database(query, params)
 
@@ -309,6 +312,7 @@ def database_init():
             solver_id INT REFERENCES mzn_solvers(id),
             feature_vec_id INT REFERENCES mzn_feature_vectors(id),
             opt_value VARCHAR(2047),
+            opt_goal VARCHAR(2047),
             execution_time FLOAT NOT NULL,
             status VARCHAR(2047),
             result VARCHAR(2047)
