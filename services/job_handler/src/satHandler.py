@@ -8,20 +8,23 @@ def handle_new_sat_job(data):
 
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
+    cpu = data["item"]["cpu"]
+    memory = data["item"]["memory"]
 
-    k8sHandler.start_solver_job(solver_name, identifier, "sat")
-    k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
+    k8sHandler.start_solver_job(solver_name, identifier, "sat", cpu, memory)
+    k8s_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
 
     # Get feature vector
     try:
-        feature_vector = gf.generate_features(data["cnfFileContent"])
-        dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "instructions": "HandleSatInstance", "queueName": "kbHandler"}
+        feature_vector = gf.generate_features(data["satFileContent"])
+        print(f"Feature vector: {feature_vector}", flush=True)
+        dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8s_result["executionTime"], "status": k8s_result["status"], "instructions": "HandleSatInstance", "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
     except Exception as e:
         print(f"Exception occurred: {str(e)}", flush=True)
 
-    mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
+    mq.send_to_queue(k8s_result, f'{data["queueName"]}-{identifier}')
 
 
 def stop_sat_job_by_id(data):

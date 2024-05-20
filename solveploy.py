@@ -2,8 +2,15 @@ import subprocess
 import sys
 
 file_path = "./ansible/inventory/hosts"
+
+if sys.argv[1] == "--help":
+    print("Usage:\n \t python3 solveploy.py target_ip target_username\n")
+    exit()
+
 host = sys.argv[1] if len(sys.argv) > 1 else input("Host: ").strip()
-user = sys.argv[1] if len(sys.argv) > 2 else "ucloud"
+user = sys.argv[2] if len(sys.argv) > 2 else "ucloud"
+
+
 
 content = f'''[kubernetes_hosts]
 target_vm ansible_host={host} ansible_user={user}

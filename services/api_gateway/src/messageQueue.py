@@ -53,14 +53,14 @@ def send(data):
     i = i + 1
     print(f"i = {i} from api messageQueue", flush=True)
     out_queue_name = data["queueName"]
-    in_queue_name = f'{data["queueName"]}-{data["identifier"]}'
 
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=in_queue_name)
 
     json_data = json.dumps(data)
     channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
+    connection.close()
+    
 
 
 def consume_one(queue_name):

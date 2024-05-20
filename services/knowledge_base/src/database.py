@@ -31,59 +31,345 @@ def query_database(query, params=None):
 
 # MAXSAT
 def handle_maxsat_instance(data):
-    feature_vector = str(data["featureVector"])
+    feature_vector_dict = data["featureVector"]
+    feature_vector = ",".join(str(x) for x in feature_vector_dict.values())
+    feature_vector_str = "{" + feature_vector + "}"
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
+    status = data["status"]
 
-    query = f"SELECT id FROM maxsat_solvers WHERE name = '{solver_name}'"
-    solver_id = query_database(query)
-    if len(solver_id) > 0:
-        query = f"INSERT INTO maxsat_solvers (name) VALUES ('{solver_name}') RETURNING id"
-        solver_id = query_database(query)
+    params = None
 
-    query = f"SELECT id FROM maxsat_feature_vectors WHERE features = '{feature_vector}'"
-    feat_id = query_database(query)
-    if len(feat_id) > 0:
-        query = f"INSERT INTO maxsat_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
-        feat_id = query_database(query)
+    query = "SELECT id FROM maxsat_solvers WHERE name = %s"
+    params = (solver_name,)
+    solver_id = query_database(query, params)
+    if len(solver_id) == 0:
+        print("inserting solver", flush=True)
+        query = "INSERT INTO maxsat_solvers (name) VALUES (%s) RETURNING id"
+        params = (solver_name,)
+        solver_id = query_database(query, params)
+        
 
-    print(feat_id)
+    query = "SELECT id FROM maxsat_feature_vectors WHERE features = %s"
+    params = (feature_vector_str,)
+    feat_id = query_database(query, params)
+    print("feat_id", feat_id, flush=True)
+    if len(feat_id) == 0:
+        print("inserting feature", flush=True)
+        query = "INSERT INTO maxsat_feature_vectors (features) VALUES (%s) RETURNING id"
+        params = (feature_vector_str,)
+        feat_id = query_database(query, params)
 
-    query = f"SELECT * FROM maxsat_solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
-    existing_entry = query_database(query)
-    if len(existing_entry) > 0:
-        query = f"INSERT INTO maxsat_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
-        query_database(query)
+
+    query = """
+        SELECT * FROM maxsat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s
+    """
+    params = (solver_id[0], feat_id[0])
+    existing_entry = query_database(query, params)
+    if len(existing_entry) == 0:
+        query = """
+            INSERT INTO maxsat_solver_featvec_time 
+            (solver_id, feature_vec_id, execution_time, status) 
+            VALUES (%s, %s, %s, %s)
+        """
+        params = (solver_id[0], feat_id[0], execution_time, status)
+
+    query_database(query, params)
+
+    print_stuff()
+
+
+def is_instance_solved_maxsat(instance, solver):
+    print("from is_instance_solved_maxsat", flush=True)
+    print("instance", instance, flush=True)
+    print("solver", solver, flush=True)
+    query = "SELECT id FROM maxsat_solvers WHERE name = %s"
+    params = (solver["name"],)
+    solver_id = query_database(query, params)
+
+    if not solver_id:
+        return "Solver not found"
+
+    instance = str(instance).replace(' ', '')
+    instance = instance.replace('[', '')
+    instance = instance.replace(']', '')
+    instance = "{" + instance + "}"
+
+    query = "SELECT id FROM maxsat_feature_vectors WHERE features = %s"
+    params = (instance,)
+    feature_vector_id = query_database(query, params)
+    if not feature_vector_id:
+        return "Feature vector not found"
+
+    query = """
+        SELECT * FROM maxsat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s
+    """
+    params = (solver_id[0], feature_vector_id[0])
+    result = query_database(query, params)[0]
+    if result:
+        result = True
+    else:
+        result = False
+
+    print("result", result, flush=True)
+
+    return result
+
+def get_maxsat_solver_id_by_name(solver_name):
+    query = "SELECT id FROM maxsat_solvers WHERE name = %s"
+    params = (solver_name,)
+    return query_database(query, params)[0]
+
+def get_all_maxsat_feature_vectors():
+    query = "SELECT features FROM maxsat_feature_vectors"
+    result = query_database(query)
+    if len == 0:
+        return None
+    extracted_result = [t[0] for t in result]
+    print("g_a_m_f_v: ", extracted_result, flush=True)
+    print("type: ", type(extracted_result), flush=True)
+    print("inner type, ", type(extracted_result[0]), flush=True)
+    return extracted_result
+
+def get_all_solved_maxsat():
+    query = f"SELECT * FROM maxsat_solver_featvec_time"
+    return query_database(query)
+
+
+def get_maxsat_feature_vector_id(feature_vector):
+    print("g_m_feature_vector", feature_vector, flush=True)
+    feature_vector = str(feature_vector).replace(' ', '')
+    feature_vector = feature_vector.replace('[', '')
+    feature_vector = feature_vector.replace(']', '')
+    feature_vector = "{" + str(feature_vector) + "}"
+
+    query = "SELECT id FROM maxsat_feature_vectors WHERE features = %s"
+    params = (feature_vector,)
+    result = query_database(query, params)
+
+    if len(result) == 0:
+        return None
+    
+    return result[0]
+
+
+def all_maxsat_feature_vectors():
+    query = "SELECT features FROM maxsat_feature_vectors"
+    return query_database(query)
+
+
+def get_solved_times_maxsat(solver_name, insts):
+    print("solver_name", solver_name, flush=True)
+    print("insts length", len(insts), flush=True)
+    solver_id = get_maxsat_solver_id_by_name(solver_name)
+    print("solver_id", solver_id, flush=True)
+
+    if not solver_id:
+        print("Solver not found", flush=True)
+        return "Solver not found"
+
+    sim_inst_ids= []
+    for vect in insts:
+        print("vect", vect, flush=True)
+        feat_vec_id = get_maxsat_feature_vector_id(vect)
+        print("feat_vec_id", feat_vec_id, flush=True)
+        if feat_vec_id:
+            print("appending: ", feat_vec_id, flush=True)
+            sim_inst_ids.append(feat_vec_id)
+
+    solved_times = []
+
+    for id in sim_inst_ids:
+        print("ID: ", id, flush=True)
+        query = """
+            SELECT execution_time FROM maxsat_solver_featvec_time 
+            WHERE solver_id = %s AND feature_vec_id = %s 
+            ORDER BY execution_time ASC
+        """
+        params = (solver_id, id)
+        result = query_database(query, params)[0]
+        print("result", result, flush=True)
+        solved_times.append(result)
+
+    return solved_times
+
+
+def get_maxsat_solvers():
+    query = "SELECT * FROM sat_solvers"
+    return query_database(query)
 
 
 # SAT
 def handle_sat_instance(data):
-    feature_vector = str(data["featureVector"])
+    feature_vector_dict = data["featureVector"]
+    feature_vector = ",".join(str(x) for x in feature_vector_dict.values())
+    feature_vector_str = "{" + feature_vector + "}"
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
+    status = data["status"]
 
-    query = f"SELECT id FROM sat_solvers WHERE name = '{solver_name}'"
-    solver_id = query_database(query)
+    params = None
+
+    query = "SELECT id FROM sat_solvers WHERE name = %s"
+    params = (solver_name,)
+    solver_id = query_database(query, params)
+    if len(solver_id) == 0:
+        print("inserting solver", flush=True)
+        query = "INSERT INTO sat_solvers (name) VALUES (%s) RETURNING id"
+        params = (solver_name,)
+        solver_id = query_database(query, params)
+        
+
+    query = "SELECT id FROM sat_feature_vectors WHERE features = %s"
+    params = (feature_vector_str,)
+    feat_id = query_database(query, params)
+    print("feat_id", feat_id, flush=True)
+    if len(feat_id) == 0:
+        print("inserting feature", flush=True)
+        query = "INSERT INTO sat_feature_vectors (features) VALUES (%s) RETURNING id"
+        params = (feature_vector_str,)
+        feat_id = query_database(query, params)
+
+
+    query = """
+        SELECT * FROM sat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s
+    """
+    params = (solver_id[0], feat_id[0])
+    existing_entry = query_database(query, params)
+    if len(existing_entry) == 0:
+        query = """
+            INSERT INTO sat_solver_featvec_time 
+            (solver_id, feature_vec_id, execution_time, status) 
+            VALUES (%s, %s, %s, %s)
+        """
+        params = (solver_id[0], feat_id[0], execution_time, status)
+
+    query_database(query, params)
+
+    print_stuff()
+
+def is_instance_solved_sat(instance, solver):
+    print("from is_instance_solved_sat", flush=True)
+    print("instance", instance, flush=True)
+    print("solver", solver, flush=True)
+    query = "SELECT id FROM sat_solvers WHERE name = %s"
+    params = (solver["name"],)
+    solver_id = query_database(query, params)
+
     if not solver_id:
-        query = f"INSERT INTO sat_solvers (name) VALUES ('{solver_name}') RETURNING id"
-        solver_id = query_database(query)
+        return "Solver not found"
 
-    query = f"SELECT id FROM sat_feature_vectors WHERE features = '{feature_vector}'"
-    feat_id = query_database(query)
-    if not feat_id:
-        query = f"INSERT INTO sat_feature_vectors (features) VALUES ('{feature_vector}') RETURNING id"
-        feat_id = query_database(query)
+    instance = str(instance).replace(' ', '')
+    instance = instance.replace('[', '')
+    instance = instance.replace(']', '')
+    instance = "{" + instance + "}"
 
-    print(feat_id)
+    query = "SELECT id FROM sat_feature_vectors WHERE features = %s"
+    params = (instance,)
+    feature_vector_id = query_database(query, params)
+    if not feature_vector_id:
+        return "Feature vector not found"
 
-    query = f"SELECT * FROM sat_solver_featvec_time WHERE solver_id = '{solver_id[0]}' AND feature_vec_id = '{feat_id[0]}' AND execution_time = '{execution_time}'"
-    existing_entry = query_database(query)
+    query = """
+        SELECT * FROM sat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s
+    """
+    params = (solver_id[0], feature_vector_id[0])
+    result = query_database(query, params)[0]
+    if result:
+        result = True
+    else:
+        result = False
 
-    if not existing_entry:
-        query = f"INSERT INTO sat_solver_featvec_time (solver_id, feature_vec_id, execution_time) VALUES ('{solver_id[0]}', '{feat_id[0]}', '{execution_time}')"
-        query_database(query)
+    print("result", result, flush=True)
 
-    print_all_tables()
+    return result
+
+def get_sat_solver_id_by_name(solver_name):
+    query = "SELECT id FROM sat_solvers WHERE name = %s"
+    params = (solver_name,)
+    return query_database(query, params)[0]
+
+def get_all_sat_feature_vectors():
+    query = "SELECT features FROM sat_feature_vectors"
+    result = query_database(query)
+    if len == 0:
+        return None
+    extracted_result = [t[0] for t in result]
+    print("g_a_m_f_v: ", extracted_result, flush=True)
+    print("type: ", type(extracted_result), flush=True)
+    print("inner type, ", type(extracted_result[0]), flush=True)
+    return extracted_result
+
+def get_all_solved_sat():
+    query = f"SELECT * FROM sat_solver_featvec_time"
+    return query_database(query)
+
+
+def get_sat_feature_vector_id(feature_vector):
+    print("g_m_feature_vector", feature_vector, flush=True)
+    feature_vector = str(feature_vector).replace(' ', '')
+    feature_vector = feature_vector.replace('[', '')
+    feature_vector = feature_vector.replace(']', '')
+    feature_vector = "{" + str(feature_vector) + "}"
+
+    query = "SELECT id FROM sat_feature_vectors WHERE features = %s"
+    params = (feature_vector,)
+    result = query_database(query, params)
+
+    if len(result) == 0:
+        return None
+    
+    return result[0]
+
+
+def all_sat_feature_vectors():
+    query = "SELECT features FROM sat_feature_vectors"
+    return query_database(query)
+
+
+def get_solved_times_sat(solver_name, insts):
+    print("solver_name", solver_name, flush=True)
+    print("insts length", len(insts), flush=True)
+    solver_id = get_sat_solver_id_by_name(solver_name)
+    print("solver_id", solver_id, flush=True)
+
+    if not solver_id:
+        print("Solver not found", flush=True)
+        return "Solver not found"
+
+    sim_inst_ids= []
+    for vect in insts:
+        print("vect", vect, flush=True)
+        feat_vec_id = get_sat_feature_vector_id(vect)
+        print("feat_vec_id", feat_vec_id, flush=True)
+        if feat_vec_id:
+            print("appending: ", feat_vec_id, flush=True)
+            sim_inst_ids.append(feat_vec_id)
+
+    solved_times = []
+
+    for id in sim_inst_ids:
+        print("ID: ", id, flush=True)
+        query = """
+            SELECT execution_time FROM sat_solver_featvec_time 
+            WHERE solver_id = %s AND feature_vec_id = %s 
+            ORDER BY execution_time ASC
+        """
+        params = (solver_id, id)
+        result = query_database(query, params)[0]
+        print("result", result, flush=True)
+        solved_times.append(result)
+
+    return solved_times
+
+
+def get_sat_solvers():
+    query = "SELECT * FROM sat_solvers"
+    return query_database(query)
 
 
 # MZN
@@ -229,7 +515,6 @@ def all_mzn_feature_vectors():
 def get_solved_times_mzn(solver_name, insts):
     print("solver_name", solver_name, flush=True)
     print("insts length", len(insts), flush=True)
-
     solver_id = get_mzn_solver_id_by_name(solver_name)
     print("solver_id", solver_id, flush=True)
 
@@ -269,7 +554,7 @@ def get_mzn_solvers():
 
 
 def print_stuff():
-    query = "SELECT * FROM mzn_solver_featvec_time"
+    query = "SELECT * FROM sat_solver_featvec_time"
     result = query_database(query)
     print(result, flush=True)
 
@@ -344,7 +629,8 @@ def database_init():
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES sat_solvers(id),
             feature_vec_id INT REFERENCES sat_feature_vectors(id),
-            execution_time FLOAT NOT NULL
+            execution_time FLOAT NOT NULL,
+            status VARCHAR(2047)
         );
     """
     query_database(query)

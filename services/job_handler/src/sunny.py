@@ -5,20 +5,21 @@ import numpy as np
 import kb
 import messageQueue as mq
 import ast
+import sat_feat_py.generate_features as gf
 
 
 
-def sunny(inst, data_file, data_type, solvers, bkup_solver, k, T, identifier, solver_type):
+def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=None, data_type=None):
     # Get features vector for the given instance
     print("printing arguments", k, T, identifier, data_type, flush=True)
     print("\n\nGetting features vector for the given instance", flush=True)
-    feat_vect = get_features(inst, data_file, data_type)
+    feat_vect = get_features(inst, solver_type, data_file, data_type)
     print("feat_vect: ", feat_vect, flush=True)
     print("type feat_vect: ", type(feat_vect), flush=True)
 
     # Find k-nearest neighbors
     print("Finding k-nearest neighbors", flush=True)
-    similar_insts = get_nearest_neighbors(feat_vect, k)
+    similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
     print("similar_insts: ", similar_insts, flush=True)
     print("similar_insts type: ", type(similar_insts), flush=True)
     print("sim insts length", len(similar_insts), flush=True)
@@ -56,39 +57,43 @@ def sunny(inst, data_file, data_type, solvers, bkup_solver, k, T, identifier, so
     mq.send_to_queue({"result": result}, f"jobhandler-{identifier}")
 
 
-def get_features(inst, data, data_type):
-    temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
-    temp_file_mzn.write(inst.encode())
-    temp_file_mzn.close()
+def get_features(inst, solver_type, data, data_type):
+    if solver_type == "mzn":
+        temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
+        temp_file_mzn.write(inst.encode())
+        temp_file_mzn.close()
 
-    if data is not None:
-        temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
-        temp_file_dzn.write(data.encode())
-        temp_file_dzn.close()
-        dznIncluded = True
+        if data is not None:
+            temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
+            temp_file_dzn.write(data.encode())
+            temp_file_dzn.close()
+            dznIncluded = True
 
+        if dznIncluded:
+            print("\ndznIncluded\n", flush=True)
+            command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
+        else:
+            command = ["mzn2feat", "-i", temp_file_mzn.name]
 
-    # Get feature vector
-    if dznIncluded:
-        print("\ndznIncluded\n", flush=True)
-        command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
-    else:
-        command = ["mzn2feat", "-i", temp_file_mzn.name]
+        cmd_result = subprocess.run(command, capture_output=True, text=True)
+        
+        feature_vector = cmd_result.stdout.strip()
+        feature_vector = feature_vector.split(',')
+        feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
+        feature_vector = ','.join(feature_vector)
 
-    cmd_result = subprocess.run(command, capture_output=True, text=True)
-    
-    
-    feature_vector = cmd_result.stdout.strip()
-    feature_vector = feature_vector.split(',')
-    feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
-    feature_vector = ','.join(feature_vector)
+        print("get_features mzn feature_vector: ", feature_vector, flush=True)
 
-    print("get_features feature_vector: ", feature_vector, flush=True)
+        return feature_vector
 
-    return feature_vector
+    if solver_type == "sat":
+        feature_vector_dict = gf.generate_features(inst)
+        feature_vector = ",".join(str(x) for x in feature_vector_dict.values())
+        return feature_vector
+        
+       
 
-
-def get_nearest_neighbors(feat_vect, k):
+def get_nearest_neighbors(feat_vect, k, solver_type):
     print("\n\n", flush=True)
     print("feat_vect: ", feat_vect, flush=True)
 
@@ -97,7 +102,7 @@ def get_nearest_neighbors(feat_vect, k):
     print("feat_vect: ", feat_vect, flush=True)
     print("type feat_vect: ", type(feat_vect), flush=True)
 
-    kb_features = kb.get_all_feature_vectors()
+    kb_features = kb.get_all_feature_vectors(solver_type)
     if kb_features == None:
         return feat_vect
     

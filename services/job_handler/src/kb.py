@@ -2,9 +2,16 @@
 import messageQueue as mq
 import uuid
 
-def get_all_feature_vectors():
-    data = create_dict("GetAllMznFeatureVectors")
+def get_all_feature_vectors(solver_type):
+    if solver_type == "mzn":
+        data = create_dict("GetAllMznFeatureVectors")
+    elif solver_type == "sat":
+        data = create_dict("GetAllSatFeatureVectors")
+    elif solver_type == "maxsat":
+        data = create_dict("GetAllMaxsatFeatureVectors")
+
     all_feature_vectors = mq.send_wait_receive(data)
+    
     return all_feature_vectors
 
 

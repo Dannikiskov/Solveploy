@@ -78,7 +78,9 @@ def consume():
             threading.Thread(target=maxsatHandler.stop_job, args=(data,)).start()
         
         elif instructions == "Sunny":
-            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["dataContent"], data["dataFileType"],  data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"], data["solverType"],)).start()
+            data_content = data["dataContent"] if "dataContent" in data else None
+            data_file_type = data["dataFileContent"] if "dataFileContent" in data else None
+            threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"], data["solverType"], data_content, data_file_type,)).start()
 
         else:
             print("ERROR: NO MATCHING INSTRUCTIONS:::", instructions, flush=True)
@@ -103,7 +105,8 @@ def send_wait_receive_k8(data, queue_name):
     out_queue_name = queue_name
     in_queue_name = f'{out_queue_name}-result'
 
-    k8s_queues.append(out_queue_name, in_queue_name)
+    k8s_queues.append(out_queue_name)
+    k8s_queues.append(in_queue_name)
 
     connection = _rmq_connect()
     channel = connection.channel()

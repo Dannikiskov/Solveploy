@@ -13,12 +13,10 @@ CORS(app)
 class Jobs(Resource):
     def post(self):
         data = request.json
-        if data["mznFileContent"] is None or data["mznFileContent"] == "":
-            return {"result": "Mzn file content is required"}
         
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
-        print(data["optGoal"], flush=True)
+        print("DATA: ", data, flush=True)
 
         if "noresult" in data and data["noresult"] == True:
             async_execute_no_response(data)
@@ -36,7 +34,7 @@ class Jobs(Resource):
                 print("Stopping specific job", flush=True)
                 data = {"identifier": identifier, "instructions": "StopMznJob", "queueName": "jobHandler"}  
             else:
-                data = {"instructions": "StopMznJobs", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
+                data = {"instructions": "StopMznJobs", "queueName": "jobHandler"}
         elif solver_type == "sat":
             if identifier is not None:
                 data = {"identifier": identifier, "instructions": "StopSatJob", "queueName": "jobHandler"}

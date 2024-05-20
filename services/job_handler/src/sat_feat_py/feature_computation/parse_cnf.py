@@ -14,14 +14,16 @@ def parse_cnf(cnf_string):
         if line[0] == 'c':
             continue
         if line[0] == 'p':
-            sizes = line.split(" ")
+            sizes = line.split()
             v = int(sizes[2])
             c = int(sizes[3])
 
-        else:
+        elif line.endswith(' 0'):
             # all following lines should represent a clause, so literals separated by spaces, with a 0 at the end,
             # denoting the end of the line.
-            clauses_list.append([int(x) for x in line.split(" ")[:-1]])
+            line = line[:-1]
+            clause = [int(x) for x in line.split() if x]
+            clauses_list.append(clause)
 
     c = len(clauses_list)
     v = max([abs(l) for clause in clauses_list for l in clause])

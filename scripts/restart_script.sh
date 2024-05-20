@@ -2,7 +2,9 @@
 
 eval $(minikube docker-env)
 
-docker build -q -t frontend -f services/frontend/Dockerfile services/frontend/
+export DOCKER_BUILDKIT=0
+
+docker build -t frontend -f services/frontend/Dockerfile services/frontend/
 docker build -q -t api-gateway -f services/api_gateway/Dockerfile services/api_gateway/
 docker build -q -t job-handler -f services/job_handler/Dockerfile services/job_handler/
 docker build -q -t mzn-pod -f services/mzn_pod/Dockerfile services/mzn_pod/
@@ -17,4 +19,4 @@ kubectl rollout restart deployment knowledge-base
 
 kubectl delete jobs --all
 
-watch kubectl get pods ,. 
+watch kubectl get pods

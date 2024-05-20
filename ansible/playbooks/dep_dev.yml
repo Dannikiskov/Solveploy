@@ -44,24 +44,10 @@
         - docker
         - PyYAML
     
-    - name: Local Path Provisionar
-      ansible.builtin.shell:
-        cmd: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
-
-    - name: Annotate storageclass
-      ansible.builtin.shell:
-        cmd: kubectl annotate storageclass local-path storageclass.kubernetes.io/is-default-class=true
-    
     - name: Create namespaces
       kubernetes.core.k8s:
         state: present
         definition: "{{ lookup('file', '../../k8s-manifests/namespace-creation.yaml') | from_yaml_all }}"
-    
-    - name: Add ngrok Helm repository
-      ansible.builtin.command: helm repo add ngrok https://ngrok.github.io/kubernetes-ingress-controller
-    
-    - name: Add helm repo prometheus-community
-      ansible.builtin.command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     
     - name: Add Bitnami Helm repository
       ansible.builtin.command: helm repo add bitnami https://charts.bitnami.com/bitnami
