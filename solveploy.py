@@ -3,6 +3,7 @@ import sys
 
 upload_db = False
 download_db = False
+dev = False
 
 file_path = "./ansible/inventory/hosts"
 
@@ -11,7 +12,8 @@ if  "--help" in sys.argv or "-h" in sys.argv or len(sys.argv) < 2:
           "\n\nOptions:\n"
           "\t--target-username: Username of the target machine. Default is 'ucloud'\n"
           "\t--upload-database: Upload the database from the a .sql file to the target machine. File must be named 'db.sql' and must be located in root folder of project. Default is False\n"
-          "\t--download-database: Download the database from the target machine. Downloaded file is located in root folder of project named 'downloaded_db.sql'\n")
+          "\t--download-database: Download the database from the target machine. Downloaded file is located in root folder of project named 'downloaded_db.sql'\n"
+          "\t--dev: Deploys the project locally in development mode in Minikube.\n")
     exit()
 
 if "--upload-database" in sys.argv:
@@ -25,6 +27,12 @@ if "--target-username" in sys.argv:
 else:
     user = "ucloud"
 
+if "--dev" in sys.argv:
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_dev.yml -i ansible/inventory/localhosts -K"
+    print("EXECUTING COMMAND: ", command)
+    subprocess.run(command, shell=True)
+    exit()
+
 host = sys.argv[1] 
 
 content = f'''[kubernetes_hosts]
@@ -34,6 +42,7 @@ target_vm ansible_host={host} ansible_user={user}
 with open(file_path, "w") as file:
     file.write(content)
     file.close()
+
 
 if not download_db:
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_prod.yml -i ansible/inventory/hosts"
