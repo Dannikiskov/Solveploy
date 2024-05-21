@@ -25,8 +25,9 @@ jobs:
       run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/solveploy-base:latest
 
     - name: Build and push service Docker images
-      run: |
-        for service in api-gateway frontend job-handler knowledge-base mzn-pod sat-pod maxsat-pod; do
-          docker build services/$service --file services/$service/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/$service:latest
-          docker push docker.io/${{ secrets.DOCKER_USERNAME }}/$service:latest
-        done
+  run: |
+    for service in api_gateway frontend job_handler knowledge_base mzn_pod sat_pod maxsat_pod; do
+      image_name=$(echo $service | tr '_' '-')
+      docker build services/$service --file services/$service/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/$image_name:latest
+      docker push docker.io/${{ secrets.DOCKER_USERNAME }}/$image_name:latest
+    done
