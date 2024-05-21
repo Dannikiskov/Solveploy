@@ -31,7 +31,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     # Initialize variables
     print("Initializing variables", flush=True)
-    slots = sum([get_max_solved(solver, similar_insts, T, solver_type) + (k - get_max_solved(sub_portfolio, similar_insts, T, solver_type)) for solver in sub_portfolio])
+    slots = sum([get_max_solved(solver, similar_insts, T, solver_type) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, similar_insts, T, solver_type))
     print("slots", slots, flush=True)
     time_slot = T / slots
     print("time_slot", time_slot, flush=True)
@@ -53,19 +53,22 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     # Return sorted schedule
     result = sorted(schedule.items(), key=lambda x: x[1])
+    result = dict(result)
     print("Returning sorted schedule: ", result, flush=True)
-    mq.send_to_queue({"result": result}, f"jobhandler-{identifier}")
+
+    mq.send_to_queue({"result": result}, f"jobHandler-{identifier}")
 
 
-def get_features(inst, solver_type, data, data_type):
+def get_features(inst, solver_type, data_file, data_type):
+    print("solver_tpye: ", solver_type, flush=True)
     if solver_type == "mzn":
         temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
         temp_file_mzn.write(inst.encode())
         temp_file_mzn.close()
 
-        if data is not None:
+        if data_file is not None and data_file != "":
             temp_file_dzn = tempfile.NamedTemporaryFile(suffix=data_type, delete=False)
-            temp_file_dzn.write(data.encode())
+            temp_file_dzn.write(data_file.encode())
             temp_file_dzn.close()
             dznIncluded = True
 
@@ -75,14 +78,14 @@ def get_features(inst, solver_type, data, data_type):
         else:
             command = ["mzn2feat", "-i", temp_file_mzn.name]
 
+        print("command: ", command, flush=True)
         cmd_result = subprocess.run(command, capture_output=True, text=True)
         
         feature_vector = cmd_result.stdout.strip()
         feature_vector = feature_vector.split(',')
         feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
         feature_vector = ','.join(feature_vector)
-
-        print("get_features mzn feature_vector: ", feature_vector, flush=True)
+        print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
 
         return feature_vector
 
@@ -139,7 +142,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     for r in range(1, len(solvers) + 1):
         subsets.extend(combinations(solvers, r))
     
-
+    print("subset", subsets, flush=True)
     # Iterate through each subset
     for subset in subsets:
         solved_instances = 0
@@ -162,6 +165,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
 
 def get_max_solved(solvers, similar_insts, T, solver_type):
     print("solvers FROM sunny get max solved: ", solvers, flush=True)
+    
 
     if not (isinstance(solvers, list)):
         solvers = [solvers]
@@ -170,15 +174,17 @@ def get_max_solved(solvers, similar_insts, T, solver_type):
     for solver in solvers:
         solver_solves_instances = kb.get_solver_times(solver["name"], similar_insts, solver_type)
         solver_solves_instances = ast.literal_eval(solver_solves_instances)
-        print("solver ", solver, "solves: ", solver_solves_instances, flush=True)
+        solver_solves_instances = [float(x) for x in solver_solves_instances]
 
         time_spent = 0
         i = 0
+        print("T: ", T, flush=True)
         while time_spent < T and i < len(solver_solves_instances):
+
             max_solved += 1
             time_spent += float(solver_solves_instances[i])
             i += 1
-
+    print("the max solved is: ", max_solved, flush=True)
     return max_solved
 
 def euclidean_distance(vector1, vector2):

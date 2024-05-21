@@ -28,7 +28,7 @@ def is_instance_solved(instance, solver, solver_type):
     if solver_type == 'mzn':
         data = create_dict('isInstanceSolvedMzn', {'instance': instance, 'solver': solver})
     if solver_type == 'sat':
-        data = create_dict('IsInstanceSolvedSat', {'instance': instance, 'solver': solver})
+        data = create_dict('isInstanceSolvedSat', {'instance': instance, 'solver': solver})
     if solver_type == 'maxsat':
         data = create_dict('IsInstanceSolvedMaxSat', {'instance': instance, 'solver': solver})
 
@@ -46,24 +46,13 @@ def get_all_solved(solver_type):
     result = mq.send_wait_receive(data)
     return result
 
-
-# def get_insts_times(similar_insts, solver_type):
-#     if solver_type == 'mzn':
-#         data = create_dict('GetInstsTimesMzn', {'similarInsts': similar_insts})
-#     if solver_type == 'sat':
-#         data = create_dict('GetInstsTimesSat', {'similarInsts': similar_insts})
-#     if solver_type == 'maxsat':
-#         data = create_dict('GetInstsTimesMaxSat', {'similarInsts': similar_insts})
-#     result = mq.send_wait_receive(data)
-#     return result
-
 def get_solver_times(solver_name, similar_insts, solver_type):
     if solver_type == 'mzn':
         data = create_dict('GetSolvedTimesMzn', {'solverName': solver_name, 'similarInsts': similar_insts})
     if solver_type == 'sat':
-        data = create_dict('GetSolvedTimesSat', {'solverName': solver_name})
+        data = create_dict('GetSolvedTimesSat', {'solverName': solver_name, 'similarInsts': similar_insts})
     if solver_type == 'maxsat':
-        data = create_dict('GetSolvedTimesMaxSat', {'solverName': solver_name})
+        data = create_dict('GetSolvedTimesMaxSat', {'solverName': solver_name, 'similarInsts': similar_insts})
     result = mq.send_wait_receive(data)
     return result
 

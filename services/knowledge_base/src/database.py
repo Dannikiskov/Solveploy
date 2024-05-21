@@ -609,7 +609,7 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS sat_feature_vectors (
             id SERIAL PRIMARY KEY,
-            features VARCHAR(2047) UNIQUE
+            features FLOAT[] UNIQUE
         );
     """
     query_database(query)

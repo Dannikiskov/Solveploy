@@ -79,7 +79,7 @@ def consume():
         
         elif instructions == "Sunny":
             data_content = data["dataContent"] if "dataContent" in data else None
-            data_file_type = data["dataFileContent"] if "dataFileContent" in data else None
+            data_file_type = data["dataFileType"] if "dataFileType" in data else None
             threading.Thread(target=sunny.sunny, args=(data["fileContent"], data["solvers"], data["backupSolver"], data["k"], data["T"], data["identifier"], data["solverType"], data_content, data_file_type,)).start()
 
         else:

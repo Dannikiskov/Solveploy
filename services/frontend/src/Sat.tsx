@@ -404,23 +404,9 @@ ${bestResult.result}
             <br></br>
             <button className="small-button" style={{margin: '20px'}} onClick={clearFiles}>Clear files</button>
           </div>
-        </div>
-      ) : (
-        <div>
-          <h3>Upload folder</h3>
-          {React.createElement('input', {
-            type: 'file',
-            webkitdirectory: '',
-            mozdirectory: '',
-            directory: '',
-            onChange: handleFolderChange
-          })}
-        </div>
-      )}
-    </div>
-    <hr style={{margin: '20px'}} />
-      <br />
-      <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
+          <hr style={{margin: '20px'}} />
+          <br />
+          <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
       <br />
       {expanded && (
         <div>
@@ -442,6 +428,21 @@ ${bestResult.result}
         </div>
         
       )}
+        </div>
+      ) : (
+        <div>
+          <h3>Upload folder</h3>
+          {React.createElement('input', {
+            type: 'file',
+            webkitdirectory: '',
+            mozdirectory: '',
+            directory: '',
+            onChange: handleFolderChange
+          })}
+        </div>
+      )}
+    </div>
+      
       <div>
         <br />
       </div>

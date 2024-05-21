@@ -71,16 +71,16 @@ function Mzn() {
     const solverId = item.jobIdentifier;
     console.log("Solver ID: ", solverId)
     try {
-      const response = await fetch(`/api/jobs/mzn/${solverId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/jobs/mzn/${solverId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      if (!response.ok) {
-        throw new Error(`Error stopping solvers: ${response.statusText}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`Error stopping solvers: ${response.statusText}`);
+      // }
     } catch (error) {
       console.error("Error stopping solvers:", error);
     }
@@ -191,22 +191,15 @@ function Mzn() {
         }),
       });
 
-      const data = await response.json() as any;
-      //console.log(data);
-      fetch("/api/jobs/mzn", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      /*const data = */await response.json() as any;
       
       // Remove the item from runningMznSolvers list
       setRunningMznJobs((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
-      if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && optGoal === "satisfy")) {
-        stopAllSolvers();
-      }
+      // if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && lastOptGoal === "satisfy")) {
+      //   stopAllSolvers();
+      // }
 
     } catch (error) {
       console.error("Error starting solvers:", error);
@@ -455,6 +448,30 @@ ${bestResult.result}
             <br></br>
             <button className="small-button" style={{margin: '20px'}} onClick={clearFiles}>Clear files</button>
           </div>
+          <hr style={{margin: '20px'}} />
+      <br />
+            <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
+        <br />
+        {expanded && (
+          <div>
+            Last chosen solver is backup solver.
+            <br />
+            <input
+              type="text"
+              placeholder="k"
+              onChange={(e) => setK(Number(e.target.value))}
+            />
+            <br />
+            <input
+              type="text"
+              placeholder="T"
+              onChange={(e) => setT(Number(e.target.value))}
+            />
+            <br />
+            <button onClick={startSunny}>Get SUNNY portfolio</button>
+          </div>
+          
+      )}
         </div>
       ) : (
         <div>
@@ -466,33 +483,11 @@ ${bestResult.result}
             directory: '',
             onChange: handleFolderChange
           })}
+          
         </div>
       )}
     </div>
-    <hr style={{margin: '20px'}} />
-      <br />
-      <button onClick={() => setExpanded(!expanded)}>SUNNY</button>
-      <br />
-      {expanded && (
-        <div>
-          Last chosen solver is backup solver.
-          <br />
-          <input
-            type="text"
-            placeholder="k"
-            onChange={(e) => setK(Number(e.target.value))}
-          />
-          <br />
-          <input
-            type="text"
-            placeholder="T"
-            onChange={(e) => setT(Number(e.target.value))}
-          />
-          <br />
-          <button onClick={startSunny}>Get SUNNY portfolio</button>
-        </div>
-        
-      )}
+  
       <div>
         <br />
       </div>

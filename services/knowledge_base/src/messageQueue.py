@@ -24,6 +24,8 @@ def consume():
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
         instructions = data.get("instructions", "FAILED TO RETRIEVE INSTRUCTIONS IN MQ KB")
+        instructions = instructions.strip()
+        print("Instructions:", instructions, flush=True)
         content = data.get("content", "FAILED TO RETRIEVE CONTENT IN MQ KB")
         queue_name = data.get("queueName", "FAILED TO RETRIEVE QUEUE NAME IN MQ KB")
         identifier = data.get("identifier", "FAILED TO RETRIEVE IDENTIFIER IN MQ KB")
@@ -35,6 +37,10 @@ def consume():
         
         elif instructions == "GetAllSatFeatureVectors":
             response = database.get_all_sat_feature_vectors()
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
+        elif instructions == "GetAllMaxsatFeatureVectors":
+            response = database.get_all_maxsat_feature_vectors()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "HandleMznInstance":
@@ -56,13 +62,17 @@ def consume():
         elif instructions == "isInstanceSolvedMzn":
             response = database.is_instance_solved_mzn(content['instance'], content['solver'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
+        elif instructions == "isInstanceSolvedSat":
+            response = database.is_instance_solved_sat(content['instance'], content['solver'])
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesMzn":
             response = database.get_solved_times_mzn(content['solverName'], content['similarInsts'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesSat":
-            response = database.get_solved_times_sat(content['similarInsts'])
+            response = database.get_solved_times_sat(content['solverName'], content['similarInsts'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         elif instructions == "GetSolvedTimesMaxSat":
