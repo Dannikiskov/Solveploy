@@ -4,7 +4,7 @@ FROM node:latest as build
 WORKDIR /app
 
 # copy both 'package.json' and 'package-lock.json' (if available)
-COPY package*.json ./
+COPY package*.json .
 
 # install project dependencies
 RUN npm install
