@@ -1,0 +1,27 @@
+---
+- name: Uploading database
+  hosts: kubernetes_hosts
+  become: true
+
+  tasks:
+
+    - name: Copy db dump to kubernetes master
+      ansible.builtin.copy:
+        src: ../../db.sql
+        dest: /tmp/db.sql
+      
+    - name: Get pod knowledge base database pod name
+      shell: kubectl get pods | grep "knowledge-base-database-" | awk '{print $1}'
+      register: pod_name
+
+    - name: print pod name
+      debug:
+        var: pod_name.stdout
+    
+    - name: Copy db dump to knowledge base database pod
+      ansible.builtin.shell:
+        cmd: kubectl cp /tmp/db.sql {{ pod_name.stdout }}:/tmp/db.sql
+      
+    - name: initiate load db
+      ansible.builtin.shell:
+        cmd: kubectl exec {{ pod_name.stdout }} -- psql -U postgres -d postgres -f /tmp/db.sql

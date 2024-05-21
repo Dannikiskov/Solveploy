@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "./App.css";
 
 const Nav: React.FC = () => {
+
   return (
     <div>
       <h1>Solveploy</h1>

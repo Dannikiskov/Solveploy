@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
     while True:
         try:
-            database.database_init()
+            #database.database_init()
             break
         except Exception as e:
             print(f"Attempt failed: {str(e)}\n retryin in 5 seconds...")

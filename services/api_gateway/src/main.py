@@ -194,7 +194,7 @@ class K8s(Resource):
         return result_json
 
 
-class results(Resource):
+class Results(Resource):
     
     def post(self):
         data = request.json
@@ -275,13 +275,14 @@ class results(Resource):
         
         return None
 
+
 api.add_resource(Jobs, '/api/jobs', '/api/jobs/<string:solver_type>', '/api/jobs/<string:solver_type>/<string:identifier>')
 api.add_resource(Sunny, '/api/jobs/sunny')
 api.add_resource(SolversMzn, '/api/solvers/mzn')
 api.add_resource(SolversSat, '/api/solvers/sat')
 api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
 api.add_resource(K8s, '/api/k8s/resource')
-api.add_resource(results, '/api/results')
+api.add_resource(Results, '/api/results')
 
 
 def async_execute(data):
@@ -289,6 +290,7 @@ def async_execute(data):
         future = executor.submit(lambda: mq.send_wait_receive(data))
         response = future.result()
         return response
+    
     
 def async_execute_no_response(data):
     with concurrent.futures.ThreadPoolExecutor() as executor:

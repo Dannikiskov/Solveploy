@@ -1,3 +1,4 @@
+import tempfile
 import psycopg2
 from psycopg2 import sql
 
@@ -29,8 +30,15 @@ def query_database(query, params=None):
     return result
 
 
+
 # MAXSAT
 def handle_maxsat_instance(data):
+    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'maxsat_solvers')"
+    result = query_database(query)
+    table_exists = result[0][0]
+    if not table_exists:
+        database_init()
+
     feature_vector_dict = data["featureVector"]
     feature_vector = ",".join(str(x) for x in feature_vector_dict.values())
     feature_vector_str = "{" + feature_vector + "}"
@@ -203,6 +211,12 @@ def get_maxsat_solvers():
 
 # SAT
 def handle_sat_instance(data):
+    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sat_solvers')"
+    result = query_database(query)
+    table_exists = result[0][0]
+    if not table_exists:
+        database_init()
+
     feature_vector_dict = data["featureVector"]
     feature_vector = ",".join(str(x) for x in feature_vector_dict.values())
     feature_vector_str = "{" + feature_vector + "}"
@@ -390,6 +404,12 @@ def get_all_mzn_feature_vectors():
     return extracted_result
 
 def handle_mzn_instance(data):
+    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mzn_solvers')"
+    result = query_database(query)
+    table_exists = result[0][0]
+    if not table_exists:
+        database_init()
+
     feature_vector = data["featureVector"]
     feature_vector_str = "{" + feature_vector + "}"
     solver_name = data["solverName"]
@@ -639,7 +659,7 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS maxsat_feature_vectors (
             id SERIAL PRIMARY KEY,
-            features VARCHAR(2047) UNIQUE
+            features FLOAT[] UNIQUE
         );
     """
     query_database(query)

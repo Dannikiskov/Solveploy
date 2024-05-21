@@ -1,23 +1,49 @@
 import subprocess
 import sys
 
+upload_db = False
+download_db = False
+
 file_path = "./ansible/inventory/hosts"
 
-if sys.argv[1] == "--help":
-    print("Usage:\n \t python3 solveploy.py target_ip target_username\n")
+if  "--help" in sys.argv or "-h" in sys.argv or len(sys.argv) < 2:
+    print("Usage:\n \t python3 solveploy.py target_ip [options]"
+          "\n\nOptions:\n"
+          "\t--target-username: Username of the target machine. Default is 'ucloud'\n"
+          "\t--upload-database: Upload the database from the a .sql file to the target machine. File must be named 'db.sql' and must be located in root folder of project. Default is False\n"
+          "\t--download-database: Download the database from the target machine. Downloaded file is located in root folder of project named 'downloaded_db.sql'\n")
     exit()
 
-host = sys.argv[1] if len(sys.argv) > 1 else input("Host: ").strip()
-user = sys.argv[2] if len(sys.argv) > 2 else "ucloud"
+if "--upload-database" in sys.argv:
+    upload_db = True
 
+if "--download-database" in sys.argv:
+    download_db = True
 
+if "--target-username" in sys.argv:
+    user = sys.argv[sys.argv.index("--target-username") + 1]
+else:
+    user = "ucloud"
+
+host = sys.argv[1] 
 
 content = f'''[kubernetes_hosts]
 target_vm ansible_host={host} ansible_user={user}
 '''
+
 with open(file_path, "w") as file:
     file.write(content)
     file.close()
 
-command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_prod.yml -i ansible/inventory/hosts"
-subprocess.run(command, shell=True)
+if not download_db:
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_prod.yml -i ansible/inventory/hosts"
+    print("EXECUTING COMMAND: ", command)
+    subprocess.run(command, shell=True)
+    if upload_db:
+        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/upload_db.yml -i ansible/inventory/hosts"
+        print("EXECUTING COMMAND: ", command)
+        subprocess.run(command, shell=True)
+
+if download_db:
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/download_db.yml -i ansible/inventory/hosts"
+    subprocess.run(command, shell=True)

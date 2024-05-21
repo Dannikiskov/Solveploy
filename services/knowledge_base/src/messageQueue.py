@@ -30,7 +30,6 @@ def consume():
         queue_name = data.get("queueName", "FAILED TO RETRIEVE QUEUE NAME IN MQ KB")
         identifier = data.get("identifier", "FAILED TO RETRIEVE IDENTIFIER IN MQ KB")
         
-
         if instructions == "GetAllMznFeatureVectors":
             response = database.get_all_mzn_feature_vectors()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
