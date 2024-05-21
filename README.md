@@ -1,2 +1,2 @@
 # Solveploy
-Easy cloud deployment of MZN/SAT/CSP solvers
+Easy cloud deployment of Minizinc, SAT and MAXSAT solvers
