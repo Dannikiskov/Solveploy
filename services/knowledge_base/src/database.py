@@ -35,7 +35,7 @@ def query_database(query, params=None):
 def handle_maxsat_instance(data):
     query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'maxsat_solvers')"
     result = query_database(query)
-    table_exists = result[0][0]
+    table_exists = result[0]
     if not table_exists:
         database_init()
 
@@ -213,7 +213,7 @@ def get_maxsat_solvers():
 def handle_sat_instance(data):
     query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sat_solvers')"
     result = query_database(query)
-    table_exists = result[0][0]
+    table_exists = result[0]
     if not table_exists:
         database_init()
 
@@ -406,7 +406,7 @@ def get_all_mzn_feature_vectors():
 def handle_mzn_instance(data):
     query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mzn_solvers')"
     result = query_database(query)
-    table_exists = result[0][0]
+    table_exists = result[0]
     if not table_exists:
         database_init()
 

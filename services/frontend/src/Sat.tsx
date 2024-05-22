@@ -12,6 +12,7 @@ interface SatSolverData {
   jobIdentifier: string;
   cpu?: number;
   memory?: number;
+  cores?: number;
   params?: string; 
 }
 
@@ -60,28 +61,28 @@ function Sat() {
     if (satFileInput.current) (satFileInput.current as HTMLInputElement).value = "";
   };
 
-  const fetchStopJob = async (item: SatSolverData) => {
-    setRunningSatJobs((prevItems: Array<SatSolverData>) =>
-      prevItems.filter((i) => i.name !== item.name)
-    );
+  // const fetchStopJob = async (item: SatSolverData) => {
+  //   setRunningSatJobs((prevItems: Array<SatSolverData>) =>
+  //     prevItems.filter((i) => i.name !== item.name)
+  //   );
 
-    const solverId = item.jobIdentifier;
-    console.log("Solver ID: ", solverId)
-    try {
-      const response = await fetch(`/api/jobs/sat/${solverId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+  //   const solverId = item.jobIdentifier;
+  //   console.log("Solver ID: ", solverId)
+  //   try {
+  //     const response = await fetch(`/api/jobs/sat/${solverId}`, {
+  //       method: "DELETE",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`Error stopping solvers: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Error stopping solvers:", error);
-    }
-  };
+  //     if (!response.ok) {
+  //       throw new Error(`Error stopping solvers: ${response.statusText}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error stopping solvers:", error);
+  //   }
+  // };
 
   const fetchDataGet = async () => {
     try {
@@ -150,6 +151,15 @@ function Sat() {
     console.log(item.memory);
   }
 
+  const updateItemCores = (item: SatSolverData, cores: number) => {
+    setSatSolverList((prevList) =>
+      prevList.map((prevItem) =>
+        prevItem.name === item.name ? { ...prevItem, cores } : prevItem
+      )
+    );
+    console.log(item.memory);
+  }
+
   const updateItemParams = (event: React.ChangeEvent<HTMLInputElement>, item: SatSolverData) => {
       const file = event.target.files?.[0];
       if (file) {
@@ -185,18 +195,17 @@ function Sat() {
 
       await response.json() as any;
       //console.log(data);
-      fetch("/api/jobs/sat", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // fetch("/api/jobs/sat", {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
       
       // Remove the item from runningSatSolvers list
       setRunningSatJobs((prevItems: Array<SatSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
-        stopAllSolvers();
 
     } catch (error) {
       console.error("Error starting solvers:", error);
@@ -259,22 +268,22 @@ ${bestResult.result}
   };
 
 
-  const stopAllSolvers = async () => {
-    setRunningSatJobs([]);
-    try {
-      const response = await fetch("/api/jobs/sat", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        console.error("Error stopping all solvers:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error stopping all solvers:", error);
-    }
-  };
+  // const stopAllSolvers = async () => {
+  //   setRunningSatJobs([]);
+  //   try {
+  //     const response = await fetch("/api/jobs/sat", {
+  //       method: "DELETE",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     if (!response.ok) {
+  //       console.error("Error stopping all solvers:", response.statusText);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error stopping all solvers:", error);
+  //   }
+  // };
 
 
   async function startSunny(): Promise<any> {
@@ -470,6 +479,14 @@ ${bestResult.result}
                 placeholder="Memory"
                 onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
               />
+              <br />
+              {item.name === "glucose421" && (
+              <input
+                type="number"
+                placeholder="Cores"
+                onChange={(e) => {updateItemCores(item, Number(e.target.value))}}
+              />
+            )}
             <br style={{marginBottom: '5px'}} />
             <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
             <br />
@@ -504,13 +521,13 @@ ${bestResult.result}
           {runningSatJobs.map((item, index) => (
             <div key={index} className="solver-item">
               <div>Name: {item.name}</div>
-              <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button>
+              {/* <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button> */}
         </div>
           ))}
         
         </div>
         </div>
-        <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button>
+        {/* <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button> */}
         <div>
         <br />
         <h2>Result</h2>

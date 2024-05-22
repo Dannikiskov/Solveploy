@@ -1,43 +1,72 @@
+import re
+import subprocess
+import tempfile
 import time
 
 import pysat.solvers
 
-def run_sat_model(solver_name, cnf_string, params=None):
-    # Create solver instance
-    print("Looking up solver", flush=True)
-    solver = None
-    print("SOLVERS:", pysat.solvers, "\n\n", flush=True)
-    for attr in dir(pysat.solvers.SolverNames):
-        if not attr.startswith('__'):
-            for val in getattr(pysat.solvers.SolverNames, attr):
-                if solver_name in val:
-                    solver = pysat.solvers.Solver(solver_name)
+def run_sat_model(solver_name, cnf_string, cores=None, params=None):
+    if cores == 0:
+        # Create solver instance
+        print("Looking up solver", flush=True)
+        solver = None
+        print("SOLVERS:", pysat.solvers, "\n\n", flush=True)
+        for attr in dir(pysat.solvers.SolverNames):
+            if not attr.startswith('__'):
+                for val in getattr(pysat.solvers.SolverNames, attr):
+                    if solver_name in val:
+                        solver = pysat.solvers.Solver(solver_name)
 
-    # Split the CNF string into lines
-    cnf_lines = cnf_string.strip().split('\n')
+        # Split the CNF string into lines
+        cnf_lines = cnf_string.strip().split('\n')
 
-    # Add clauses to the solver
-    print("Adding clauses...\n", flush=True)
-    for line in cnf_lines:
-        if line.startswith('c') or line.startswith('p'):
-            # Skip comments and problem line
-            pass
-        elif line.endswith(' 0'):
-            line = line[:-1]
-            clause = [int(x) for x in line.split() if x]
-            print("CLAUSE: ", clause, flush=True)
-            solver.add_clause(clause)
+        # Add clauses to the solver
 
+        for line in cnf_lines:
+            if line.startswith('c') or line.startswith('p'):
+                # Skip comments and problem line
+                pass
+            elif line.endswith(' 0'):
+                line = line[:-1]
+                clause = [int(x) for x in line.split() if x]
+                solver.add_clause(clause)
 
 
-    # Solve the SAT problem
-    print("\nSolving the SAT problem...", flush=True)
-    t1 = time.time()
-    result = solver.solve()
-    t2 = time.time() - t1
-    print(result, flush=True)
-    if result:
-        return {"result": str(solver.get_model()), "status": "SATISFIED", "executionTime": t2}
-    else: 
-        return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": t2}
+
+        # Solve the SAT problem
+        print("\nSolving the SAT problem...", flush=True)
+        t1 = time.time()
+        result = solver.solve()
+        t2 = time.time() - t1
+        print(result, flush=True)
+        if result:
+            return {"result": str(solver.get_model()), "status": "SATISFIED", "executionTime": t2}
+        else: 
+            return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": t2}
     
+    else:
+        if solver_name == "glucose421":
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.cnf', delete=False) as temp_model_file:
+                temp_model_file.write(cnf_string)
+                temp_model_path = temp_model_file.name
+                temp_model_file.close()
+            print(temp_model_path)
+            command = ["glucose-syrup", "-model", f"-cpu-lim={cores}", f"{temp_model_path}"]
+            print("COMMAND: ", command, flush=True)
+            cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
+            print(cmd_result, flush=True)
+
+            # Extract the number after "c real time : "
+            match = re.search(r'c real time : (\d+\.\d+)', cmd_result)
+            real_time = None
+            if match:
+                real_time = match.group(1)
+
+            if cmd_result.strip().split('\n')[-2] == "s SATISFIABLE":       
+                last_line = cmd_result.strip().split('\n')[-1]
+                if last_line.startswith('v'):
+                    last_line = last_line[1:].strip()
+                    print({"result": last_line, "status": "SATISFIED", "executionTime": real_time}, flush=True)
+                return {"result": last_line, "status": "SATISFIED", "executionTime": real_time}            
+            else:
+                return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": real_time}

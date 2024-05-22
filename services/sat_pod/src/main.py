@@ -52,11 +52,18 @@ if __name__ == '__main__':
 
     print(f" [.] message consumed!", flush=True)
     solver_name = message_data["item"]["name"]
+    print(f" [.] solver_name: {solver_name}", flush=True)
     params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
+    print(f" [.] params: {params}", flush=True)
     cnf_string = message_data["satFileContent"]
+    print(f" [.] cores: {message_data['item']['cores']}", flush=True)
+    cores = message_data["item"]["cores"]
+    print("cores: ", cores, flush=True)
 
     try:
-        result = satSolve.run_sat_model(solver_name.lower(), cnf_string,  params)
+        print(f" [.] Running SAT Solver: {solver_name}", flush=True)
+        result = satSolve.run_sat_model(solver_name.lower(), cnf_string,  cores, params)
+        print(result, flush=True)
         result["name"] = solver_name
         result["satIdentifier"] = message_data["item"]["satIdentifier"]
     except Exception as e:
