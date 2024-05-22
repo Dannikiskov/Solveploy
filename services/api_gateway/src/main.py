@@ -1,9 +1,11 @@
+import datetime
 import json
 from flask import Flask, request
 from flask_restful import Api, Resource
 from flask_cors import CORS
 import messageQueue as mq
 import concurrent.futures
+from kubernetes import client, config
 import uuid
 
 app = Flask(__name__)
@@ -70,7 +72,7 @@ class SolversMzn(Resource):
         result = async_execute(data)
         result_json = json.loads(result)
 
-        return result_json
+        return "THE HOOK WORKED" #result_json
     
 
     def post(self):
@@ -275,6 +277,40 @@ class Results(Resource):
         
         return None
 
+class Webhook(Resource, deployment_name=None):
+    def post(self):
+        print("Webhook received", flush=True)
+        data = request.json
+        # Extract repository and tag information if needed
+        repo_name = data['repository']['name']
+        tag = data['push_data']['tag']
+        print(f"Repository: {repo_name}, Tag: {tag}", flush=True)
+        # Define the deployment name and namespace
+        deployment_name = deployment_name
+        namespace = "default"
+        print(f"Deployment: {deployment_name}, Namespace: {namespace}", flush=True)
+        # Patch the deployment to trigger a rolling restart
+        body = {
+            "spec": {
+                "template": {
+                    "metadata": {
+                        "annotations": {
+                            "kubectl.kubernetes.io/restartedAt": f"{datetime.datetime.now().isoformat()}"
+                        }
+                    }
+                }
+            }
+        }
+        print(f"Body: {body}", flush=True)
+        config.load_incluster_config()
+
+        api_instance = client.AppsV1Api()
+        
+        api_instance.patch_namespaced_deployment(deployment_name, namespace, body)
+        print("Deployment patched", flush=True)
+        
+        return json.loads({'status': 'success'})
+
 
 api.add_resource(Jobs, '/api/jobs', '/api/jobs/<string:solver_type>', '/api/jobs/<string:solver_type>/<string:identifier>')
 api.add_resource(Sunny, '/api/jobs/sunny')
@@ -283,6 +319,7 @@ api.add_resource(SolversSat, '/api/solvers/sat')
 api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
 api.add_resource(K8s, '/api/k8s/resource')
 api.add_resource(Results, '/api/results')
+api.add_resource(Webhook, '/api/imageupdate/<string:deployment_name>')
 
 
 def async_execute(data):

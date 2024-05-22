@@ -15,7 +15,8 @@ spec:
       restartPolicy: Always
       containers:
         - name: knowledge-base
-          image: knowledge-base:latest
-          imagePullPolicy: Never
+          image: dannikiskov/knowledge-base:latest
+          imagePullPolicy: Always
+          
           ports:
             - containerPort: 5002

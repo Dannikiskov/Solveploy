@@ -19,7 +19,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: api-gateway
-          image: api-gateway:latest
-          imagePullPolicy: Never
+          image: dannikiskov/api-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000

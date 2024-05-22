@@ -15,7 +15,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: job-handler
-          image: job-handler:latest
-          imagePullPolicy: Never
+          image: dannikiskov/job-handler:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5001

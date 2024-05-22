@@ -118,7 +118,6 @@
       ansible.builtin.shell:
         cmd: kubectl annotate storageclass local-path storageclass.kubernetes.io/is-default-class=true
     
-
     - name: Create namespaces
       kubernetes.core.k8s:
         state: present
@@ -171,78 +170,6 @@
             namespace: default
           type: "{{ secret_info.resources[0].type }}"
           data: "{{ secret_info.resources[0].data }}"
-
-    - name: Copy base image Dockerfile to target machine
-      copy:
-        src: ../../images/DockerfileBase
-        dest: ./DockerfileBase
-
-    - name: Build backend base image
-      community.docker.docker_image_build:
-        path: "."
-        name: "solveploy-base"
-        dockerfile: "DockerfileBase"
-        rebuild: "always"
-
-    - name: Copy services to target machine
-      copy:
-        src: ../../services
-        dest: .
-
-    - name: Build Docker images
-      community.docker.docker_image_build:
-        path: "{{ item.context }}"
-        name: "{{ item.image }}"
-        dockerfile: "{{ item.dockerfile }}"
-        rebuild: "always"
-      async: 7200
-      poll: 0
-      register: docker_build
-      loop:
-        - {
-            image: "frontend",
-            dockerfile: "Dockerfile",
-            context: "./services/frontend/",
-          }
-        - {
-            image: "api-gateway",
-            dockerfile: "Dockerfile",
-            context: "./services/api_gateway/",
-          }
-        - {
-            image: "job-handler",
-            dockerfile: "Dockerfile",
-            context: "./services/job_handler/",
-          }
-        - {
-            image: "knowledge-base",
-            dockerfile: "Dockerfile",
-            context: "./services/knowledge_base/",
-          }
-        - {
-            image: "mzn-pod",
-            dockerfile: "Dockerfile",
-            context: "./services/mzn_pod/",
-          }
-        - {
-            image: "sat-pod",
-            dockerfile: "Dockerfile",
-            context: "./services/sat_pod/",
-          }
-        - {
-            image: "maxsat-pod",
-            dockerfile: "Dockerfile",
-            context: "./services/maxsat_pod/",
-          }
-
-    - name: Wait for Docker image builds to finish
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 300
-      loop: "{{ docker_build.results }}"
-
 
     - name: Apply Kubernetes deployments and services
       kubernetes.core.k8s:
