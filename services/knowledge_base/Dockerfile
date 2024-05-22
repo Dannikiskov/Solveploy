@@ -1,5 +1,4 @@
-# Use the base image
-FROM solveploy-base:latest
+FROM dannikiskov/solveploy-base:latest
 
 # Copy the entire app into the container
 COPY . .
