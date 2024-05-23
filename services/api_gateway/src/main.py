@@ -72,7 +72,7 @@ class SolversMzn(Resource):
         result = async_execute(data)
         result_json = json.loads(result)
 
-        return "NEW HOOK WHO DIS" #result_json
+        return result_json
     
 
     def post(self):
@@ -278,7 +278,7 @@ class Results(Resource):
         return None
 
 class Webhook(Resource):
-    
+
     def post(self, deployment_name=None):
         print("Webhook received", flush=True)
         data = request.json
