@@ -487,7 +487,7 @@ ${bestResult.result}
                 onChange={(e) => {updateItemCores(item, Number(e.target.value))}}
               />
             )}
-            {item.name === "gimastul" && (
+            {item.name === "gimsatul" && (
               <input
                 type="number"
                 placeholder="Cores"
