@@ -1,9 +1,10 @@
 import base64
 import uuid
 from kubernetes import client, config
-
+import requests
 import os
 import messageQueue as mq
+import docker
 
 def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     global i
@@ -18,24 +19,24 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
 
     v1 = client.CoreV1Api()
 
-    # Get the secret
+
     secret = v1.read_namespaced_secret("rabbitmq", "default")
 
-    # Decode the secret data
+    
     password = base64.b64decode(secret.data['rabbitmq-password']).decode()
 
     cpu = str(cpu) + "m"
     memory = str(memory) + "Mi"
 
-    # Create solver job
+    #digest = get_image_digest(f"dannikiskov/{image_prefix}-pod")
+
     solver_job = create_solver_job(job_name, str(identifier), image_prefix, cpu, memory, 'user', password)
     batch_api = client.BatchV1Api()
-
     batch_api.create_namespaced_job(namespace=image_prefix, body=solver_job)
 
     return job_name
 
-def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request, username, password):
+def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request, username, password, digest):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
@@ -45,7 +46,7 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                         client.V1Container(
                             name=f"{image_prefix}-container",
                             image=f"dannikiskov/{image_prefix}-pod:latest",
-                            image_pull_policy="Never",
+                            image_pull_policy="Always",
                             env=[
                                 client.V1EnvVar(
                                     name="IDENTIFIER",
@@ -68,7 +69,7 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                             )
                         )
                     ],
-                    restart_policy="Always",
+                    restart_policy="IfNotPresent",
                 )
             ),
             ttl_seconds_after_finished=150,
@@ -131,3 +132,13 @@ def stop_specific_job(namespace, identifier):
             print("Deleting: ", pod.metadata.name, flush=True)
             core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
             break
+
+
+# Function to get the image digest from Docker Hub
+def get_image_digest(repo, tag="latest"):
+    url = f"https://hub.docker.com/v2/repositories/{repo}/tags/{tag}"
+    response = requests.get(url)
+    response.raise_for_status()
+    data = response.json()
+    digest_full = data['images'][0]['digest']
+    return digest_full
