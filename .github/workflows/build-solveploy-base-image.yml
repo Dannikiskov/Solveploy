@@ -4,11 +4,11 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'services/images/**'
+      - 'images/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'services/images/**'
+      - '/images/**'
 
 jobs:
 
@@ -23,7 +23,15 @@ jobs:
       run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
 
     - name: Build the base Docker image
-      run: docker build images/ --file images/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/solveploy-base:latest
+      run: docker build images/ --file images/DockerfileBase --tag docker.io/${{ secrets.DOCKER_USERNAME }}/solveploy-base:latest
 
     - name: Push the base Docker image
       run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/solveploy-base:latest
+
+    - name: Build and push service Docker images
+      run: |
+        for service in api_gateway frontend job_handler knowledge_base mzn_pod sat_pod maxsat_pod; do
+          image_name=$(echo $service | tr '_' '-')
+          docker build services/$service --file services/$service/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/$image_name:latest
+          docker push docker.io/${{ secrets.DOCKER_USERNAME }}/$image_name:latest
+        done
