@@ -20,5 +20,6 @@ RUN tar -xzf rel-1.1.2.tar.gz
 WORKDIR /app/gimsatul-rel-1.1.2
 RUN ./configure && make
 ENV PATH="/app/gimsatul-rel-1.1.2:$PATH"
+WORKDIR /app
 
 CMD ["python", "src/main.py"]
