@@ -74,6 +74,7 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
         elif solver_name == "gimsatul":
             print("gimsatul")
             with tempfile.NamedTemporaryFile(mode='w', suffix='.cnf', delete=False) as temp_model_file:
+                print("\n", cnf_string, "\n", flush=True)
                 temp_model_file.write(cnf_string)
                 temp_model_path = temp_model_file.name
                 temp_model_file.close()
