@@ -4,7 +4,6 @@ from kubernetes import client, config
 import requests
 import os
 import messageQueue as mq
-import docker
 
 def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     global i

@@ -15,4 +15,9 @@ RUN make
 ENV PATH="/app/glucose-4.2.1/parallel:$PATH"
 WORKDIR /app
 
+RUN wget https://github.com/arminbiere/gimsatul/archive/refs/tags/rel-1.1.2.tar.gz
+RUN tar -xzf rel-1.1.2.tar.gz
+WORKDIR /app/gimsatul-rel-1.1.2
+RUN ./configure && make
+
 CMD ["python", "src/main.py"]
