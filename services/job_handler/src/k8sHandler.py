@@ -35,7 +35,7 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
 
     return job_name
 
-def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request, username, password, digest):
+def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_request, username, password):
     return client.V1Job(
         metadata=client.V1ObjectMeta(name=job_name),
         spec=client.V1JobSpec(
