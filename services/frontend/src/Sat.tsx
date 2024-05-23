@@ -480,7 +480,7 @@ ${bestResult.result}
                 onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
               />
               <br />
-              {item.name === "glucose421" && (
+              {item.name === "glucose421" || item.name ==="gimsatul" && (
               <input
                 type="number"
                 placeholder="Cores"
