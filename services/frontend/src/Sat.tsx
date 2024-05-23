@@ -480,13 +480,21 @@ ${bestResult.result}
                 onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
               />
               <br />
-              {item.name === "glucose421" || item.name ==="gimsatul" && (
+              {item.name === "glucose421" && (
               <input
                 type="number"
                 placeholder="Cores"
                 onChange={(e) => {updateItemCores(item, Number(e.target.value))}}
               />
             )}
+            {item.name === "gimastul" && (
+              <input
+                type="number"
+                placeholder="Cores"
+                onChange={(e) => {updateItemCores(item, Number(e.target.value))}}
+              />
+            )}
+            
             <br style={{marginBottom: '5px'}} />
             <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
             <br />
