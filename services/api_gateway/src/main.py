@@ -61,7 +61,7 @@ class Sunny(Resource):
         result = async_execute(data)
         result_json = json.loads(result)
 
-        return result_json
+        return "NEW HOOK WHO DIS" #result_json
 
 
 class SolversMzn(Resource):
