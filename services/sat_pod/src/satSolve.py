@@ -70,3 +70,26 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
                 return {"result": last_line, "status": "SATISFIED", "executionTime": real_time}            
             else:
                 return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": real_time}
+        
+        elif solver_name == "gimsatul":
+            print("gimsatul")
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.cnf', delete=False) as temp_model_file:
+                temp_model_file.write(cnf_string)
+                temp_model_path = temp_model_file.name
+                temp_model_file.close()
+            print(temp_model_path)
+            command = ["gimsatul", f"{temp_model_path}", f"--threads={cores}"]
+            print("COMMAND: ", command, flush=True)
+            t1 = time.time()
+            cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
+            real_time = time.time() - t1
+            print(cmd_result, flush=True)
+
+            if "s SATISFIABLE" in cmd_result.strip().split('\n'):
+                # Extract the lines starting with "v"
+                solution_lines = [line for line in cmd_result.strip().split('\n') if line.startswith('v')]
+
+                # Remove the leading "v" and whitespace from each line
+                solutions = [line[1:].strip() for line in solution_lines]
+
+                return {"result": solutions, "status": "SATISFIED", "executionTime": real_time}

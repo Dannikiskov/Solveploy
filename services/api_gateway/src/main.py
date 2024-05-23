@@ -72,7 +72,7 @@ class SolversMzn(Resource):
         result = async_execute(data)
         result_json = json.loads(result)
 
-        return "NEW HOOK WHO DIS" #result_json
+        return result_json
     
 
     def post(self):
