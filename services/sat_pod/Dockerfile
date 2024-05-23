@@ -19,5 +19,6 @@ RUN wget https://github.com/arminbiere/gimsatul/archive/refs/tags/rel-1.1.2.tar.
 RUN tar -xzf rel-1.1.2.tar.gz
 WORKDIR /app/gimsatul-rel-1.1.2
 RUN ./configure && make
+ENV PATH="/app/gimsatul-rel-1.1.2:$PATH"
 
 CMD ["python", "src/main.py"]
