@@ -45,7 +45,7 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                         client.V1Container(
                             name=f"{image_prefix}-container",
                             image=f"dannikiskov/{image_prefix}-pod:latest",
-                            image_pull_policy="Always",
+                            image_pull_policy="IfNotPresent",
                             env=[
                                 client.V1EnvVar(
                                     name="IDENTIFIER",
@@ -68,7 +68,7 @@ def create_solver_job(job_name, identifier, image_prefix, cpu_request, memory_re
                             )
                         )
                     ],
-                    restart_policy="IfNotPresent",
+                    restart_policy="Never",
                 )
             ),
             ttl_seconds_after_finished=150,
