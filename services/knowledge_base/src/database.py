@@ -205,7 +205,7 @@ def get_solved_times_maxsat(solver_name, insts):
 
 
 def get_maxsat_solvers():
-    query = "SELECT * FROM sat_solvers"
+    query = "SELECT * FROM maxsat_solvers"
     return query_database(query)
 
 
