@@ -1,0 +1,30 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'services/api_gateway/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'services/api_gateway/**'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to Docker Registry
+      run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+
+    - name: Build api-gateway Docker image
+      run: docker build services/api_gateway/ --file services/api_gateway/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+
+    - name: Push the api-gateway Docker image
+      run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+

@@ -1,0 +1,29 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'services/mzn-pod/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'services/mzn-pod/**'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to Docker Registry
+      run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+
+    - name: Build the mzn-pod Docker image
+      run: docker build services/mzn_pod/ --file services/mzn_pod/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/mzn-pod:latest
+
+    - name: Push the mzn-pod Docker image
+      run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/mzn-pod:latest

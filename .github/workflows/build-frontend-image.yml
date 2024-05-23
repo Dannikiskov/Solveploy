@@ -1,0 +1,29 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'services/frontend/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'services/frontend/**'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to Docker Registry
+      run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+
+    - name: Build the frontend Docker image
+      run: docker build services/frontend/ --file services/frontend/Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/frontend:latest
+
+    - name: Push the frontend Docker image
+      run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/frontend:latest
