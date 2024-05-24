@@ -13,7 +13,7 @@ class TestGetSatSolverIdByName(unittest.TestCase):
         expected_result = 1
         mock_query_database.return_value = [expected_result]
 
-        # Act
+        # ActS
         result = database.get_sat_solver_id_by_name(solver_name)
 
         # Assert
