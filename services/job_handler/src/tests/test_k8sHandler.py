@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import base64
 import sys
 from kubernetes import client
-sys.path.insert(0, '../')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import k8sHandler
 
 class TestK8sHandler(unittest.TestCase):
