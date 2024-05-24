@@ -56,12 +56,11 @@ if __name__ == '__main__':
     params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
     print(f" [.] params: {params}", flush=True)
     cnf_string = message_data["satFileContent"]
-    print(f" [.] cores: {message_data['item']['cores']}", flush=True)
     if "cores" not in message_data["item"]:
         cores = message_data["item"]["cores"]
     else:
         cores = None
-        
+
     print("cores: ", cores, flush=True)
 
     try:
