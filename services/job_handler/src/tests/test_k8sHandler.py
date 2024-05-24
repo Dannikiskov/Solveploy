@@ -1,9 +1,10 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 import base64
 import sys
 from kubernetes import client
-sys.path.append('../src')
+sys.path.insert(0, '../')
 import k8sHandler
 
 class TestK8sHandler(unittest.TestCase):
