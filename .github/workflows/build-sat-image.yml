@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: SAT pod CI
 
 on:
   push:

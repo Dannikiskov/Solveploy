@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Job Handler CI
 
 on:
   push:
