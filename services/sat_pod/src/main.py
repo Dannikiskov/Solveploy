@@ -57,7 +57,11 @@ if __name__ == '__main__':
     print(f" [.] params: {params}", flush=True)
     cnf_string = message_data["satFileContent"]
     print(f" [.] cores: {message_data['item']['cores']}", flush=True)
-    cores = message_data["item"]["cores"]
+    if "cores" not in message_data["item"]:
+        cores = message_data["item"]["cores"]
+    else:
+        cores = None
+        
     print("cores: ", cores, flush=True)
 
     try:

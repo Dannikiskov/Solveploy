@@ -34,6 +34,7 @@ function Sat() {
   const [t, setT] = useState<number>(0);
   const [k, setK] = useState<number>(0);
   const [satFileContent, setSatFileContent] = useState<string>("");
+  const [satFileName, setSatFileName] = useState<string>("");
   const [runningSatJobs, setRunningSatJobs] = useState<SatSolverData[]>([]);
   const [bestResult, setBestResult] = useState<SatJobResult | null>(null);
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { sat: { file: File, content: string }[] } }>({});
@@ -188,6 +189,7 @@ function Sat() {
         body: JSON.stringify({
           item,
           satFileContent,
+          satFileName,
           instructions: "StartSatJob",
           optGoal: "satisfy",
         }),
@@ -212,7 +214,7 @@ function Sat() {
     }
   }
 
-  const fetchStartSolverWithContent = (item: SatSolverData, satString: string) => {
+  const fetchStartSolverWithContent = (item: SatSolverData, satString: string, fileName: string) => {
     console.log("ITEM: ", item)
     console.log("SAT: ", satString)
     const updatedItem = {
@@ -228,6 +230,7 @@ function Sat() {
       body: JSON.stringify({
       item: updatedItem,
       satFileContent : satString,
+      satFileName: fileName,
       instructions: "StartSatJob",
       noresult: true
       }),
@@ -240,6 +243,7 @@ function Sat() {
   const handleSatFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setSatFileName(file.name);
       const reader = new FileReader();
       reader.onload = () => {
         const fileContent = reader.result as string;
@@ -353,7 +357,7 @@ ${bestResult.result}
         const { sat } = folderMapping[folder];
         if (sat) {
           for (const file of sat) {
-            fetchStartSolverWithContent(solver, file.content);
+            fetchStartSolverWithContent(solver, file.content, file.file.name);
           }
         }
       }

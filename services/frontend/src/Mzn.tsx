@@ -34,7 +34,9 @@ function Mzn() {
   const [t, setT] = useState<number>(0);
   const [k, setK] = useState<number>(0);
   const [mznFileContent, setMznFileContent] = useState<string>("");
+  const [mznFileName, setMznFileName] = useState<string>("");
   const [dataFileContent, setDataFileContent] = useState<string>("");
+  const [dataFileName, setDataFileName] = useState<string>("");
   const [runningMznJobs, setRunningMznJobs] = useState<MznSolverData[]>([]);
   const [optGoalList] = useState<(string | null)[]>(["satisfy", "maximize", "minimize"]);
   const [optVal, setOptVal] = useState<string>("");
@@ -183,7 +185,9 @@ function Mzn() {
         body: JSON.stringify({
           item,
           mznFileContent,
+          mznFileName,
           dataFileContent,
+          dataFileName,
           dataFileType: dznOrJson,
           instructions: "StartMznJob",
           optVal: optVal,
@@ -206,7 +210,7 @@ function Mzn() {
     }
   }
 
-  const fetchStartSolverWithContent = (item: MznSolverData, mznString: string, dataString: string, suffix: string) => {
+  const fetchStartSolverWithContent = (item: MznSolverData, mznString: string, dataString: string, suffix: string, mznName: string, dataName: string) => {
     console.log("ITEM: ", item)
     console.log("MZN: ", mznString)
     console.log("DATA: ", dataString)
@@ -225,7 +229,9 @@ function Mzn() {
       body: JSON.stringify({
       item: updatedItem,
       mznFileContent : mznString,
+      mznFileName: mznName,
       dataFileContent: dataString,
+      dataFileName: dataName,
       dataFileType: suffix,
       instructions: "StartMznJob",
       optVal: optVal,
@@ -241,6 +247,7 @@ function Mzn() {
   const handleMznFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setMznFileName(file.name);
       const reader = new FileReader();
       reader.onload = () => {
         const fileContent = reader.result as string;
@@ -254,7 +261,7 @@ function Mzn() {
   const handleDataFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // console.log("File name:", file.name);
+      setDataFileName(file.name);
       if(file.name.endsWith(".json")){
         setDznOrJson(".json");
       }
@@ -380,13 +387,13 @@ ${bestResult.result}
       for (const folder in folderMapping) {
         const { mzn, dzn, json } = folderMapping[folder];
         if ((mzn && dzn)) {
-          fetchStartSolverWithContent(solver, mzn.content, dzn.content, '.dzn');
+          fetchStartSolverWithContent(solver, mzn.content, dzn.content, '.dzn', mzn.file.name, dzn.file.name);
         }
         else if (mzn && json) {
-          fetchStartSolverWithContent(solver, mzn.content, json.content, '.json');
+          fetchStartSolverWithContent(solver, mzn.content, json.content, '.json', mzn.file.name, json.file.name);
         }
         else if(mzn) {
-          fetchStartSolverWithContent(solver, mzn.content, "", "");
+          fetchStartSolverWithContent(solver, mzn.content, "", "", mzn.file.name, "");
         }
       }
     }

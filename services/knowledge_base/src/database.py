@@ -223,6 +223,7 @@ def handle_sat_instance(data):
     solver_name = data["solverName"]
     execution_time = data["executionTime"]
     status = data["status"]
+    satFileName = data["satFileName"]
 
     params = None
 
@@ -242,8 +243,8 @@ def handle_sat_instance(data):
     print("feat_id", feat_id, flush=True)
     if len(feat_id) == 0:
         print("inserting feature", flush=True)
-        query = "INSERT INTO sat_feature_vectors (features) VALUES (%s) RETURNING id"
-        params = (feature_vector_str,)
+        query = "INSERT INTO sat_feature_vectors (features) VALUES (%s, %s) RETURNING id"
+        params = (feature_vector_str, satFileName)
         feat_id = query_database(query, params)
 
 
@@ -256,10 +257,10 @@ def handle_sat_instance(data):
     if len(existing_entry) == 0:
         query = """
             INSERT INTO sat_solver_featvec_time 
-            (solver_id, feature_vec_id, execution_time, status) 
-            VALUES (%s, %s, %s, %s)
+            (solver_id, feature_vec_id, execution_time, status, sat_file_name) 
+            VALUES (%s, %s, %s, %s, %s)
         """
-        params = (solver_id[0], feat_id[0], execution_time, status)
+        params = (solver_id[0], feat_id[0], execution_time, status, satFileName)
 
     query_database(query, params)
 
@@ -416,6 +417,8 @@ def handle_mzn_instance(data):
     execution_time = data["executionTime"]
     opt_goal = data["optGoal"]
     status = data["status"]
+    mznFileName = data["mznFileName"]
+    dataFileName = data["dataFileName"]
     params = None
 
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
@@ -434,8 +437,8 @@ def handle_mzn_instance(data):
     print("feat_id", feat_id, flush=True)
     if len(feat_id) == 0:
         print("inserting feature", flush=True)
-        query = "INSERT INTO mzn_feature_vectors (features) VALUES (%s) RETURNING id"
-        params = (feature_vector_str,)
+        query = "INSERT INTO mzn_feature_vectors (features) VALUES (%s, %s, %s) RETURNING id"
+        params = (feature_vector_str, mznFileName, dataFileName)
         feat_id = query_database(query, params)
 
 
@@ -451,17 +454,17 @@ def handle_mzn_instance(data):
             opt_value = data["optVal"]
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, opt_value, opt_goal, execution_time, status) 
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (solver_id, feature_vec_id, opt_value, opt_goal, execution_time, status, mzn_file_name, data_file_name) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], opt_value, opt_goal, execution_time, status)
+            params = (solver_id[0], feat_id[0], opt_value, opt_goal, execution_time, status, mznFileName, dataFileName)
         else: 
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, execution_time, status, opt_goal) 
-                VALUES (%s, %s, %s, %s, %s)
+                (solver_id, feature_vec_id, execution_time, status, opt_goal, mzn_file_name, data_file_name) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], execution_time, status, opt_goal)
+            params = (solver_id[0], feat_id[0], execution_time, status, opt_goal, mznFileName, dataFileName)
 
         query_database(query, params)
 
@@ -596,7 +599,9 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS mzn_feature_vectors (
             id SERIAL PRIMARY KEY,
-            features FLOAT[] UNIQUE
+            features FLOAT[] UNIQUE,
+            mzn_file_name VARCHAR(255),
+            data_file_name VARCHAR(255)
         );
     """
     query_database(query)
@@ -620,7 +625,9 @@ def database_init():
             opt_goal VARCHAR(2047),
             execution_time FLOAT NOT NULL,
             status VARCHAR(2047),
-            result VARCHAR(2047)
+            result VARCHAR(2047),
+            mzn_file_name VARCHAR(255),
+            data_file_name VARCHAR(255)
         );
     """
     query_database(query)
