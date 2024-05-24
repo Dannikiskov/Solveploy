@@ -118,8 +118,10 @@ class TestStopSpecificJob(unittest.TestCase):
         # Assert
         mock_config.load_incluster_config.assert_called_once()
         mock_batch_api().list_namespaced_job.assert_called_once_with(namespace=namespace)
+        print("test")
         mock_batch_api().delete_namespaced_job.assert_called_once_with(name=mock_job.metadata.name, namespace=namespace)
         mock_core_api().list_namespaced_pod.assert_called_once_with(namespace=namespace)
+
         mock_core_api().delete_namespaced_pod.assert_called_once_with(name=mock_pod.metadata.name, namespace=namespace)
 
 
