@@ -33,15 +33,17 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
         t2 = time.time() - t1
 
     print("result: ", result, "\n", flush=True)
-    output = str(result.solution)
+        
     os.remove(temp_model_path)
 
     if data_string is not None:
         os.remove(temp_data_file.name)
 
-    if result.objective is not None:
+    if result is not None and result.objective is not None:
+        output = str(result.solution)
         opt_val = result.objective
     else:
+        output = "N/A"
         opt_val = "N/A"
 
     if params_dict is None:
