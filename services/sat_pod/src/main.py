@@ -56,7 +56,7 @@ if __name__ == '__main__':
     params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
     print(f" [.] params: {params}", flush=True)
     cnf_string = message_data["satFileContent"]
-    if "cores" not in message_data["item"]:
+    if "cores" in message_data["item"]:
         cores = message_data["item"]["cores"]
     else:
         cores = None
@@ -70,7 +70,6 @@ if __name__ == '__main__':
         result["name"] = solver_name
         result["satIdentifier"] = message_data["item"]["satIdentifier"]
     except Exception as e:
-        print(e, "\n*--------*", flush=True)
         result = {"result": f"Sat Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
 
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
