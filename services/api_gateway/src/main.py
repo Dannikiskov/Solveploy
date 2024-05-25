@@ -313,6 +313,16 @@ class Webhook(Resource):
         return jsonify({'status': 'success'})
 
 
+class Data(Resource):
+
+        def get(self):
+            data = {"instructions": "GetData", "queueName": "kbHandler", "identifier": str(uuid.uuid4())}
+            result = async_execute(data)
+            result_json = json.loads(result)
+    
+            return result_json
+    
+
 api.add_resource(Jobs, '/api/jobs', '/api/jobs/<string:solver_type>', '/api/jobs/<string:solver_type>/<string:identifier>')
 api.add_resource(Sunny, '/api/jobs/sunny')
 api.add_resource(SolversMzn, '/api/solvers/mzn')
@@ -321,6 +331,7 @@ api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
 api.add_resource(K8s, '/api/k8s/resource')
 api.add_resource(Results, '/api/results')
 api.add_resource(Webhook, '/api/imageupdate/<string:deployment_name>')
+api.add_resource(Data, '/api/data')
 
 
 def async_execute(data):

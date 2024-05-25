@@ -16,6 +16,9 @@ const Nav: React.FC = () => {
       <Link to="/maxsat">
         <button>MAXSAT</button>
       </Link>
+      <Link to="/info">
+        <button style={{ marginLeft: '5px' }}>Info</button>
+      </Link>
     </div>
   );
 };
