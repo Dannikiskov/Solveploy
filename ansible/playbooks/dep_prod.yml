@@ -189,6 +189,7 @@
         - "{{ lookup('file', '../../k8s-manifests/knowledge-base-service.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/frontend-deployment.yaml') | from_yaml_all }}"
         - "{{ lookup('file', '../../k8s-manifests/frontend-service.yaml') | from_yaml_all }}"
+        - "{{ lookup('file', '../../k8s-manifests/docker-img-cleaner-cron-job.yaml') | from_yaml_all }}"
 
     - name: Include vars of vars.json
       ansible.builtin.include_vars:

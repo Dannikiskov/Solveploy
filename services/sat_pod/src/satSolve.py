@@ -6,7 +6,7 @@ import time
 import pysat.solvers
 
 def run_sat_model(solver_name, cnf_string, cores=None, params=None):
-    if cores <= 1 and solver_name != "gimsatul":
+    if cores != None and cores <= 1 and solver_name != "gimsatul":
         # Create solver instance
         print("Looking up solver", flush=True)
         solver = None

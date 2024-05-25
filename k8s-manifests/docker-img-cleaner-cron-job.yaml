@@ -1,0 +1,22 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cleanup-old-images
+spec:
+  schedule: "0 * * * *"  # Run every hour
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cleanup
+            image: docker
+            command: ["docker", "system", "prune", "-a", "-f", "--filter"]
+            volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+          restartPolicy: OnFailure
+          volumes:
+          - name: docker-socket
+            hostPath:
+              path: /var/run/docker.sock
