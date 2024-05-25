@@ -243,7 +243,7 @@ def handle_sat_instance(data):
     print("feat_id", feat_id, flush=True)
     if len(feat_id) == 0:
         print("inserting feature", flush=True)
-        query = "INSERT INTO sat_feature_vectors (features) VALUES (%s, %s) RETURNING id"
+        query = "INSERT INTO sat_feature_vectors (features, sat_file_name) VALUES (%s, %s) RETURNING id"
         params = (feature_vector_str, satFileName)
         feat_id = query_database(query, params)
 
@@ -437,7 +437,7 @@ def handle_mzn_instance(data):
     print("feat_id", feat_id, flush=True)
     if len(feat_id) == 0:
         print("inserting feature", flush=True)
-        query = "INSERT INTO mzn_feature_vectors (features) VALUES (%s, %s, %s) RETURNING id"
+        query = "INSERT INTO mzn_feature_vectors (features, mzn_file_name, data_file_name) VALUES (%s, %s, %s) RETURNING id"
         params = (feature_vector_str, mznFileName, dataFileName)
         feat_id = query_database(query, params)
 
@@ -634,10 +634,11 @@ def database_init():
 
     # SAT tables
     query = """
-        CREATE TABLE IF NOT EXISTS sat_feature_vectors (
+       
+        ); CREATE TABLE IF NOT EXISTS sat_feature_vectors (
             id SERIAL PRIMARY KEY,
-            features FLOAT[] UNIQUE
-        );
+            features FLOAT[] UNIQUE,
+            sat_file_name VARCHAR(255)
     """
     query_database(query)
 
@@ -667,6 +668,7 @@ def database_init():
         CREATE TABLE IF NOT EXISTS maxsat_feature_vectors (
             id SERIAL PRIMARY KEY,
             features FLOAT[] UNIQUE
+            maxsat_file_name VARCHAR(255)
         );
     """
     query_database(query)
@@ -686,7 +688,8 @@ def database_init():
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES maxsat_solvers(id),
             feature_vec_id INT REFERENCES maxsat_feature_vectors(id),
-            execution_time FLOAT NOT NULL
+            execution_time FLOAT NOT NULL,
+            maxsat_file_name VARCHAR(255)
         );
     """
     query_database(query)
