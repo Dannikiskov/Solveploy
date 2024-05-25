@@ -4,6 +4,7 @@ import tempfile
 import os
 
 def run_minizinc_model(model_string, solver_name, data_string=None, data_type=None, params_dict=None, objective_list=None):
+    print("Running Minizinc model", flush=True)
     with tempfile.NamedTemporaryFile(mode='w', suffix='.mzn', delete=False) as temp_model_file:
         temp_model_file.write(model_string)
         temp_model_path = temp_model_file.name
@@ -21,7 +22,7 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             temp_data_file.close()
             instance.add_file(temp_data_file.name)
 
-
+    print("Solving...", flush=True)
     if params_dict is not None:
         t1 = time.time()
         result = instance.solve(**params_dict)
@@ -33,13 +34,11 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
 
     print("result: ", result, "\n", flush=True)
     output = str(result.solution)
-    print(output, flush=True)
     os.remove(temp_model_path)
 
     if data_string is not None:
         os.remove(temp_data_file.name)
 
-    print(result.objective)
     if result.objective is not None:
         opt_val = result.objective
     else:
