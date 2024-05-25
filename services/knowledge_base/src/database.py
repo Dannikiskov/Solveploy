@@ -594,7 +594,7 @@ def print_all_tables():
             print("\n\n-----------------------------------\n\n-----------------------------------\n", flush=True)
 
 
-def get_all_data():
+def get_data():
     query = "SELECT * FROM mzn_solvers"
     mzn_solvers = query_database(query)
     query = "SELECT * FROM mzn_feature_vectors"
