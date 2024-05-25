@@ -603,9 +603,9 @@ def get_data():
     
     query = """SELECT 
         mzn_solvers.name AS solver_name,
-        ARRAY_AGG(mzn_feature_vectors.features) AS feature_vectors,
-        ARRAY_AGG(mzn_feature_vectors.mzn_file_name) AS mzn_file_names,
-        ARRAY_AGG(mzn_feature_vectors.data_file_name) AS data_file_names,
+        mzn_feature_vectors.features,
+        mzn_feature_vectors.mzn_file_name,
+        mzn_feature_vectors.data_file_name,
         ARRAY_AGG(mzn_solver_featvec_time.opt_goal) AS opt_goals,
         ARRAY_AGG(mzn_solver_featvec_time.status) AS statuses
     FROM 
@@ -615,7 +615,7 @@ def get_data():
     JOIN 
         mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
     GROUP BY 
-        mzn_solvers.name;"""
+        mzn_solvers.name, mzn_feature_vectors.features, mzn_feature_vectors.mzn_file_name, mzn_feature_vectors.data_file_name;"""
 
     result = query_database(query)
     print(result, flush=True)
