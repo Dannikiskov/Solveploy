@@ -19,7 +19,13 @@ def handle_new_sat_job(data):
     try:
         feature_vector = gf.generate_features(data["satFileContent"])
         print(f"Feature vector: {feature_vector}", flush=True)
-        dict = {"featureVector": feature_vector, "solverName": solver_name, "executionTime": k8s_result["executionTime"], "status": k8s_result["status"], "instructions": "HandleSatInstance", "queueName": "kbHandler"}
+        dict = {"satFileName": data["satFileName"],
+                "featureVector": feature_vector,
+                "solverName": solver_name,
+                "executionTime": k8s_result["executionTime"], 
+                "status": k8s_result["status"], 
+                "instructions": "HandleSatInstance", 
+                 "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
     except Exception as e:
         print(f"Exception occurred: {str(e)}", flush=True)

@@ -48,7 +48,16 @@ def handle_new_mzn_job(data):
     print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
     
     if k8_result["status"] not in ["ERROR", "FAILED"]:
-        dict = {"optGoal": data["optGoal"], "optVal": data["optVal"], "featureVector": feature_vector, "solverName": solver_name, "executionTime": k8_result["executionTime"], "status": k8_result["status"], "result": k8_result["result"], "instructions": "HandleMznInstance", "queueName": "kbHandler"}
+        dict = {"dataFileName": data["dataFileName"],
+                "mznFileName": data["mznFileName"],
+                "optGoal": data["optGoal"], 
+                "optVal": data["optVal"], 
+                "featureVector": feature_vector, "solverName": solver_name,
+                "executionTime": k8_result["executionTime"], 
+                "status": k8_result["status"], 
+                "result": k8_result["result"], 
+                "instructions": "HandleMznInstance",
+                "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
 
     mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
