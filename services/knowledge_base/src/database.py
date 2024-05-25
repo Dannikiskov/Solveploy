@@ -603,19 +603,31 @@ def get_data():
     
     query = """SELECT 
         mzn_solvers.name AS solver_name,
-        mzn_feature_vectors.features,
-        mzn_feature_vectors.mzn_file_name,
-        mzn_feature_vectors.data_file_name,
-        ARRAY_AGG(mzn_solver_featvec_time.opt_goal) AS opt_goals,
-        ARRAY_AGG(mzn_solver_featvec_time.status) AS statuses
+        subquery.features,
+        subquery.mzn_file_name,
+        subquery.data_file_name,
+        subquery.instance_id,
+        subquery.opt_goals,
+        subquery.statuses
     FROM 
         mzn_solvers
     JOIN 
-        mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
-    JOIN 
-        mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
-    GROUP BY 
-        mzn_solvers.name, mzn_feature_vectors.features, mzn_feature_vectors.mzn_file_name, mzn_feature_vectors.data_file_name;"""
+        (
+            SELECT 
+                mzn_solver_featvec_time.solver_id,
+                mzn_feature_vectors.features,
+                mzn_feature_vectors.mzn_file_name,
+                mzn_feature_vectors.data_file_name,
+                mzn_solver_featvec_time.id AS instance_id,
+                ARRAY_AGG(mzn_solver_featvec_time.opt_goal) AS opt_goals,
+                ARRAY_AGG(mzn_solver_featvec_time.status) AS statuses
+            FROM 
+                mzn_solver_featvec_time
+            JOIN 
+                mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
+            GROUP BY 
+                mzn_solver_featvec_time.solver_id, mzn_feature_vectors.features, mzn_feature_vectors.mzn_file_name, mzn_feature_vectors.data_file_name, mzn_solver_featvec_time.id
+        ) AS subquery ON mzn_solvers.id = subquery.solver_id;"""
 
     result = query_database(query)
     print(result, flush=True)
