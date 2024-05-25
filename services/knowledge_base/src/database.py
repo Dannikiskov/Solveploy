@@ -601,38 +601,22 @@ def get_data():
     if not table_exists:
         database_init()
     
-    query = "SELECT * FROM mzn_solvers"
-    mzn_solvers = query_database(query)
-    query = "SELECT * FROM mzn_feature_vectors"
-    mzn_feature_vectors = query_database(query)
-    query = "SELECT * FROM mzn_solver_featvec_time"
-    mzn_solver_featvec_time = query_database(query)
+    query = """SELECT 
+        mzn_solvers.name AS solver_name,
+        mzn_feature_vectors.features AS feature_vectors,
+        mzn_feature_vectors.mzn_file_name AS mzn_file_name,
+        mzn_feature_vectors.data_file_name AS data_file_name,
+        mzn_solver_featvec_time.opt_goal AS opt_goal,
+        mzn_solver_featvec_time.status AS status
+    FROM 
+        mzn_solvers
+    JOIN 
+        mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
+    JOIN 
+        mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id;"""
 
-    query = "SELECT * FROM sat_solvers"
-    sat_solvers = query_database(query)
-    query = "SELECT * FROM sat_feature_vectors"
-    sat_feature_vectors = query_database(query)
-    query = "SELECT * FROM sat_solver_featvec_time"
-    sat_solver_featvec_time = query_database(query)
-
-    query = "SELECT * FROM maxsat_solvers"
-    maxsat_solvers = query_database(query)
-    query = "SELECT * FROM maxsat_feature_vectors"
-    maxsat_feature_vectors = query_database(query)
-    query = "SELECT * FROM maxsat_solver_featvec_time"
-    maxsat_solver_featvec_time = query_database(query)
-
-    result = {"mzn_solvers": mzn_solvers,
-            "mzn_feature_vectors": mzn_feature_vectors, 
-            "mzn_solver_featvec_time": mzn_solver_featvec_time, 
-            "sat_solvers": sat_solvers, 
-            "sat_feature_vectors": sat_feature_vectors, 
-            "sat_solver_featvec_time": sat_solver_featvec_time, 
-            "maxsat_solvers": maxsat_solvers, 
-            "maxsat_feature_vectors": maxsat_feature_vectors, 
-            "maxsat_solver_featvec_time": maxsat_solver_featvec_time}
+    result = query_database(query)
     
-    print(result, flush=True)
     return result
 
 def database_init():
