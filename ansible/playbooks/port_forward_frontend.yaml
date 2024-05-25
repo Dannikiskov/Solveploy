@@ -1,0 +1,11 @@
+---
+- name: Uploading database
+  hosts: kubernetes_hosts
+  become: true
+
+  tasks:
+    - name: port forward frontend service from kubernetes cluster to target machine
+      shell: kubectl port-forward svc/frontend-service 8080:80 &
+
+    - name: port forward frontend service from target machine to host
+      shell: ssh -L 3000:localhost:8080 ucloud@130.225.38.190

@@ -706,7 +706,7 @@ def database_init():
     query = """
         CREATE TABLE IF NOT EXISTS maxsat_feature_vectors (
             id SERIAL PRIMARY KEY,
-            features FLOAT[] UNIQUE
+            features FLOAT[] UNIQUE,
             maxsat_file_name VARCHAR(255)
         );
     """
