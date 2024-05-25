@@ -602,24 +602,30 @@ def get_data():
         database_init()
     
     query ="""SELECT 
-        mzn_solvers.name AS solver_name,
-        jsonb_object_agg('file', ARRAY[
-            mzn_solver_featvec_time.mzn_file_name, 
-            mzn_feature_vectors.data_file_name, 
-            array_to_string(mzn_feature_vectors.features, ','),
-            mzn_solver_featvec_time.opt_value,
-            mzn_solver_featvec_time.opt_goal,
-            CAST(mzn_solver_featvec_time.execution_time AS VARCHAR),
-            mzn_solver_featvec_time.status
-        ]) AS solved_files
-    FROM 
-        mzn_solvers
-    JOIN 
-        mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
-    JOIN
-        mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
+        solver_name,
+        jsonb_object_agg(mzn_file_name, solved_files) AS files
+    FROM (
+        SELECT 
+            mzn_solvers.name AS solver_name,
+            mzn_solver_featvec_time.mzn_file_name,
+            jsonb_agg(jsonb_build_object(
+                'data_file_name', mzn_feature_vectors.data_file_name, 
+                'opt_value', mzn_solver_featvec_time.opt_value,
+                'opt_goal', mzn_solver_featvec_time.opt_goal,
+                'execution_time', CAST(mzn_solver_featvec_time.execution_time AS VARCHAR),
+                'status', mzn_solver_featvec_time.status
+            )) AS solved_files
+        FROM 
+            mzn_solvers
+        JOIN 
+            mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
+        JOIN
+            mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
+        GROUP BY 
+            mzn_solvers.name, mzn_solver_featvec_time.mzn_file_name
+    ) sub
     GROUP BY 
-        mzn_solvers.name;"""
+        solver_name;"""
 
     print("RESUTL:", flush=True)
     result = query_database(query)
