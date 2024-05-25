@@ -622,7 +622,7 @@ def get_data():
     query = "SELECT * FROM maxsat_solver_featvec_time"
     maxsat_solver_featvec_time = query_database(query)
 
-    return {"mzn_solvers": mzn_solvers,
+    result = {"mzn_solvers": mzn_solvers,
             "mzn_feature_vectors": mzn_feature_vectors, 
             "mzn_solver_featvec_time": mzn_solver_featvec_time, 
             "sat_solvers": sat_solvers, 
@@ -631,6 +631,9 @@ def get_data():
             "maxsat_solvers": maxsat_solvers, 
             "maxsat_feature_vectors": maxsat_feature_vectors, 
             "maxsat_solver_featvec_time": maxsat_solver_featvec_time}
+    
+    print(result, flush=True)
+    return result
 
 def database_init():
 
