@@ -10,7 +10,6 @@ def handle_new_sat_job(data):
     solver_name = data["item"]["name"]
     cpu = data["item"]["cpu"]
     memory = data["item"]["memory"]
-    satFileName = data["item"]["satFileName"]
 
     k8sHandler.start_solver_job(solver_name, identifier, "sat", cpu, memory)
     k8s_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
