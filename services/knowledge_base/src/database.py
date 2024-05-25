@@ -595,6 +595,12 @@ def print_all_tables():
 
 
 def get_data():
+    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'maxsat_solvers')"
+    result = query_database(query)
+    table_exists = result[0]
+    if not table_exists:
+        database_init()
+    
     query = "SELECT * FROM mzn_solvers"
     mzn_solvers = query_database(query)
     query = "SELECT * FROM mzn_feature_vectors"
