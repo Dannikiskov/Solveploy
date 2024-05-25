@@ -45,7 +45,6 @@ def stop_sat_job_by_id(data):
 def get_available_sat_solvers(data):
 
     available_solvers = [
-        ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103'),
         ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153'),
         ('cms', 'cms5', 'crypto', 'crypto5', 'cryptominisat', 'cryptominisat5'),
         ('gc3', 'gc30', 'gluecard3', 'gluecard30'),
@@ -53,12 +52,9 @@ def get_available_sat_solvers(data):
         ('g42', 'g421', 'glucose42', 'glucose421'),
         ('lgl', 'lingeling'),
         ('mcb', 'chrono', 'maplechrono'),
-        ('mcm', 'maplecm'),
         ('mpl', 'maple', 'maplesat'),
         ('mg3', 'mgs3', 'mergesat3', 'mergesat30'),
-        ('mc', 'mcard', 'minicard'),
         ('m22', 'msat22', 'minisat22'),
-        ('mgh', 'msat-gh', 'minisat-gh')
     ]
 
     solvers_dict = [{"name": solver[-1], "satIdentifier": solver[0]} for solver in available_solvers]
