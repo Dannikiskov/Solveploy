@@ -29,7 +29,7 @@ def consume():
     def callback(ch, method, properties, body):
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
-        print(" [x] Received ", data, flush=True)
+        # print(" [x] Received ", data, flush=True)
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
@@ -67,15 +67,6 @@ def consume():
         
         elif instructions == "StopMaxsatJobs":
             threading.Thread(target=k8s.stop_namespaced_jobs, args=("maxsat",)).start()
-
-        elif instructions == "StopAllJobs":
-            threading.Thread(target=mznHandler.stop_job, args=(data,)).start()
-
-        elif instructions == "StopSatJob":
-            threading.Thread(target=satHandler.stop_job, args=(data,)).start()
-
-        elif instructions == "StopMaxsatJob":
-            threading.Thread(target=maxsatHandler.stop_job, args=(data,)).start()
         
         elif instructions == "Sunny":
             data_content = data["dataContent"] if "dataContent" in data else None
