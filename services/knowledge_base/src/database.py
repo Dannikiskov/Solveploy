@@ -666,12 +666,12 @@ def database_init():
     query_database(query)
 
     # SAT tables
-    query = """
-       
-        ); CREATE TABLE IF NOT EXISTS sat_feature_vectors (
+    query = """   
+        CREATE TABLE IF NOT EXISTS sat_feature_vectors (
             id SERIAL PRIMARY KEY,
             features FLOAT[] UNIQUE,
             sat_file_name VARCHAR(255)
+        );
     """
     query_database(query)
 
