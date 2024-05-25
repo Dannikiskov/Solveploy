@@ -76,7 +76,7 @@ if __name__ == '__main__':
         )
     )
     channel = connection.channel()
-
+    print("!")
     channel.basic_publish(exchange='',
                         routing_key=out_queue_name,
                         body=json_result)
