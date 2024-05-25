@@ -8,7 +8,6 @@ import { saveAs } from 'file-saver';
 
 interface MznSolverData {
   name: string;
-  version: string;
   jobIdentifier: string;
   cpu?: number;
   memory?: number;
@@ -282,7 +281,6 @@ function Mzn() {
   
     const content = `Solver Information
 Name: ${bestResult.name}
-Version: ${bestResult.version}
 Output
 Status: ${bestResult.status}
 Goal: ${lastOptGoal}
@@ -509,7 +507,6 @@ ${bestResult.result}
             }`}
           >
             <div>Name: {item.name}</div>
-            <div>Version: {item.version}</div>
             <div>
               <input
                 type="number"
@@ -580,7 +577,6 @@ ${bestResult.result}
             <div className="result-container">
               <h4>Solver Information</h4>
               <div>Name: {bestResult.name}</div>
-              <div>Version: {bestResult.version}</div>
               <h4>Output</h4>
               <div>Status: {bestResult.status}</div>
               <div>Goal: {lastOptGoal}</div>

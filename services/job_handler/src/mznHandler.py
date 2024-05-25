@@ -64,15 +64,5 @@ def handle_new_mzn_job(data):
 
 
 def get_available_mzn_solvers(data):
-    print("Getting available solvers..", flush=True)
-    path = Path("/app/MiniZincIDE-2.8.2-bundle-linux-x86_64/bin/minizinc")
-    mzn_driver = minizinc.Driver(path)
-    solvers = mzn_driver.available_solvers()
-
-    available_solvers = []
-    for solver in solvers.keys():
-        if solver.__contains__("."):
-            solver_name = solver.split(".")[-1]
-            available_solvers.append({"name": solver_name, "version": solvers[solver_name][0].version})
-    print(available_solvers, flush=True)
+    available_solvers = [{"name": "gecode"}, {'name': 'chuffed'}, {'name': 'coin-bc'}, {'name': 'cplex'}, {'name': 'gist'}]
     mq.send_to_queue(available_solvers, f'{data["queueName"]}-{data["identifier"]}')
