@@ -18,7 +18,7 @@ def query_database(query, params=None):
 
     if(cur.description):
         result = cur.fetchall()
-        result = [item[0] for item in result] if len(result) == 1 else result
+        result = [item[0] for item in result] if result and len(result[0]) == 1 else result
 
     else:
         result = None
