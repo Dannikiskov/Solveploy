@@ -601,34 +601,27 @@ def get_data():
     if not table_exists:
         database_init()
     
-    query = """SELECT 
+    query ="""SELECT 
         mzn_solvers.name AS solver_name,
-        subquery.features,
-        subquery.mzn_file_name,
-        subquery.data_file_name,
-        subquery.instance_id,
-        subquery.opt_goals,
-        subquery.statuses
+        jsonb_object_agg('file', ARRAY[
+            mzn_solver_featvec_time.mzn_file_name, 
+            mzn_feature_vectors.data_file_name, 
+            array_to_string(mzn_feature_vectors.features, ','),
+            mzn_solver_featvec_time.opt_value,
+            mzn_solver_featvec_time.opt_goal,
+            CAST(mzn_solver_featvec_time.execution_time AS VARCHAR),
+            mzn_solver_featvec_time.status
+        ]) AS solved_files
     FROM 
         mzn_solvers
     JOIN 
-        (
-            SELECT 
-                mzn_solver_featvec_time.solver_id,
-                mzn_feature_vectors.features,
-                mzn_feature_vectors.mzn_file_name,
-                mzn_feature_vectors.data_file_name,
-                mzn_solver_featvec_time.id AS instance_id,
-                ARRAY_AGG(mzn_solver_featvec_time.opt_goal) AS opt_goals,
-                ARRAY_AGG(mzn_solver_featvec_time.status) AS statuses
-            FROM 
-                mzn_solver_featvec_time
-            JOIN 
-                mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
-            GROUP BY 
-                mzn_solver_featvec_time.solver_id, mzn_feature_vectors.features, mzn_feature_vectors.mzn_file_name, mzn_feature_vectors.data_file_name, mzn_solver_featvec_time.id
-        ) AS subquery ON mzn_solvers.id = subquery.solver_id;"""
+        mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
+    JOIN
+        mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
+    GROUP BY 
+        mzn_solvers.name;"""
 
+    print("RESUTL:", flush=True)
     result = query_database(query)
     print(result, flush=True)
     
