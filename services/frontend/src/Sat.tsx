@@ -179,7 +179,7 @@ function Sat() {
   }
 
   const fetchStartSolvers = async (item: SatSolverData) => {
-    console.log("ITEM: ", item)
+    console.log("satFileName ", satFileName)
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",

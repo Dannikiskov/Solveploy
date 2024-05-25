@@ -1,6 +1,6 @@
 import datetime
 import json
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 from flask_cors import CORS
 import messageQueue as mq
@@ -310,7 +310,7 @@ class Webhook(Resource):
         api_instance.patch_namespaced_deployment(deployment_name, namespace, body)
         print("Deployment patched", flush=True)
         
-        return json.loads({'status': 'success'})
+        return jsonify({'status': 'success'})
 
 
 api.add_resource(Jobs, '/api/jobs', '/api/jobs/<string:solver_type>', '/api/jobs/<string:solver_type>/<string:identifier>')
