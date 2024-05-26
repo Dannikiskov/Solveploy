@@ -195,22 +195,22 @@
       ansible.builtin.include_vars:
         file: ../../.environmentals.json
         
-    - name: Install ngrok-ingress-controller
-      kubernetes.core.helm:
-        name: ngrok
-        chart_ref: ngrok/kubernetes-ingress-controller
-        release_namespace: ngrok-ingress-controller
-        create_namespace: true
-        values:
-          credentials:
-            apiKey: "{{ NGROK_API_KEY }}" 
-            authtoken: "{{ NGROK_AUTHTOKEN }}"
+    # - name: Install ngrok-ingress-controller
+    #   kubernetes.core.helm:
+    #     name: ngrok
+    #     chart_ref: ngrok/kubernetes-ingress-controller
+    #     release_namespace: ngrok-ingress-controller
+    #     create_namespace: true
+    #     values:
+    #       credentials:
+    #         apiKey: "{{ NGROK_API_KEY }}" 
+    #         authtoken: "{{ NGROK_AUTHTOKEN }}"
     
-    - name: Apply Kubernetes deployments and services
-      kubernetes.core.k8s:
-        definition: "{{ item }}"
-      loop:
-        - "{{ lookup('file', '../../k8s-manifests/ngrok-ingress.yaml') | from_yaml_all }}"
+    # - name: Apply Kubernetes deployments and services
+    #   kubernetes.core.k8s:
+    #     definition: "{{ item }}"
+    #   loop:
+    #     - "{{ lookup('file', '../../k8s-manifests/ngrok-ingress.yaml') | from_yaml_all }}"
     
     # - name: Install Prometheus
     #   kubernetes.core.helm:

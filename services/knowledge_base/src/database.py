@@ -454,17 +454,17 @@ def handle_mzn_instance(data):
             opt_value = data["optVal"]
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, opt_value, opt_goal, execution_time, status, mzn_file_name, data_file_name) 
+                (solver_id, feature_vec_id, opt_value, opt_goal, execution_time, status) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], opt_value, opt_goal, execution_time, status, mznFileName, dataFileName)
+            params = (solver_id[0], feat_id[0], opt_value, opt_goal, execution_time, status)
         else: 
             query = """
                 INSERT INTO mzn_solver_featvec_time 
-                (solver_id, feature_vec_id, execution_time, status, opt_goal, mzn_file_name, data_file_name) 
+                (solver_id, feature_vec_id, execution_time, status, opt_goal) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            params = (solver_id[0], feat_id[0], execution_time, status, opt_goal, mznFileName, dataFileName)
+            params = (solver_id[0], feat_id[0], execution_time, status, opt_goal)
 
         query_database(query, params)
 
