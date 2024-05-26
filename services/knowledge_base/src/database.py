@@ -601,29 +601,37 @@ def get_data():
     if not table_exists:
         database_init()
     
-    query ="""SELECT 
+    query = """SELECT 
         solver_name,
-        jsonb_object_agg(mzn_file_name, solved_files) AS files
+        jsonb_object_agg(mzn_file_name, files) AS files
     FROM (
         SELECT 
-            mzn_solvers.name AS solver_name,
-            mzn_solver_featvec_time.mzn_file_name,
-            jsonb_agg(jsonb_build_object(
-                'data_file_name', mzn_feature_vectors.data_file_name, 
-                'opt_value', mzn_solver_featvec_time.opt_value,
-                'opt_goal', mzn_solver_featvec_time.opt_goal,
-                'execution_time', CAST(mzn_solver_featvec_time.execution_time AS VARCHAR),
-                'status', mzn_solver_featvec_time.status
-            )) AS solved_files
-        FROM 
-            mzn_solvers
-        JOIN 
-            mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
-        JOIN
-            mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
+            solver_name,
+            mzn_file_name,
+            jsonb_object_agg(data_file_name, solved_files) AS files
+        FROM (
+            SELECT 
+                mzn_solvers.name AS solver_name,
+                mzn_feature_vectors.mzn_file_name,
+                mzn_feature_vectors.data_file_name,
+                jsonb_agg(jsonb_build_object(
+                    'opt_value', mzn_solver_featvec_time.opt_value,
+                    'opt_goal', mzn_solver_featvec_time.opt_goal,
+                    'execution_time', CAST(mzn_solver_featvec_time.execution_time AS VARCHAR),
+                    'status', mzn_solver_featvec_time.status
+                )) AS solved_files
+            FROM 
+                mzn_solvers
+            JOIN 
+                mzn_solver_featvec_time ON mzn_solvers.id = mzn_solver_featvec_time.solver_id
+            JOIN
+                mzn_feature_vectors ON mzn_solver_featvec_time.feature_vec_id = mzn_feature_vectors.id
+            GROUP BY 
+                mzn_solvers.name, mzn_feature_vectors.mzn_file_name, mzn_feature_vectors.data_file_name
+        ) sub1
         GROUP BY 
-            mzn_solvers.name, mzn_solver_featvec_time.mzn_file_name
-    ) sub
+            solver_name, mzn_file_name
+    ) sub2
     GROUP BY 
         solver_name;"""
 
@@ -666,8 +674,6 @@ def database_init():
             execution_time FLOAT NOT NULL,
             status VARCHAR(2047),
             result VARCHAR(2047),
-            mzn_file_name VARCHAR(255),
-            data_file_name VARCHAR(255)
         );
     """
     query_database(query)
@@ -729,7 +735,6 @@ def database_init():
             solver_id INT REFERENCES maxsat_solvers(id),
             feature_vec_id INT REFERENCES maxsat_feature_vectors(id),
             execution_time FLOAT NOT NULL,
-            maxsat_file_name VARCHAR(255)
         );
     """
     query_database(query)

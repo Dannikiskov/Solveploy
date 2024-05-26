@@ -38,10 +38,10 @@ function Info() {
                 <ul>
                   {(fileData as DataItem[]).map((dataItem, dataIndex) => (
                     <li key={dataIndex}>
+                      Data File Name: {dataItem.data_file_name} <br />
                       Status: {dataItem.status} <br />
                       Opt Goal: {dataItem.opt_goal} <br />
                       Opt Value: {dataItem.opt_value} <br />
-                      Data File Name: {dataItem.data_file_name} <br />
                       Execution Time: {dataItem.execution_time}
                     </li>
                   ))}
