@@ -59,5 +59,5 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
         execution_time = "N/A"
 
         
-    print({"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val}, flush=True)
-    return {"result": output, "executionTime": execution_time, "status": str(result.status), "optValue": opt_val, "optGoal": objective_list}
+    print({"result": output, "executionTime": execution_time, "status": str(result.status), "optVal": opt_val}, flush=True)
+    return {"result": output, "executionTime": execution_time, "status": str(result.status), "optVal": opt_val, "optGoal": objective_list}
