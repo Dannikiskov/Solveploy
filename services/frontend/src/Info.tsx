@@ -49,7 +49,7 @@ function Info() {
                         </ul>
                         
                       ))}
-                      <hr style={{margin: '2px'}} />
+                      
                     </ul>
                   </div>
                 ))}
@@ -58,6 +58,7 @@ function Info() {
             <hr style={{margin: '2px'}} />
           </ul>
         ))}
+        <hr style={{margin: '2px'}} />
       </ul>
     </>
   );
