@@ -633,7 +633,7 @@ def get_data():
             solver_name, mzn_file_name
     ) sub2
     GROUP BY 
-        solver_name;"""
+        solver_name;    """
 
     print("RESUTL:", flush=True)
     result = query_database(query)
