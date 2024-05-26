@@ -87,3 +87,19 @@ button:hover {
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
 }
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul li {
+  margin-bottom: 10px;
+}
+
+ul li::before {
+  color: #063969;
+  font-weight: bold;
+  margin-right: 5px;
+}

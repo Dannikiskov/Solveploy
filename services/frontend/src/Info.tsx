@@ -30,7 +30,7 @@ function Info() {
       </p>
       <ul>
         {data.map((solverData, index) => (
-          <li key={index}>
+          <ul key={index}>
             <h2>{solverData[0]}</h2> 
             {Object.entries(solverData[1] as Record<string, unknown>).map(([fileName, fileData], fileIndex) => (
               <div key={fileIndex}>
@@ -40,19 +40,23 @@ function Info() {
                     <h4>{dataFileName}</h4> 
                     <ul>
                       {(dataItems as DataItem[]).map((dataItem: DataItem, itemIndex) => (
-                        <li key={itemIndex}>
+                        <ul key={itemIndex}>
                           Status: {dataItem.status} <br />
                           Opt Goal: {dataItem.opt_goal} <br />
                           Opt Value: {dataItem.opt_value} <br />
-                          Execution Time: {dataItem.execution_time}
-                        </li>
+                          Execution Time: {dataItem.execution_time} milliseconds
+                          <hr style={{margin: '2px'}} />
+                        </ul>
+                        
                       ))}
+                      <hr style={{margin: '2px'}} />
                     </ul>
                   </div>
                 ))}
               </div>
             ))}
-          </li>
+            <hr style={{margin: '2px'}} />
+          </ul>
         ))}
       </ul>
     </>
