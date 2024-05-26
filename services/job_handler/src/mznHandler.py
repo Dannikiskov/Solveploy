@@ -50,7 +50,7 @@ def handle_new_mzn_job(data):
         dict = {"dataFileName": data["dataFileName"],
                 "mznFileName": data["mznFileName"],
                 "optGoal": data["optGoal"], 
-                "optVal": data["optVal"], 
+                "optVal": k8_result["optVal"], 
                 "featureVector": feature_vector, "solverName": solver_name,
                 "executionTime": k8_result["executionTime"], 
                 "status": k8_result["status"], 
