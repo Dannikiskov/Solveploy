@@ -673,7 +673,7 @@ def database_init():
             opt_goal VARCHAR(2047),
             execution_time FLOAT NOT NULL,
             status VARCHAR(2047),
-            result VARCHAR(2047),
+            result VARCHAR(2047)
         );
     """
     query_database(query)
