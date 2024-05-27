@@ -139,7 +139,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
 
     # Generate all possible subsets of solvers
     subsets = []
-    for r in range(1, len(solvers) + 1):
+    for r in range(1, len(solvers)):
         subsets.extend(combinations(solvers, r))
     
     print("subset", subsets, flush=True)
