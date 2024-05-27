@@ -298,10 +298,12 @@ def is_instance_solved_sat(instance, solver):
     print(result, flush=True)
     
     if result:
-        if result[0][4] == "UNKNOWN":
+        if result[0][4] == "UNKOWN": # FIX TO UNKNOWN
             result = False
         else:
             result = True
+    else:
+            result = False
 
     print("result", result, flush=True)
 
