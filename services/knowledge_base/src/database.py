@@ -111,10 +111,10 @@ def is_instance_solved_maxsat(instance, solver):
         return "Feature vector not found"
 
     query = """
-        SELECT * FROM maxsat_solver_featvec_time 
-        WHERE solver_id = %s AND feature_vec_id = %s
+        SELECT * FROM sat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s AND status != %s
     """
-    params = (solver_id[0], feature_vector_id[0])
+    params = (solver_id[0], feature_vector_id[0], "UNKNOWN")
     result = query_database(query, params)[0]
     if result:
         result = True
@@ -494,10 +494,10 @@ def is_instance_solved_mzn(instance, solver):
         return "Feature vector not found"
 
     query = """
-        SELECT * FROM mzn_solver_featvec_time 
-        WHERE solver_id = %s AND feature_vec_id = %s
+        SELECT * FROM sat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s AND status != %s
     """
-    params = (solver_id[0], feature_vector_id[0])
+    params = (solver_id[0], feature_vector_id[0], "UNKNOWN")
     result = query_database(query, params)[0]
     if result:
         result = True
