@@ -172,7 +172,7 @@ class TestIsInstanceSolvedSat(unittest.TestCase):
     @patch('database.query_database')
     def test_is_instance_solved_maxsat(self, mock_query_database):
         instance = [1, 2, 3]
-        solver = {"name": "solver_name"}
+        solver = "solver_name"
         solver_id = 1
         feature_vector_id = 1
         expected_result = True
@@ -236,7 +236,7 @@ class TestIsInstanceSolvedMaxSat(unittest.TestCase):
     @patch('database.query_database')
     def test_is_instance_solved_maxsat(self, mock_query_database):
         instance = [1, 2, 3]
-        solver = {"name": "solver_name"}
+        solver = "solver_name"
         solver_id = 1
         feature_vector_id = 1
         expected_result = True
