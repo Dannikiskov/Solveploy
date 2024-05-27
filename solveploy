@@ -2,6 +2,9 @@
 import os
 import subprocess
 import sys
+import yaml
+import json
+
 
 upload_db = False
 download_db = False
@@ -9,6 +12,17 @@ dev = False
 port = None
 user = None
 file_path = "./ansible/inventory/hosts"
+
+with open('.environmentals.json', 'r') as file:
+    env_data = json.load(file)
+
+with open('k8s-manifests/ngrok-ingress.yaml', 'r') as file:
+    data = yaml.safe_load(file)
+
+data['spec']['rules'][0]['host'] = env_data["NGROK_DOMAIN"]
+
+with open('k8s-manifests/ngrok-ingress.yaml', 'w') as file:
+    yaml.safe_dump(data, file)
 
 if  "--help" in sys.argv or "-h" in sys.argv or len(sys.argv) < 2:
     print("Usage:\n \t python3 solveploy.py target_ip [options]"
