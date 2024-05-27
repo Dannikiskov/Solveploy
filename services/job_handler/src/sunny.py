@@ -152,6 +152,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             print("instance: ", instance, flush=True) 
             for solver in subset:
                 if kb.is_instance_solved(instance, solver, solver_type):
+                    print("instance is solved", flush=True)
                     solved_instances += 1
         print("subset: ", subset,  "solves ", solved_instances, " instances", flush=True)
         
