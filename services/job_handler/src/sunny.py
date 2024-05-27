@@ -13,7 +13,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     # Get features vector for the given instance
     print("printing arguments", k, T, identifier, data_type, flush=True)
     print("\n\nGetting features vector for the given instance", flush=True)
-    feat_vect = get_features(inst, solver_type, data_file, data_type)
+    feat_vect = [1.0]#get_features(inst, solver_type, data_file, data_type)
     print("feat_vect: ", feat_vect, flush=True)
     print("type feat_vect: ", type(feat_vect), flush=True)
 
