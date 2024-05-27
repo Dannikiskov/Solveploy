@@ -251,7 +251,7 @@ class TestIsInstanceSolvedMaxSat(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
         self.assertEqual(mock_query_database.call_count, 3)
-        mock_query_database.assert_any_call("SELECT id FROM maxsat_solvers WHERE name = %s", (solver["name"],))
+        mock_query_database.assert_any_call("SELECT id FROM maxsat_solvers WHERE name = %s", (solver,))
         mock_query_database.assert_any_call("SELECT id FROM maxsat_feature_vectors WHERE features = %s", ("{1,2,3}",))
         mock_query_database.assert_any_call(
     "\n        SELECT * FROM maxsat_solver_featvec_time \n        WHERE solver_id = %s AND feature_vec_id = %s\n    ", (solver_id, feature_vector_id)
@@ -288,7 +288,7 @@ class TestIsInstanceSolvedMzn(unittest.TestCase):
     @patch('database.query_database')
     def test_is_instance_solved_mzn(self, mock_query_database):
         instance = [1, 2, 3]
-        solver = {"name": "solver_name"}
+        solver = "solver_name"
         solver_id = 1
         feature_vector_id = 1
         expected_result = True
@@ -303,7 +303,7 @@ class TestIsInstanceSolvedMzn(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
         self.assertEqual(mock_query_database.call_count, 3)
-        mock_query_database.assert_any_call("SELECT id FROM mzn_solvers WHERE name = %s", (solver["name"],))
+        mock_query_database.assert_any_call("SELECT id FROM mzn_solvers WHERE name = %s", (solver,))
         mock_query_database.assert_any_call("SELECT id FROM mzn_feature_vectors WHERE features = %s", ("{1,2,3}",))
         mock_query_database.assert_any_call(
     "\n        SELECT * FROM mzn_solver_featvec_time \n        WHERE solver_id = %s AND feature_vec_id = %s\n    ", (solver_id, feature_vector_id)
