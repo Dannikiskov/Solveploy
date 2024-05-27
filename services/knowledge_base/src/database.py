@@ -93,7 +93,7 @@ def is_instance_solved_maxsat(instance, solver):
     print("instance", instance, flush=True)
     print("solver", solver, flush=True)
     query = "SELECT id FROM maxsat_solvers WHERE name = %s"
-    params = (solver["name"],)
+    params = (solver,)
     solver_id = query_database(query, params)
 
     if not solver_id:
@@ -475,7 +475,7 @@ def is_instance_solved_mzn(instance, solver):
     print("instance", instance, flush=True)
     print("solver", solver, flush=True)
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
-    params = (solver["name"],)
+    params = (solver,)
     solver_id = query_database(query, params)
 
     if not solver_id:
