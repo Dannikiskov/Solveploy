@@ -271,7 +271,7 @@ def is_instance_solved_sat(instance, solver):
     print("instance", instance, flush=True)
     print("solver", solver, flush=True)
     query = "SELECT id FROM sat_solvers WHERE name = %s"
-    params = (solver["name"],)
+    params = (solver,)
     solver_id = query_database(query, params)
 
     if not solver_id:
