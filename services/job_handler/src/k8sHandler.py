@@ -11,7 +11,7 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
     config.load_incluster_config()
 
     # Create a unique job name
-    job_name = f"{solver_name.lower()}-{identifier}"
+    job_name = f"{solver_name.lower().replace(" ", "-")}-{identifier}"
     # print("Job name: ", job_name, flush=True)
 
     config.load_incluster_config()
