@@ -159,6 +159,8 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
         print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
         
         # Update the maximum number of solved instances and the selected solvers
+        print("max_solved: ", max_solved, flush=True)
+        print("solved_instances_num: ", solved_instances_num, flush=True)
         if solved_instances_num >= max_solved:
             if solved_instances_num > max_solved:
                 best_subsets.clear()
