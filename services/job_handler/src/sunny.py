@@ -144,24 +144,31 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     
     print("subset", subsets, flush=True)
     # Iterate through each subset
-    
-    for subset in subsets:
-        solved_instances_num = 0
-        solved_instances_list = []
-        # Check how many instances can be solved using the current subset
-        for instance in similar_insts:
-            #print("instance: ", instance, flush=True) 
-            for solver in subset:
-                if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
-                    solved_instances_list.append(instance)
-                    solved_instances_num += 1
-        print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
+    try:
+        best_subsets = {}
+        for subset in subsets:
+            print("subset: ", subset, flush=True)
+            solved_instances_num = 0
+            solved_instances_list = []
+            # Check how many instances can be solved using the current subset
+            for instance in similar_insts:
+                print("instance: ", instance, flush=True) 
+                for solver in subset:
+                    print("solver: ", solver, flush=True)
+                    if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
+                        print("instance: ", instance, "solved by: ", solver, flush=True)
+                        solved_instances_list.append(instance)
+                        solved_instances_num += 1
+            print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
+            
+            # Update the maximum number of solved instances and the selected solvers
+            if solved_instances_num >= max_solved:
+
+                max_solved = solved_instances_num
+                selected_solvers = list(subset)
+    except Exception as e:
+        print("Error: ", e, flush=True)
         
-        # Update the maximum number of solved instances and the selected solvers
-        if solved_instances_num > max_solved:
-            max_solved = solved_instances_num
-            selected_solvers = list(subset)
-    
     return selected_solvers
 
 
