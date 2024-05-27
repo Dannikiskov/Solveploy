@@ -34,7 +34,9 @@ def is_instance_solved(instance, solver, solver_type):
 
     result = mq.send_wait_receive(data)
     print(" KB result: ", result, flush=True)
-    return result
+    print(" KB TYPE result: ", type(result), flush=True)
+
+    return bool(result)
 
 def get_all_solved(solver_type):
     if solver_type == 'mzn':
