@@ -100,7 +100,7 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
     print("\n\n", flush=True)
     print("feat_vect: ", feat_vect, flush=True)
 
-    feat_vect = [float(i) for i in feat_vect.split(',')]
+    #feat_vect = [float(i) for i in feat_vect.split(',')]
 
     print("feat_vect: ", feat_vect, flush=True)
     print("type feat_vect: ", type(feat_vect), flush=True)
