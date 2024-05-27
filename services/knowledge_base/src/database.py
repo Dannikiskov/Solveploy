@@ -290,17 +290,18 @@ def is_instance_solved_sat(instance, solver):
 
     query = """
         SELECT * FROM sat_solver_featvec_time 
-        WHERE solver_id = %s AND feature_vec_id = %s AND status != %s
+        WHERE solver_id = %s AND feature_vec_id = %s
     """
-    params = (solver_id[0], feature_vector_id[0], "UNKNOWN")
+    params = (solver_id[0], feature_vector_id[0])
     result = query_database(query, params)
     print("RESULLLLLT", flush=True) 
     print(result, flush=True)
     
     if result:
-        result = True
-    else:
-        result = False
+        if result[0][4] == "UNKNOWN":
+            result = False
+        else:
+            result = True
 
     print("result", result, flush=True)
 
