@@ -165,6 +165,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             if solved_instances_num > max_solved:
                 best_subsets.clear()
                 best_subsets[subset] = solved_instances_num
+                max_solved = solved_instances_num
             else:
                 best_subsets[subset] = solved_instances_num
             print("best_subsets: ", best_subsets, flush=True)
