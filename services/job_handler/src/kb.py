@@ -33,6 +33,7 @@ def is_instance_solved(instance, solver, solver_type):
         data = create_dict('IsInstanceSolvedMaxSat', {'instance': instance, 'solver': solver})
 
     result = mq.send_wait_receive(data)
+    print(" KB result: ", result, flush=True)
     return result
 
 def get_all_solved(solver_type):
