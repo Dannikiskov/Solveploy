@@ -111,7 +111,7 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
     
     kb_features = ast.literal_eval(kb_features)
     print("before removal: ", kb_features, flush=True)
-    kb_features.remove(feat_vect)
+    #kb_features.remove(feat_vect)
 
     print("kb_features: ", kb_features, flush=True)
     
