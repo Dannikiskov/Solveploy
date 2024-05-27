@@ -4,6 +4,9 @@ import tempfile
 import os
 
 def run_minizinc_model(model_string, solver_name, data_string=None, data_type=None, params_dict=None, objective_list=None):
+    if solver_name == "or tools cp-sat":
+        solver_name = "sat"
+    
     print("Running Minizinc model", flush=True)
     with tempfile.NamedTemporaryFile(mode='w', suffix='.mzn', delete=False) as temp_model_file:
         temp_model_file.write(model_string)

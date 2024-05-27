@@ -65,5 +65,5 @@ def handle_new_mzn_job(data):
 
 
 def get_available_mzn_solvers(data):
-    available_solvers = [{"name": "gecode"}, {'name': 'chuffed'}, {'name': 'coin-bc'}, {'name': 'cplex'}, {'name': 'gist'}]
+    available_solvers = [{"name": "gecode"}, {'name': 'chuffed'}, {'name': 'coin-bc'}, {'name': 'highs'}, {'name': 'or tools cp-sat'}]
     mq.send_to_queue(available_solvers, f'{data["queueName"]}-{data["identifier"]}')

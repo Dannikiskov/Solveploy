@@ -1,2 +1,2 @@
 [kubernetes_hosts]
-target_vm ansible_host=130.225.38.231 ansible_user=ucloud
+target_vm ansible_host=130.225.38.237 ansible_user=ucloud
