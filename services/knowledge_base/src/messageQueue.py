@@ -63,6 +63,8 @@ def consume():
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "isInstanceSolvedSat":
+            print(content['instance'], flush=True)
+            print(content['solver'], flush=True)
             response = database.is_instance_solved_sat(content['instance'], content['solver'])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
