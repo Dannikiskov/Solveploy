@@ -293,7 +293,9 @@ def is_instance_solved_sat(instance, solver):
         WHERE solver_id = %s AND feature_vec_id = %s AND status != %s
     """
     params = (solver_id[0], feature_vector_id[0], "UNKNOWN")
-    result = query_database(query, params)[0]
+    result = query_database(query, params)
+    print("RESULLLLLT", flush=True) 
+    print(result, flush=True)
     
     if result:
         result = True
