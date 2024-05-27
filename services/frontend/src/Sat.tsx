@@ -295,7 +295,7 @@ ${bestResult.result}
     console.log("k: ", k);
     console.log("T: ", t);
     console.log("solvers:", selectedSatSolvers);
-    const response = await fetch("/api/jobs/sunny", {
+    const response = await fetch("/api/sunny", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

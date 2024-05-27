@@ -54,6 +54,8 @@ class Jobs(Resource):
 class Sunny(Resource):
 
     def post(self):
+        print("POSTING SUNNY", flush=True)
+        print("REQUEST: ", request.json, flush=True)
         data = request.json
         data["identifier"] = str(uuid.uuid4())
         data["instructions"] = "Sunny"
@@ -324,7 +326,7 @@ class Data(Resource):
     
 
 api.add_resource(Jobs, '/api/jobs', '/api/jobs/<string:solver_type>', '/api/jobs/<string:solver_type>/<string:identifier>')
-api.add_resource(Sunny, '/api/jobs/sunny')
+api.add_resource(Sunny, '/api/sunny')
 api.add_resource(SolversMzn, '/api/solvers/mzn')
 api.add_resource(SolversSat, '/api/solvers/sat')
 api.add_resource(SolversMaxsat, '/api/solvers/maxsat')
