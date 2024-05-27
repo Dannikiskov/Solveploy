@@ -187,7 +187,7 @@ class TestIsInstanceSolvedSat(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
         self.assertEqual(mock_query_database.call_count, 3)
-        mock_query_database.assert_any_call("SELECT id FROM sat_solvers WHERE name = %s", (solver["name"],))
+        mock_query_database.assert_any_call("SELECT id FROM sat_solvers WHERE name = %s", (solver,))
         mock_query_database.assert_any_call("SELECT id FROM sat_feature_vectors WHERE features = %s", ("{1,2,3}",))
         mock_query_database.assert_any_call(
     "\n        SELECT * FROM sat_solver_featvec_time \n        WHERE solver_id = %s AND feature_vec_id = %s\n    ", (solver_id, feature_vector_id)
