@@ -734,7 +734,7 @@ def database_init():
             id SERIAL PRIMARY KEY,
             solver_id INT REFERENCES maxsat_solvers(id),
             feature_vec_id INT REFERENCES maxsat_feature_vectors(id),
-            execution_time FLOAT NOT NULL,
+            execution_time FLOAT NOT NULL
         );
     """
     query_database(query)
