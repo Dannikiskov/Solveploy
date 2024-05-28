@@ -144,6 +144,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     # print("subset", subsets, flush=True)
     max_solved = 0
     best_subsets = {}
+    solver_solve_times = {}
     for subset in subsets:
         print("subset: ", subset, flush=True)
         solved_instances_num = 0
@@ -154,6 +155,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
                 # print("solver: ", solver, flush=True)
                 if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
                     # print("instance: ", instance, "solved by: ", solver, flush=True)
+                    solver_solve_times.setdefault(solver, []).append(kb.get_solved_time(solver, instance, solver_type))
                     solved_instances_list.append(instance)
                     solved_instances_num += 1
         print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
@@ -169,21 +171,10 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             else:
                 best_subsets[subset] = solved_instances_num
             print("best_subsets: ", best_subsets, flush=True)
+            
+    print(solver_solve_times)
 
-    lowest_average = -1
-    best_subset = None
-    for subset in best_subsets:
-        print("subset: ", subset, flush=True)
-        solved_times = kb.get_solved_times(subset, similar_insts, solver_type)
-        avg = sum([float(x) for x in solved_times]) / len(solved_times)
-        print("avg: ", avg, flush=True)
-        if avg < lowest_average:
-            lowest_average = avg
-            best_subset = subset
-            print("best_subset: ", best_subset, flush=True)
-    
-
-    return best_subset
+    return best_subsets.keys()[0]
 
 
 def get_max_solved(solvers, similar_insts, T, solver_type):
@@ -195,7 +186,7 @@ def get_max_solved(solvers, similar_insts, T, solver_type):
 
     max_solved = 0
     for solver in solvers:
-        solver_solves_instances = kb.get_solved_times(solver, similar_insts, solver_type)
+        solver_solves_instances = kb.get_solver_times(solver, similar_insts, solver_type)
         solver_solves_instances = ast.literal_eval(solver_solves_instances)
         solver_solves_instances = [float(x) for x in solver_solves_instances]
 

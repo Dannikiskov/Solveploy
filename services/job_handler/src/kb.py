@@ -20,6 +20,17 @@ def handle_instance(file_data):
     mq.send_wait_receive(data)
 
 
+def get_solved_time(solver, inst, solver_type):
+    if solver_type == 'mzn':
+        data = create_dict('GetSolvedTimeMzn', {'solver': solver, 'inst': inst})
+    if solver_type == 'sat':
+        data = create_dict('GetSolvedTimeSat', {'solver': solver, 'inst': inst})
+    if solver_type == 'maxsat':
+        data = create_dict('GetSolvedTimeMaxSat', {'solver': solver, 'inst': inst})
+
+    result = mq.send_wait_receive(data)
+    return result
+
 def get_solved(solvers, similar_insts, T):
     data = create_dict('GetSolved', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
     mq.send_wait_receive(data)

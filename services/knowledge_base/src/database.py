@@ -208,6 +208,22 @@ def get_maxsat_solvers():
     query = "SELECT * FROM maxsat_solvers"
     return query_database(query)
 
+def get_solved_time_maxsat(solver_name, inst):
+    print("solver_name", solver_name, flush=True)
+    solver_id = get_maxsat_solver_id_by_name(solver_name)
+    print("solver_id", solver_id, flush=True)
+    feat_vec_id = get_maxsat_feature_vector_id(inst)
+
+    query = """
+        SELECT execution_time FROM maxsat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s 
+    """
+
+    params = (solver_id, feat_vec_id)
+    result = query_database(query, params)[0]
+
+    return result
+
 
 # SAT
 def handle_sat_instance(data):
@@ -352,6 +368,8 @@ def all_sat_feature_vectors():
     return query_database(query)
 
 
+
+
 def get_solved_times_sat(solver_name, insts):
     print("solver_name", solver_name, flush=True)
     print("insts length", len(insts), flush=True)
@@ -392,6 +410,22 @@ def get_sat_solvers():
     query = "SELECT * FROM sat_solvers"
     return query_database(query)
 
+
+def get_solved_time_sat(solver_name, inst):
+    print("solver_name", solver_name, flush=True)
+    solver_id = get_sat_solver_id_by_name(solver_name)
+    print("solver_id", solver_id, flush=True)
+    feat_vec_id = get_sat_feature_vector_id(inst)
+
+    query = """
+        SELECT execution_time FROM sat_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s 
+    """
+
+    params = (solver_id, feat_vec_id)
+    result = query_database(query, params)[0]
+
+    return result
 
 # MZN
 def get_mzn_solver_id_by_name(solver_name):
@@ -580,6 +614,22 @@ def get_solved_times_mzn(solver_name, insts):
 def get_mzn_solvers():
     query = "SELECT * FROM mzn_solvers"
     return query_database(query)
+
+def get_solved_time_mzn(solver_name, inst):
+    print("solver_name", solver_name, flush=True)
+    solver_id = get_mzn_solver_id_by_name(solver_name)
+    print("solver_id", solver_id, flush=True)
+    feat_vec_id = get_mzn_feature_vector_id(inst)
+
+    query = """
+        SELECT execution_time FROM mzn_solver_featvec_time 
+        WHERE solver_id = %s AND feature_vec_id = %s 
+    """
+
+    params = (solver_id, feat_vec_id)
+    result = query_database(query, params)[0]
+
+    return result
 
 
 def print_stuff():
