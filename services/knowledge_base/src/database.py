@@ -411,6 +411,10 @@ def get_sat_solvers():
     return query_database(query)
 
 def matrix(solvers, insts, T):
+    print("solvers: ", solvers, flush=True)
+    print("insts: ", insts, flush=True)
+    print("T: ", T, flush=True)
+
     query = sql.SQL("""
     SELECT 
         s.name AS solver_name, 
@@ -432,7 +436,7 @@ def matrix(solvers, insts, T):
         s.name, f.id;
     """).format(
         sql.SQL(',').join(sql.Identifier(solver) for solver in solvers),
-        sql.SQL(',').join(sql.Identifier(inst) for inst in insts)
+        sql.SQL(',').join(sql.Identifier(str(inst)) for inst in insts)  # Convert insts to strings
     )
     params = (T,)
     result = query_database(query, params)
