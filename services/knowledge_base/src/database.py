@@ -431,12 +431,12 @@ def matrix(solvers, insts, T):
         sat_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.sat_file_name IN ({})
+        f.features IN ({})
     ORDER BY 
         s.name, f.id;
     """).format(
-        sql.SQL(',').join(sql.Identifier(solver) for solver in solvers),
-        sql.SQL(',').join(sql.Identifier(str(inst)) for inst in insts)  # Convert insts to strings
+        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
+        sql.SQL(',').join(sql.Literal(str(inst)) for inst in insts)  # Convert insts to strings and use sql.Literal
     )
     params = (T,)
     result = query_database(query, params)
