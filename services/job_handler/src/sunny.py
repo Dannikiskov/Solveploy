@@ -171,8 +171,9 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             else:
                 best_subsets[subset] = solved_instances_num
             print("best_subsets: ", best_subsets, flush=True)
-            
-    print(solver_solve_times)
+
+    print("SOLVE TIMER", flush=True)            
+    print(solver_solve_times, flush=True)
 
     return best_subsets.keys()[0]
 
