@@ -2,8 +2,8 @@
 import messageQueue as mq
 import uuid
 
-def matrix(solvers, similar_insts, solver_type):
-    data = create_dict('Matrix', {'solvers': solvers, 'similarInsts': similar_insts, 'solverType': solver_type})
+def matrix(solvers, similar_insts, T, solver_type):
+    data = create_dict('Matrix', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
     mq.send_wait_receive(data)
 
 def get_all_feature_vectors(solver_type):

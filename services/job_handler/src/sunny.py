@@ -26,7 +26,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     # Get sub-portfolio
     print("Getting sub-portfolio", flush=True)
-    sub_portfolio = get_sub_portfolio(similar_insts, solvers, solver_type)
+    sub_portfolio = get_sub_portfolio(similar_insts, solvers, T, solver_type)
     print("sub_portfolio", sub_portfolio, flush=True)
 
     # Initialize variables
@@ -133,7 +133,7 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
     return nearest_neighbors
 
 
-def get_sub_portfolio(similar_insts, solvers, solver_type):
+def get_sub_portfolio(similar_insts, solvers, T, solver_type):
 
 
     # Generate all possible subsets of solvers
@@ -141,7 +141,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     for r in range(1, len(solvers)):
         subsets.extend(combinations(solvers, r))
     
-    res = kb.matrix(solvers, similar_insts, solver_type)
+    res = kb.matrix(solvers, similar_insts, T, solver_type)
     print("res", flush=True)
     print(res, flush=True)
     return
