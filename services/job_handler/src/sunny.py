@@ -142,6 +142,9 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
         subsets.extend(combinations(solvers, r))
     
     data = kb.matrix(solvers, similar_insts, T, solver_type)
+    print("data: ", data, flush=True)
+    print("data type: ", type(data), flush=True)
+    
     distinct_numbers = set()
     for item in data:
         for subitem in item:
