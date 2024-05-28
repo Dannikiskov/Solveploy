@@ -143,7 +143,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
-    
+
     distinct_numbers = set()
     for item in data:
         for subitem in item:
@@ -207,7 +207,7 @@ def get_max_solved(solvers, similar_insts, T, solver_type):
     
     max_solved = 0
     for solver in solvers:
-        solver_solves_instances = kb.get_solver_times(solver, similar_insts, solver_type)
+        solver_solves_instances = kb.get_solved_times(solver, similar_insts, solver_type)
         solver_solves_instances = ast.literal_eval(solver_solves_instances)
         solver_solves_instances = [float(x) for x in solver_solves_instances]
 
