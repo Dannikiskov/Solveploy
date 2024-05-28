@@ -36,7 +36,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     time_slot = T / slots
     print("time_slot", time_slot, flush=True)
     tot_time = 0
-    schedule = {bkup_solver["name"]: 0}
+    schedule = {bkup_solver: 0}
 
     # Populate the schedule
     print("Populating the schedule", flush=True)
@@ -171,7 +171,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             solver_to_instances[solver].append(instance)
 
     # For each subset, calculate the total solve time, the average solve time, and find the subset with total time <= 1800 and the maximum number of unique solved instances
-    T = 1800
     max_solved_instances = 0
     min_time = float('inf')
     best_subsets = {}
