@@ -142,7 +142,8 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
         subsets.extend(combinations(solvers, r))
     
     res = kb.matrix(solvers, similar_insts, solver_type)
-
+    print("res", flush=True)
+    print(res, flush=True)
     return
 
     # # print("subset", subsets, flush=True)
