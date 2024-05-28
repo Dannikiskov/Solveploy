@@ -410,6 +410,7 @@ def get_sat_solvers():
     query = "SELECT * FROM sat_solvers"
     return query_database(query)
 
+
 def matrix(solvers, insts, T):
 
     if not (isinstance(insts[0], list)):
@@ -423,6 +424,11 @@ def matrix(solvers, insts, T):
     insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
         sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
     ) for inner_list in insts]
+
+    # Create a subquery that returns the arrays
+    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])").format(
+        sql.SQL(',').join(insts_array_literals)
+    )
 
     query = sql.SQL("""
     SELECT 
@@ -440,17 +446,19 @@ def matrix(solvers, insts, T):
         sat_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features = ANY ({})  # Use = ANY operator for array column
+        f.features = ANY ({})  # Use = ANY operator with a subquery
     ORDER BY 
         s.name, f.id;
     """).format(
         sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
-        sql.SQL(',').join(insts_array_literals)  # Use array literals for insts
+        insts_subquery  # Use the subquery for insts
     )
     params = (T,)
     result = query_database(query, params)
     print("MATRIX RESULT", result, flush=True)
     return result
+
+
 # MZN
 def get_mzn_solver_id_by_name(solver_name):
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
