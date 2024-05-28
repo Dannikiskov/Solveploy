@@ -446,7 +446,7 @@ def matrix(solvers, insts, T):
         sat_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features = ANY ({})  # Use = ANY operator with a subquery
+        f.features = ANY ({})
     ORDER BY 
         s.name, f.id;
     """).format(
