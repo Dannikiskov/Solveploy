@@ -32,7 +32,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     # Initialize variables
     print("Initializing variables", flush=True)
-    slots = sum([get_max_solved(solver, matrix) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix))
+    slots = sum([get_max_solved(solver, matrix, T) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix, T))
     print("slots", slots, flush=True)
     time_slot = T / slots
     print("time_slot", time_slot, flush=True)
@@ -42,7 +42,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     # Populate the schedule
     print("Populating the schedule", flush=True)
     for solver in sub_portfolio:
-        solver_slots = get_max_solved(solver, similar_insts, T, solver_type)
+        solver_slots = get_max_solved(solver, matrix, T)
         schedule[solver] = solver_slots * time_slot
         tot_time += solver_slots * time_slot
 
@@ -198,16 +198,16 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     return (list(next(iter(best_subsets))), data)
 
 
-def get_max_solved(solvers, matrix):
+def get_max_solved(solvers, matrix, T):
+    print("solvers: ", solvers, flush=True)
     if not (isinstance(solvers, list)):
         solvers = [solvers]
         
-    solved_counts = defaultdict(int)
-    for solver, _, time in matrix:
-        if time != "T":
-            solved_counts[solver] += 1
-    max_solved = max(solved_counts.values()) if solved_counts else 0
-    return max_solved
+    solved_instances = set()
+    for solver, instance, time in matrix:
+        if solver in solvers and time != "T" and int(time) <= T:
+            solved_instances.add(instance)
+    return len(solved_instances)
 
 def euclidean_distance(vector1, vector2):
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
