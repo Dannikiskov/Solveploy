@@ -141,43 +141,47 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     for r in range(1, len(solvers)):
         subsets.extend(combinations(solvers, r))
     
-    # print("subset", subsets, flush=True)
-    max_solved = 0
-    best_subsets = {}
-    solver_solve_times = {}
-    solver_solved_instances = {}
-    for subset in subsets:
-        print("subset: ", subset, flush=True)
-        solved_instances_num = 0
-        solved_instances_list = []
-        for instance in similar_insts:
-            # print("instance: ", instance, flush=True) 
-            for solver in subset:
-                # print("solver: ", solver, flush=True)
-                if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
-                    if solver not in solver_solved_instances or instance not in solver_solved_instances[solver]:
-                        solver_solve_times.setdefault(solver, []).append(kb.get_solved_time(solver, instance, solver_type))
-                        solver_solved_instances.setdefault(solver, set()).add(instance)
-                    solved_instances_list.append(instance)
-                    solved_instances_num += 1
-        print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
+    res = kb.matrix(solvers, similar_insts, solver_type)
+
+    return
+
+    # # print("subset", subsets, flush=True)
+    # max_solved = 0
+    # best_subsets = {}
+    # solver_solve_times = {}
+    # solver_solved_instances = {}
+    # for subset in subsets:
+    #     print("subset: ", subset, flush=True)
+    #     solved_instances_num = 0
+    #     solved_instances_list = []
+    #     for instance in similar_insts:
+    #         # print("instance: ", instance, flush=True) 
+    #         for solver in subset:
+    #             # print("solver: ", solver, flush=True)
+    #             if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
+    #                 if solver not in solver_solved_instances or instance not in solver_solved_instances[solver]:
+    #                     solver_solve_times.setdefault(solver, []).append(kb.get_solved_time(solver, instance, solver_type))
+    #                     solver_solved_instances.setdefault(solver, set()).add(instance)
+    #                 solved_instances_list.append(instance)
+    #                 solved_instances_num += 1
+    #     print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
         
-        # Update the maximum number of solved instances and the selected solvers
-        print("max_solved: ", max_solved, flush=True)
-        print("solved_instances_num: ", solved_instances_num, flush=True)
-        if solved_instances_num >= max_solved:
-            if solved_instances_num > max_solved:
-                best_subsets.clear()
-                best_subsets[subset] = solved_instances_num
-                max_solved = solved_instances_num
-            else:
-                best_subsets[subset] = solved_instances_num
-            print("best_subsets: ", best_subsets, flush=True)
+    #     # Update the maximum number of solved instances and the selected solvers
+    #     print("max_solved: ", max_solved, flush=True)
+    #     print("solved_instances_num: ", solved_instances_num, flush=True)
+    #     if solved_instances_num >= max_solved:
+    #         if solved_instances_num > max_solved:
+    #             best_subsets.clear()
+    #             best_subsets[subset] = solved_instances_num
+    #             max_solved = solved_instances_num
+    #         else:
+    #             best_subsets[subset] = solved_instances_num
+    #         print("best_subsets: ", best_subsets, flush=True)
 
-    print("SOLVE TIMER", flush=True)            
-    print(solver_solve_times, flush=True)
+    # print("SOLVE TIMER", flush=True)            
+    # print(solver_solve_times, flush=True)
 
-    return best_subsets.keys()[0]
+    # return best_subsets.keys()[0]
 
 
 def get_max_solved(solvers, similar_insts, T, solver_type):

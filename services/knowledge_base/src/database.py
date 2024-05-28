@@ -410,6 +410,35 @@ def get_sat_solvers():
     query = "SELECT * FROM sat_solvers"
     return query_database(query)
 
+def matrix(solvers, insts, T):
+    query = sql.SQL("""
+    SELECT 
+        s.name AS solver_name, 
+        f.id AS feature_vector_id, 
+        CASE 
+            WHEN t.execution_time > %s THEN 'T' 
+            ELSE CAST(t.execution_time AS VARCHAR) 
+        END AS execution_time
+    FROM 
+        sat_solvers s
+    JOIN 
+        sat_solver_featvec_time t ON s.id = t.solver_id
+    JOIN 
+        sat_feature_vectors f ON t.feature_vec_id = f.id
+    WHERE 
+        s.name IN ({}) AND 
+        f.sat_file_name IN ({})
+    ORDER BY 
+        s.name, f.id;
+    """).format(
+        sql.SQL(',').join(sql.Identifier(solver) for solver in solvers),
+        sql.SQL(',').join(sql.Identifier(inst) for inst in insts)
+    )
+    params = (T,)
+    result = query_database(query, params)
+    print("MATRIX RESULT", result, flush=True)
+    return result
+
 
 def get_solved_time_sat(solver_name, inst):
     print("solver_name", solver_name, flush=True)
