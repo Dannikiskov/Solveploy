@@ -412,14 +412,12 @@ def get_sat_solvers():
 
 def matrix(solvers, insts, T):
 
-    if not (isinstance(insts, list)):
-        insts = [insts]
-        
+    if not (isinstance(insts[0], list)):
+        insts = [[x] for x in insts]
+
     print("solvers: ", solvers, flush=True)
     print("insts: ", insts, flush=True)
     print("T: ", T, flush=True)
-
-
 
     # Convert each inner list to an array literal
     insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
