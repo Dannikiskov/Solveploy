@@ -103,9 +103,9 @@ def consume():
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "Matrix":
-            response = database.matrix()
+            response = database.matrix(content["solvers"], content["similarInsts"], content["T"])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
-            
+
         else:
             print("FAILED - No matching instructions: ", instructions, flush=True)
         
