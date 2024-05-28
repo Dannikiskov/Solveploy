@@ -42,14 +42,14 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     print("Populating the schedule", flush=True)
     for solver in sub_portfolio:
         solver_slots = get_max_solved(solver, similar_insts, T, solver_type)
-        schedule[solver["name"]] = solver_slots * time_slot
+        schedule[solver] = solver_slots * time_slot
         tot_time += solver_slots * time_slot
 
     print("schedule", schedule, flush=True)
     # Adjust backup solver time
     print("Adjusting backup solver time", flush=True)
     if tot_time < T:
-        schedule[bkup_solver["name"]] += T - tot_time
+        schedule[bkup_solver] += T - tot_time
 
     # Return sorted schedule
     result = sorted(schedule.items(), key=lambda x: x[1])
