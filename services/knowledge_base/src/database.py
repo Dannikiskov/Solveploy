@@ -446,7 +446,10 @@ def matrix(solvers, insts, T):
         sat_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features = ANY ({})
+        EXISTS (
+            SELECT 1 FROM unnest(f.features) feature
+            WHERE feature = ANY ({})
+        )
     ORDER BY 
         s.name, f.id;
     """).format(
