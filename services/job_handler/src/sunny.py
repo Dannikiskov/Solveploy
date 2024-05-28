@@ -148,7 +148,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
         for instance in similar_insts:
             for solver in subset:
                 if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
-                    solve_time = kb.get_solver_times(solver, similar_insts, solver_type)
+                    solve_time = int(kb.get_solver_times(solver, instance, solver_type))
                     solved_instances_list.append(instance)
                     solved_instances_num += 1
                     total_time += solve_time
