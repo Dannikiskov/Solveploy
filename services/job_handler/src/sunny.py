@@ -141,9 +141,8 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     for r in range(1, len(solvers)):
         subsets.extend(combinations(solvers, r))
     
-    data = kb.matrix(solvers, similar_insts, T, solver_type)
-    print("data: ", data, flush=True)
-    print("data type: ", type(data), flush=True)
+    data_str = kb.matrix(solvers, similar_insts, T, solver_type)
+    data = ast.literal_eval(data_str)
     
     distinct_numbers = set()
     for item in data:
