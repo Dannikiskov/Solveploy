@@ -145,6 +145,7 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
     max_solved = 0
     best_subsets = {}
     solver_solve_times = {}
+    solver_solved_instances = {}
     for subset in subsets:
         print("subset: ", subset, flush=True)
         solved_instances_num = 0
@@ -154,8 +155,9 @@ def get_sub_portfolio(similar_insts, solvers, solver_type):
             for solver in subset:
                 # print("solver: ", solver, flush=True)
                 if instance not in solved_instances_list and kb.is_instance_solved(instance, solver, solver_type):
-                    if solver not in solver_solve_times or instance not in solver_solve_times[solver]:
+                    if solver not in solver_solved_instances or instance not in solver_solved_instances[solver]:
                         solver_solve_times.setdefault(solver, []).append(kb.get_solved_time(solver, instance, solver_type))
+                        solver_solved_instances.setdefault(solver, set()).add(instance)
                     solved_instances_list.append(instance)
                     solved_instances_num += 1
         print("subset: ", subset,  "solves ", solved_instances_num, " instances", flush=True)
