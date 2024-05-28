@@ -6,6 +6,7 @@ import kb
 import messageQueue as mq
 import ast
 import sat_feat_py.generate_features as gf
+from collections import defaultdict
 
 
 
@@ -26,12 +27,12 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     # Get sub-portfolio
     print("Getting sub-portfolio", flush=True)
-    sub_portfolio = get_sub_portfolio(similar_insts, solvers, T, solver_type)
+    sub_portfolio, matrix = get_sub_portfolio(similar_insts, solvers, T, solver_type)
     print("sub_portfolio", sub_portfolio, flush=True)
 
     # Initialize variables
     print("Initializing variables", flush=True)
-    slots = sum([get_max_solved(solver, similar_insts, T, solver_type) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, similar_insts, T, solver_type))
+    slots = sum([get_max_solved(solver, matrix) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix))
     print("slots", slots, flush=True)
     time_slot = T / slots
     print("time_slot", time_slot, flush=True)
@@ -194,31 +195,18 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             elif count == max_solved_instances and total_time == min_time:
                 best_subsets[subset] = (count, average_time)
     
-    return list(next(iter(best_subsets)))
+    return (list(next(iter(best_subsets))), data)
 
 
-def get_max_solved(solvers, similar_insts, T, solver_type):
-    print("solvers FROM sunny get max solved: ", solvers, flush=True)
-    
-
+def get_max_solved(solvers, matrix):
     if not (isinstance(solvers, list)):
         solvers = [solvers]
-    
-    max_solved = 0
-    for solver in solvers:
-        solver_solves_instances = kb.get_solved_times(solver, similar_insts, solver_type)
-        solver_solves_instances = ast.literal_eval(solver_solves_instances)
-        solver_solves_instances = [float(x) for x in solver_solves_instances]
-
-        time_spent = 0
-        i = 0
-        print("T: ", T, flush=True)
-        while time_spent < T and i < len(solver_solves_instances):
-
-            max_solved += 1
-            time_spent += float(solver_solves_instances[i])
-            i += 1
-    print("the max solved is: ", max_solved, flush=True)
+        
+    solved_counts = defaultdict(int)
+    for solver, _, time in matrix:
+        if time != "T":
+            solved_counts[solver] += 1
+    max_solved = max(solved_counts.values()) if solved_counts else 0
     return max_solved
 
 def euclidean_distance(vector1, vector2):
