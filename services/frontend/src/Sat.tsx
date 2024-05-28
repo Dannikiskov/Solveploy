@@ -23,6 +23,15 @@ interface SatJobResult extends SatSolverData {
   optValue: number;
 }
 
+type SolverTimes = {
+  [solver: string]: number;
+};
+
+type Schedule = {
+  result: SolverTimes;
+};
+
+
 function Sat() {
   const dataFileInput = useRef(null);
   const satFileInput = useRef(null);
@@ -39,6 +48,7 @@ function Sat() {
   const [bestResult, setBestResult] = useState<SatJobResult | null>(null);
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { sat: { file: File, content: string }[] } }>({});
   const [oneProb, setprob] = useState<boolean>(true);
+  const [schedule, setSchedule] = useState<Schedule | null>(null);
 
   useEffect(() => {
     fetchDataGet();
@@ -316,6 +326,7 @@ ${bestResult.result}
     setSelectedSatSolvers([]);
     let responeAsJson = await response.json();
     console.log(responeAsJson);
+    setSchedule(responeAsJson);
   }
 
   const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -438,6 +449,19 @@ ${bestResult.result}
           />
           <br />
           <button onClick={startSunny}>Get SUNNY portfolio</button>
+          {schedule && (
+              <div>
+                <h3>Schedule</h3>
+                <div>
+                  {Object.entries(schedule.result).map(([solver, time], index) => (
+                    <div key={index}>
+                      {solver}: {time} milliseconds
+                    </div>
+                  ))}
+                </div>
+              </div>
+            
+            )}
         </div>
         
       )}

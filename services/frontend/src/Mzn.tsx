@@ -21,6 +21,14 @@ interface MznJobResult extends MznSolverData {
   optValue: number;
 }
 
+type SolverTimes = {
+  [solver: string]: number;
+};
+
+type Schedule = {
+  result: SolverTimes;
+};
+
 function Mzn() {
   const dataFileInput = useRef(null);
   const mznFileInput = useRef(null);
@@ -44,6 +52,7 @@ function Mzn() {
   const [optGoal, setOptGoal] = useState<string | null>();
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null, json: { file: File, content: string } | null} }>({});
   const [oneProb, setprob] = useState<boolean>(true);
+  const [schedule, setSchedule] = useState<Schedule | null>(null);
 
   useEffect(() => {
     fetchDataGet();
@@ -317,7 +326,7 @@ ${bestResult.result}
     console.log("k: ", k);
     console.log("T: ", t);
     console.log("solvers:", selectedMznSolvers);
-    const response = await fetch("/api/jobs/sunny", {
+    const response = await fetch("/api/sunny", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -340,6 +349,7 @@ ${bestResult.result}
     setSelectedMznSolvers([]);
     let responeAsJson = await response.json();
     console.log(responeAsJson);
+    setSchedule(responeAsJson);
   }
 
   const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -474,6 +484,19 @@ ${bestResult.result}
             />
             <br />
             <button onClick={startSunny}>Get SUNNY portfolio</button>
+            {schedule && (
+              <div>
+                <h3>Schedule</h3>
+                <div>
+                  {Object.entries(schedule.result).map(([solver, time], index) => (
+                    <div key={index}>
+                      {solver}: {time} milliseconds
+                    </div>
+                  ))}
+                </div>
+              </div>
+            
+            )}
           </div>
           
       )}

@@ -357,7 +357,7 @@ def is_instance_solved_sat(instance, solver):
     print(result, flush=True)
     
     if result:
-        if result[0][4] == "UNKOWN": # FIX TO UNKNOWN
+        if result[0][4] == "UNSATISFIED":
             result = False
         else:
             result = True
