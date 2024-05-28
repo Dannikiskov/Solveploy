@@ -415,6 +415,11 @@ def matrix(solvers, insts, T):
     print("insts: ", insts, flush=True)
     print("T: ", T, flush=True)
 
+    # Convert each inner list to an array literal
+    insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
+        sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
+    ) for inner_list in insts]
+
     query = sql.SQL("""
     SELECT 
         s.name AS solver_name, 
@@ -431,35 +436,17 @@ def matrix(solvers, insts, T):
         sat_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features IN ({})
+        f.features = ANY ({})  # Use = ANY operator for array column
     ORDER BY 
         s.name, f.id;
     """).format(
         sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
-        sql.SQL(',').join(sql.Literal(str(inst)) for inst in insts)  # Convert insts to strings and use sql.Literal
+        sql.SQL(',').join(insts_array_literals)  # Use array literals for insts
     )
     params = (T,)
     result = query_database(query, params)
     print("MATRIX RESULT", result, flush=True)
     return result
-
-
-def get_solved_time_sat(solver_name, inst):
-    print("solver_name", solver_name, flush=True)
-    solver_id = get_sat_solver_id_by_name(solver_name)
-    print("solver_id", solver_id, flush=True)
-    feat_vec_id = get_sat_feature_vector_id(inst)
-
-    query = """
-        SELECT execution_time FROM sat_solver_featvec_time 
-        WHERE solver_id = %s AND feature_vec_id = %s 
-    """
-
-    params = (solver_id, feat_vec_id)
-    result = query_database(query, params)[0]
-
-    return result
-
 # MZN
 def get_mzn_solver_id_by_name(solver_name):
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
