@@ -102,8 +102,8 @@ def consume():
             response = database.get_data()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
-        elif instructions == "Matrix":
-            response = database.matrix(content["solvers"], content["similarInsts"], content["T"])
+        elif instructions == "MznMatrix":
+            response = database.mzn_matrix(content["solvers"], content["similarInsts"], content["T"])
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
 
         else:

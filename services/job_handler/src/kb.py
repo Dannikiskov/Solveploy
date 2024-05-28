@@ -3,8 +3,15 @@ import messageQueue as mq
 import uuid
 
 def matrix(solvers, similar_insts, T, solver_type):
-    data = create_dict('Matrix', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
-    return mq.send_wait_receive(data)
+    if solver_type == 'mzn':
+        data = create_dict('MznMatrix', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
+        return mq.send_wait_receive(data)
+    elif solver_type == 'sat':
+        data = create_dict('SatMatrix', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
+        return mq.send_wait_receive(data)
+    elif solver_type == 'maxsat':
+        data = create_dict('MaxSatMatrix', {'solvers': solvers, 'similarInsts': similar_insts, 'T': T})
+        return mq.send_wait_receive(data)
 
 def get_all_feature_vectors(solver_type):
     if solver_type == "mzn":

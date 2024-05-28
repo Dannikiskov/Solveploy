@@ -223,7 +223,50 @@ def get_solved_time_maxsat(solver_name, inst):
     result = query_database(query, params)[0]
 
     return result
+def maxsat_matrix(solvers, insts, T):
 
+    if not (isinstance(insts[0], list)):
+        insts = [[x] for x in insts]
+
+    # Convert each inner list to an array literal
+    insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
+        sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
+    ) for inner_list in insts]
+
+    # Create a subquery that returns the arrays
+    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])").format(
+        sql.SQL(',').join(insts_array_literals)
+    )
+
+    query = sql.SQL("""
+    SELECT 
+        s.name AS solver_name, 
+        f.id AS feature_vector_id, 
+        CASE 
+            WHEN t.execution_time > %s THEN 'T' 
+            ELSE CAST(t.execution_time AS VARCHAR) 
+        END AS execution_time
+    FROM 
+        maxsat_solvers s
+    JOIN 
+        maxsat_solver_featvec_time t ON s.id = t.solver_id
+    JOIN 
+        maxsat_feature_vectors f ON t.feature_vec_id = f.id
+    WHERE 
+        s.name IN ({}) AND 
+        EXISTS (
+            SELECT 1 FROM unnest(f.features) feature
+            WHERE feature = ANY ({})
+        )
+    ORDER BY 
+        s.name, f.id;
+    """).format(
+        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
+        insts_subquery  # Use the subquery for insts
+    )
+    params = (T,)
+    result = query_database(query, params)
+    return result
 
 # SAT
 def handle_sat_instance(data):
@@ -411,14 +454,10 @@ def get_sat_solvers():
     return query_database(query)
 
 
-def matrix(solvers, insts, T):
+def sat_matrix(solvers, insts, T):
 
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
-
-    print("solvers: ", solvers, flush=True)
-    print("insts: ", insts, flush=True)
-    print("T: ", T, flush=True)
 
     # Convert each inner list to an array literal
     insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
@@ -458,7 +497,6 @@ def matrix(solvers, insts, T):
     )
     params = (T,)
     result = query_database(query, params)
-    print("MATRIX RESULT", result, flush=True)
     return result
 
 
@@ -664,6 +702,51 @@ def get_solved_time_mzn(solver_name, inst):
     params = (solver_id, feat_vec_id)
     result = query_database(query, params)[0]
 
+    return result
+
+def mzn_matrix(solvers, insts, T):
+
+    if not (isinstance(insts[0], list)):
+        insts = [[x] for x in insts]
+
+    # Convert each inner list to an array literal
+    insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
+        sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
+    ) for inner_list in insts]
+
+    # Create a subquery that returns the arrays
+    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])").format(
+        sql.SQL(',').join(insts_array_literals)
+    )
+
+    query = sql.SQL("""
+    SELECT 
+        s.name AS solver_name, 
+        f.id AS feature_vector_id, 
+        CASE 
+            WHEN t.execution_time > %s THEN 'T' 
+            ELSE CAST(t.execution_time AS VARCHAR) 
+        END AS execution_time
+    FROM 
+        mzn_solvers s
+    JOIN 
+        mzn_solver_featvec_time t ON s.id = t.solver_id
+    JOIN 
+        mzn_feature_vectors f ON t.feature_vec_id = f.id
+    WHERE 
+        s.name IN ({}) AND 
+        EXISTS (
+            SELECT 1 FROM unnest(f.features) feature
+            WHERE feature = ANY ({})
+        )
+    ORDER BY 
+        s.name, f.id;
+    """).format(
+        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
+        insts_subquery  # Use the subquery for insts
+    )
+    params = (T,)
+    result = query_database(query, params)
     return result
 
 

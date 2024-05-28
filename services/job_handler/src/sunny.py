@@ -12,56 +12,40 @@ from collections import defaultdict
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=None, data_type=None):
     # Get features vector for the given instance
-    print("printing arguments", k, T, identifier, data_type, flush=True)
-    print("\n\nGetting features vector for the given instance", flush=True)
-    feat_vect = [1.0]#get_features(inst, solver_type, data_file, data_type)
-    print("feat_vect: ", feat_vect, flush=True)
-    print("type feat_vect: ", type(feat_vect), flush=True)
+
+    feat_vect = get_features(inst, solver_type, data_file, data_type)
 
     # Find k-nearest neighbors
-    print("Finding k-nearest neighbors", flush=True)
     similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
-    print("similar_insts: ", similar_insts, flush=True)
-    print("similar_insts type: ", type(similar_insts), flush=True)
-    print("sim insts length", len(similar_insts), flush=True)
+
 
     # Get sub-portfolio
-    print("Getting sub-portfolio", flush=True)
     sub_portfolio, matrix = get_sub_portfolio(similar_insts, solvers, T, solver_type)
-    print("sub_portfolio", sub_portfolio, flush=True)
 
     # Initialize variables
-    print("Initializing variables", flush=True)
     slots = sum([get_max_solved(solver, matrix, T) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix, T))
-    print("slots", slots, flush=True)
     time_slot = T / slots
-    print("time_slot", time_slot, flush=True)
     tot_time = 0
     schedule = {bkup_solver: 0}
 
     # Populate the schedule
-    print("Populating the schedule", flush=True)
     for solver in sub_portfolio:
         solver_slots = get_max_solved(solver, matrix, T)
         schedule[solver] = solver_slots * time_slot
         tot_time += solver_slots * time_slot
 
-    print("schedule", schedule, flush=True)
     # Adjust backup solver time
-    print("Adjusting backup solver time", flush=True)
     if tot_time < T:
         schedule[bkup_solver] += T - tot_time
 
     # Return sorted schedule
-    result = sorted(schedule.items(), key=lambda x: x[1])
+    result = sorted(schedule.items(), key=lambda x: x[1]).reverse()
     result = dict(result)
-    print("Returning sorted schedule: ", result, flush=True)
 
     mq.send_to_queue({"result": result}, f"jobHandler-{identifier}")
 
 
 def get_features(inst, solver_type, data_file, data_type):
-    print("solver_tpye: ", solver_type, flush=True)
     if solver_type == "mzn":
         temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
         temp_file_mzn.write(inst.encode())
@@ -74,23 +58,21 @@ def get_features(inst, solver_type, data_file, data_type):
             dznIncluded = True
 
         if dznIncluded:
-            print("\ndznIncluded\n", flush=True)
             command = ["mzn2feat", "-i", temp_file_mzn.name, "-d", temp_file_dzn.name]
         else:
             command = ["mzn2feat", "-i", temp_file_mzn.name]
 
-        print("command: ", command, flush=True)
+
         cmd_result = subprocess.run(command, capture_output=True, text=True)
         
         feature_vector = cmd_result.stdout.strip()
         feature_vector = feature_vector.split(',')
         feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
         feature_vector = ','.join(feature_vector)
-        print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
 
         return feature_vector
 
-    if solver_type == "sat":
+    if solver_type == "sat" or solver_type == "maxsat":
         feature_vector_dict = gf.generate_features(inst)
         feature_vector = ",".join(str(x) for x in feature_vector_dict.values())
         return feature_vector
@@ -98,39 +80,25 @@ def get_features(inst, solver_type, data_file, data_type):
        
 
 def get_nearest_neighbors(feat_vect, k, solver_type):
-    print("\n\n", flush=True)
-    print("feat_vect: ", feat_vect, flush=True)
-
-    #feat_vect = [float(i) for i in feat_vect.split(',')]
-
-    print("feat_vect: ", feat_vect, flush=True)
-    print("type feat_vect: ", type(feat_vect), flush=True)
+    feat_vect = [float(i) for i in feat_vect.split(',')]
 
     kb_features = kb.get_all_feature_vectors(solver_type)
     if kb_features == None:
         return feat_vect
     
     kb_features = ast.literal_eval(kb_features)
-    print("before removal: ", kb_features, flush=True)
-    #kb_features.remove(feat_vect)
 
-    print("kb_features: ", kb_features, flush=True)
-    
-    print("len(kb_features): ", len(kb_features), flush=True)
-    print("k: ", k, flush=True)
+    kb_features.remove(feat_vect)
+
+
     if len(kb_features) >= k:
         distances = [euclidean_distance(feat_vect, kb_feature) for kb_feature in kb_features]
     else:  
         return kb_features
 
-    print("distance: ", distances, flush=True)
-
     nearest_indices = np.argsort(distances)[:k]
-    print("nearest_indices: ", nearest_indices, flush=True)
-
     nearest_neighbors = [kb_features[i] for i in nearest_indices]
-    print("nearest_neighbors: ", nearest_neighbors, flush=True)
-    print("\n\n", flush=True)
+
     return nearest_neighbors
 
 
@@ -151,7 +119,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if isinstance(subitem, int):
                 distinct_numbers.add(subitem)
     distinct_numbers = len(distinct_numbers)
-    print(f"There are {distinct_numbers} distinct numbers in the data.")
+
     # Create a dictionary where each key is a solver and the value is a list of the times it took to solve the problems
     solver_to_times = {}
     for solver, problem, time in data:
@@ -159,7 +127,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if solver not in solver_to_times:
                 solver_to_times[solver] = []
             solver_to_times[solver].append(int(time))
-    print(solver_to_times)
+
     # Create all subsets of solvers
     subsets = list(chain.from_iterable(combinations(solvers, r) for r in range(1, len(solvers))))
 
@@ -199,7 +167,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
 
 
 def get_max_solved(solvers, matrix, T):
-    print("solvers: ", solvers, flush=True)
     if not (isinstance(solvers, list)):
         solvers = [solvers]
         
