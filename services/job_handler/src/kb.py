@@ -49,7 +49,7 @@ def get_all_solved(solver_type):
     result = mq.send_wait_receive(data)
     return result
 
-def get_solver_times(solver_name, similar_insts, solver_type):
+def get_solved_times(solver_name, similar_insts, solver_type):
     if solver_type == 'mzn':
         data = create_dict('GetSolvedTimesMzn', {'solverName': solver_name, 'similarInsts': similar_insts})
     if solver_type == 'sat':
