@@ -36,7 +36,6 @@ if __name__ == '__main__':
         outer_body = body
         ch.stop_consuming()
     
-    print(f"Starting Consume from dynamic queue ({in_queue_name})..", flush=True)
     channel.basic_consume(queue=in_queue_name, on_message_callback=on_request, auto_ack=True)
     channel.start_consuming()
     
@@ -50,14 +49,13 @@ if __name__ == '__main__':
     decoded_body = outer_body.decode("utf-8")
     message_data = json.loads(decoded_body)
 
-    print(f" [.] message consumed!", flush=True)
     solver_name = message_data["item"]["name"]
     params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
     mzn_string = message_data["mznFileContent"]
     data_string = message_data["dataFileContent"] if message_data["dataFileContent"] != "" else None
     data_type = message_data["dataFileType"] if message_data["dataFileType"] != "" else None
     opt_goal = message_data["optGoal"] if message_data["optGoal"] != "" else None
-    print(f"Solver {solver_name} finished with {message_data['mznFileName']}: {message_data['dataFileName']}", flush=True)
+    print(f"Solver {solver_name} starting with {message_data['mznFileName']}: {message_data['dataFileName']}", flush=True)
     try:
         result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type, params)
         

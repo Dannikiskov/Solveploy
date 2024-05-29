@@ -26,7 +26,11 @@ class Jobs(Resource):
             result = async_execute(data)
             print(f"{data['item']['name']} : {data['mznFileName']} : {data['dataFileName']} FINISHED", flush=True) 
             print("RESULT: ", result, flush=True)
-            result_json = json.loads(result)
+            try:
+                result_json = json.loads(result)
+            except Exception as e:
+                print("Error: ", e, flush=True)
+                return "JSON ERROR"
             return result_json
     
 

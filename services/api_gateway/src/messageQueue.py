@@ -4,7 +4,6 @@ import pika
 import os
 import time
 from kubernetes import client, config
-i = 0
 
 def rmq_init():
     connection = _rmq_connect()
@@ -30,12 +29,10 @@ def send_wait_receive(data):
 
     result = None
 
-    print(" [x] Sent")
-    print(" [*] Waiting for messages.")
+    # print(" [x] Sent")
+    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
-        
-        print(" [*] Message received.")
         decoded_body = body.decode("utf-8")
         ch.queue_delete(queue=in_queue_name)
         nonlocal result
@@ -49,9 +46,6 @@ def send_wait_receive(data):
 
 # Service leaving call
 def send(data):
-    global i
-    i = i + 1
-    print(f"i = {i} from api messageQueue", flush=True)
     out_queue_name = data["queueName"]
 
     connection = _rmq_connect()
@@ -94,9 +88,6 @@ def _rmq_connect():
 
     # Decode the secret data
     password = base64.b64decode(secret.data['rabbitmq-password']).decode()
-
-
-    print(password, flush=True)
 
     while True:
         try:
