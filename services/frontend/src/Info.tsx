@@ -54,7 +54,7 @@ function Info() {
       <ul>
         {mznData.map((solverData, index) => (
           <ul key={index}>
-            <h2 style={{ border: '1px solid black', display: 'inline-block', padding: '8px', color: 'white' }}>{solverData[0]}</h2>
+            <h2 style={{ border: '1px solid white', display: 'inline-block', padding: '8px'}}>{solverData[0]}</h2>
             {Object.entries(solverData[1] as Record<string, unknown>).map(([fileName, fileData], fileIndex) => (
               <div key={fileIndex}>
                 <h3>{fileName}</h3> 
@@ -83,6 +83,7 @@ function Info() {
         ))}
         <hr style={{margin: '2px'}} />
       </ul>
+      <hr style={{margin: '2px'}} />
       <br />
       <h2>SAT</h2>
       <p>
@@ -91,7 +92,7 @@ function Info() {
       <div>
       {satData.map(([solverName, files]) => (
       <div key={solverName}>
-        <h2 style={{ border: '1px solid black', display: 'inline-block', padding: '8px', color: 'white' }}>{solverName}</h2>
+        <h2 style={{ border: '1px solid white', display: 'inline-block', padding: '8px'}}>{solverName}</h2>
         {files.map((file: { sat_file_name: string, status: string, execution_time: number }) => (
         <div key={file.sat_file_name}>
           <p>SAT File Name: {file.sat_file_name}</p>
@@ -104,6 +105,7 @@ function Info() {
       <hr style={{margin: '2px'}} />
       </div>
     ))}
+    <hr style={{margin: '2px'}} />
       </div>
       <br />
       <h2>MAXSAT</h2>
