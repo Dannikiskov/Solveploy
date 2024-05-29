@@ -18,7 +18,6 @@ def handle_new_sat_job(data):
     # Get feature vector
     if k8s_result["status"] not in ["ERROR", "FAILED"]:
         feature_vector = gf.generate_features(data["satFileContent"])
-        print(f"Feature vector: {feature_vector}", flush=True)
         dict = {"satFileName": data["satFileName"],
                 "featureVector": feature_vector,
                 "solverName": solver_name,
