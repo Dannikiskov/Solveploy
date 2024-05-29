@@ -769,7 +769,7 @@ def print_all_tables():
 
 
 def get_mzn_data():
-    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'maxsat_solvers')"
+    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mzn_solvers')"
     result = query_database(query)
     table_exists = result[0]
     if not table_exists:
@@ -809,10 +809,37 @@ def get_mzn_data():
     GROUP BY 
         solver_name;    """
 
-    print("RESUTL:", flush=True)
+
     result = query_database(query)
-    print(result, flush=True)
-    
+    return result
+
+def get_sat_data():
+    query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sat_solvers')"
+    result = query_database(query)
+    table_exists = result[0]
+    if not table_exists:
+        database_init()
+
+    query = """
+    SELECT 
+        s.name AS solver_name, 
+        json_agg(
+            json_build_object(
+                'sat_file_name', f.sat_file_name, 
+                'status', t.status, 
+                'execution_time', t.execution_time
+            )
+        ) AS data
+    FROM 
+        sat_solvers s
+    JOIN 
+        sat_solver_featvec_time t ON s.id = t.solver_id
+    JOIN 
+        sat_feature_vectors f ON t.feature_vec_id = f.id
+    GROUP BY 
+        s.name;
+    """
+    result = query_database(query)
     return result
 
 def database_init():

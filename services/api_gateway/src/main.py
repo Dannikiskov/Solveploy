@@ -316,7 +316,6 @@ class Webhook(Resource):
 
 
 class Data(Resource):
-
         def get(self, data_type=None):
             if data_type=="mzn":
                 data = {"instructions": "GetMznData", "queueName": "kbHandler", "identifier": str(uuid.uuid4())}

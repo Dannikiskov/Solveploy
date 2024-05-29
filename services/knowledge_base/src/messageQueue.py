@@ -102,8 +102,8 @@ def consume():
             response = database.get_mzn_data()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
-        elif instructions == "GetData":
-            response = database.get_data()
+        elif instructions == "GetSatData":
+            response = database.get_sat_data()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
         elif instructions == "MznMatrix":
