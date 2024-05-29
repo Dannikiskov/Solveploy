@@ -44,7 +44,8 @@ def handle_new_mzn_job(data):
     feature_vector = feature_vector.split(',')
     feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
     feature_vector = ','.join(feature_vector)
-    # print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
+
+    print(f"{solver_name}: {k8s_result['status']}: {data['satFileName']}", flush=True)
     
     if k8s_result["status"] not in ["ERROR", "FAILED"]:
         dict = {"dataFileName": data["dataFileName"],
