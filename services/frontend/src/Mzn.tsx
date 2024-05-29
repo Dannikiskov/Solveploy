@@ -53,6 +53,7 @@ function Mzn() {
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { mzn: { file: File, content: string } | null, dzn: { file: File, content: string } | null, json: { file: File, content: string } | null} }>({});
   const [oneProb, setprob] = useState<boolean>(true);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [backupSolver, setBackupSolver] = useState<MznSolverData | null>(null);
 
   useEffect(() => {
     fetchDataGet();
@@ -81,16 +82,16 @@ function Mzn() {
     const solverId = item.jobIdentifier;
     console.log("Solver ID: ", solverId)
     try {
-      // const response = await fetch(`/api/jobs/mzn/${solverId}`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
+      const response = await fetch(`/api/jobs/mzn/${solverId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      // if (!response.ok) {
-      //   throw new Error(`Error stopping solvers: ${response.statusText}`);
-      // }
+      if (!response.ok) {
+        throw new Error(`Error stopping solvers: ${response.statusText}`);
+      }
     } catch (error) {
       console.error("Error stopping solvers:", error);
     }
@@ -119,6 +120,7 @@ function Mzn() {
   };
 
   const handleItemClick = (item: MznSolverData) => {
+    setBackupSolver(item);
     if (selectedMznSolvers.find((i: any) => i.name === item.name)) {
       setSelectedMznSolvers((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
@@ -129,7 +131,6 @@ function Mzn() {
         item,
       ]);
     }
-    //console.log(selectedMznSolvers);
   };
 
   const handleStartSolvers = () => {
@@ -203,15 +204,15 @@ function Mzn() {
         }),
       });
 
-      /*const data = */await response.json() as any;
+      const data = await response.json() as any;
       
       // Remove the item from runningMznSolvers list
       setRunningMznJobs((prevItems: Array<MznSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
-      // if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && lastOptGoal === "satisfy")) {
-      //   stopAllSolvers();
-      // }
+      if (data.status == "OPTIMAL_SOLUTION" || (data.status == "SATISFIED" && lastOptGoal === "satisfy")) {
+        stopAllSolvers();
+      }
 
     } catch (error) {
       console.error("Error starting solvers:", error);
@@ -335,7 +336,7 @@ ${bestResult.result}
         k,
         T: t,
         solvers: selectedMznSolvers,
-        backupSolver: selectedMznSolvers[selectedMznSolvers.length - 1],
+        backupSolver,
         fileContent: mznFileContent,
         dataContent: dataFileContent,
         dataFileType: dznOrJson,
@@ -382,8 +383,7 @@ ${bestResult.result}
           fileMapping[folder].json = { file, content: fileContent };
         }
       }
-  
-      // console.log(fileMapping);
+
       setFolderMapping(fileMapping);
     }
   }
@@ -423,7 +423,7 @@ ${bestResult.result}
       });
       if (!response.ok) {
         console.error("Error fetching results:", response.statusText);
-        return; // Exit early if response is not OK
+        return;
       }
       const data = await response.json() as MznJobResult;
       console.log("DATA", data);

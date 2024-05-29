@@ -49,6 +49,7 @@ function Sat() {
   const [folderMapping, setFolderMapping] = useState<{ [key: string]: { sat: { file: File, content: string }[] } }>({});
   const [oneProb, setprob] = useState<boolean>(true);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [backupSolver, setBackupSolver] = useState<SatSolverData | null>(null);
 
   useEffect(() => {
     fetchDataGet();
@@ -118,6 +119,7 @@ function Sat() {
   };
 
   const handleItemClick = (item: SatSolverData) => {
+    setBackupSolver(item);
     if (selectedSatSolvers.find((i: any) => i.name === item.name)) {
       setSelectedSatSolvers((prevItems: Array<SatSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
@@ -205,14 +207,10 @@ function Sat() {
         }),
       });
 
-      await response.json() as any;
-      //console.log(data);
-      // fetch("/api/jobs/sat", {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
+      const data = await response.json() as any;
+      if (data.status == "SATISFIED") {
+        stopAllSolvers();
+      }
       
       // Remove the item from runningSatSolvers list
       setRunningSatJobs((prevItems: Array<SatSolverData>) =>
@@ -282,22 +280,22 @@ ${bestResult.result}
   };
 
 
-  // const stopAllSolvers = async () => {
-  //   setRunningSatJobs([]);
-  //   try {
-  //     const response = await fetch("/api/jobs/sat", {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //     if (!response.ok) {
-  //       console.error("Error stopping all solvers:", response.statusText);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error stopping all solvers:", error);
-  //   }
-  // };
+  const stopAllSolvers = async () => {
+    setRunningSatJobs([]);
+    try {
+      const response = await fetch("/api/jobs/sat", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        console.error("Error stopping all solvers:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error stopping all solvers:", error);
+    }
+  };
 
 
   async function startSunny(): Promise<any> {
@@ -314,7 +312,7 @@ ${bestResult.result}
         k,
         T: t,
         solvers: selectedSatSolvers,
-        backupSolver: selectedSatSolvers[selectedSatSolvers.length - 1],
+        backupSolver,
         fileContent: satFileContent,
         solverType: "sat",
       }),

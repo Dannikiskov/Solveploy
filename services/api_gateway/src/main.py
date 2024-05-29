@@ -18,14 +18,15 @@ class Jobs(Resource):
         
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
-        print("DATA: ", data, flush=True)
-
+        print(f"{data['item']['name']} : {data['mznFileName']} : {data['dataFileName']} SENT", flush=True)    
         if "noresult" in data and data["noresult"] == True:
+            print("noresult", flush=True)
             async_execute_no_response(data)
         else:
             result = async_execute(data)
+            print(f"{data['item']['name']} : {data['mznFileName']} : {data['dataFileName']} FINISHED", flush=True) 
+            print("RESULT: ", result, flush=True)
             result_json = json.loads(result)
-            print("RESULT POST JOB: ", result_json, flush=True)
             return result_json
     
 
@@ -262,14 +263,10 @@ class Results(Resource):
             elif data["optGoal"] == "satisfy":
                 fastest = resultsList[0]
                 for res in resultsList:
-                    print("res: ", res, flush=True)
-                    print(res["status"] == "SATISFIED" and fastest["status"] == "SATISFIED")
                     if res["status"] == "SATISFIED" and fastest["status"] == "SATISFIED":
                         if res["executionTime"] < fastest["executionTime"]:
-                            print("res was faster", flush=True)
                             fastest = res
                 if data["item"] != None and data["item"]["executionTime"] < fastest["executionTime"]:
-                    print("Returning None", flush=True)
                     return None
                 return fastest
                 
@@ -282,16 +279,13 @@ class Results(Resource):
 class Webhook(Resource):
 
     def post(self, deployment_name=None):
-        print("Webhook received", flush=True)
         data = request.json
         # Extract repository and tag information if needed
         repo_name = data['repository']['name']
         tag = data['push_data']['tag']
-        print(f"Repository: {repo_name}, Tag: {tag}", flush=True)
         # Define the deployment name and namespace
         deployment_name = deployment_name
         namespace = "default"
-        print(f"Deployment: {deployment_name}, Namespace: {namespace}", flush=True)
         # Patch the deployment to trigger a rolling restart
         body = {
             "spec": {
@@ -304,13 +298,11 @@ class Webhook(Resource):
                 }
             }
         }
-        print(f"Body: {body}", flush=True)
         config.load_incluster_config()
 
         api_instance = client.AppsV1Api()
         
         api_instance.patch_namespaced_deployment(deployment_name, namespace, body)
-        print("Deployment patched", flush=True)
         
         return jsonify({'status': 'success'})
 
