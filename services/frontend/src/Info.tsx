@@ -91,14 +91,17 @@ function Info() {
       <div>
       {satData.map(([solverName, files]) => (
       <div key={solverName}>
-        <h2>{solverName}</h2>
+        <h2 style={{ border: '1px solid black', display: 'inline-block', padding: '8px', color: 'white' }}>{solverName}</h2>
         {files.map((file: { sat_file_name: string, status: string, execution_time: number }) => (
         <div key={file.sat_file_name}>
           <p>SAT File Name: {file.sat_file_name}</p>
           <p>Status: {file.status}</p>
           <p>Execution Time: {file.execution_time}</p>
+          <hr style={{margin: '2px'}} />
         </div>
+        
       ))}
+      <hr style={{margin: '2px'}} />
       </div>
     ))}
       </div>
