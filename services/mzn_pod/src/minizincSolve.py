@@ -25,15 +25,18 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             temp_data_file.close()
             instance.add_file(temp_data_file.name)
 
-    print("Solving...", flush=True)
-    if params_dict is not None:
-        t1 = time.time()
-        result = instance.solve(**params_dict)
-        t2 = time.time() - t1
-    else:
-        t1 = time.time()
-        result = instance.solve()
-        t2 = time.time() - t1
+    try:
+        print("Solving...", flush=True)
+        if params_dict is not None:
+            t1 = time.time()
+            result = instance.solve(**params_dict)
+            t2 = time.time() - t1
+        else:
+            t1 = time.time()
+            result = instance.solve()
+            t2 = time.time() - t1
+    except Exception as e:
+        print("Error while solving: ", e, flush=True)
 
     print("result: ", result, "\n", flush=True)
         

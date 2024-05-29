@@ -60,11 +60,12 @@ if __name__ == '__main__':
 
     try:
         result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type, params)
-        result["name"] = solver_name
-        result["optGoal"] = opt_goal if opt_goal is not None else "N/A"
+        
     except Exception as e:
         result = {"result": f"Minizinc Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
-
+        
+    result["name"] = solver_name
+    result["optGoal"] = opt_goal if opt_goal is not None else "N/A"
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)
 
