@@ -98,6 +98,10 @@ def consume():
             response = database.update_in_use_resources()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
         
+        elif instructions == "GetMznData":
+            response = database.get_mzn_data()
+            ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))
+        
         elif instructions == "GetData":
             response = database.get_data()
             ch.basic_publish(exchange='', routing_key=f'{queue_name}-{identifier}', body=json.dumps(response))

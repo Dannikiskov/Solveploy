@@ -316,10 +316,10 @@ def handle_sat_instance(data):
     if len(existing_entry) == 0:
         query = """
             INSERT INTO sat_solver_featvec_time 
-            (solver_id, feature_vec_id, execution_time, status, sat_file_name) 
-            VALUES (%s, %s, %s, %s, %s)
+            (solver_id, feature_vec_id, execution_time, status) 
+            VALUES (%s, %s, %s, %s)
         """
-        params = (solver_id[0], feat_id[0], execution_time, status, satFileName)
+        params = (solver_id[0], feat_id[0], execution_time, status)
 
     query_database(query, params)
 
@@ -768,7 +768,7 @@ def print_all_tables():
             print("\n\n-----------------------------------\n\n-----------------------------------\n", flush=True)
 
 
-def get_data():
+def get_mzn_data():
     query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'maxsat_solvers')"
     result = query_database(query)
     table_exists = result[0]
