@@ -14,7 +14,8 @@ def handle_new_sat_job(data):
     k8sHandler.start_solver_job(solver_name, identifier, "sat", cpu, memory)
     k8s_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
-    print(f"{solver_name}: {k8s_result['status']}: {data['satFileName']}")
+    print(f"{solver_name}: {k8s_result['status']}: {data['satFileName']}", flush=True)
+    
     # Get feature vector
     if k8s_result["status"] not in ["ERROR", "FAILED"]:
         feature_vector = gf.generate_features(data["satFileContent"])
