@@ -31,7 +31,7 @@ function Info() {
       <ul>
         {data.map((solverData, index) => (
           <ul key={index}>
-            <h2 style={{ border: '1px solid black', display: 'inline-block', padding: '5px' }}>{solverData[0]}</h2>
+            <h2 style={{ border: '1px solid black', display: 'inline-block', padding: '8px', backgroundColor: 'white' }}>{solverData[0]}</h2>
             {Object.entries(solverData[1] as Record<string, unknown>).map(([fileName, fileData], fileIndex) => (
               <div key={fileIndex}>
                 <h3>{fileName}</h3> 
