@@ -67,10 +67,11 @@ if __name__ == '__main__':
         print(f" [.] Running SAT Solver: {solver_name}", flush=True)
         result = satSolve.run_sat_model(solver_name.lower(), cnf_string,  cores, params)
         print(result, flush=True)
-        result["name"] = solver_name
-        result["satIdentifier"] = message_data["item"]["satIdentifier"]
     except Exception as e:
         result = {"result": f"Sat Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
+
+    result["name"] = solver_name
+    result["satIdentifier"] = message_data["item"]["satIdentifier"]
 
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)

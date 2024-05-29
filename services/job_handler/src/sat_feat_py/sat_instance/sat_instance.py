@@ -11,7 +11,7 @@ class SATInstance:
     """
 
     def __init__(self, input_cnf, preprocess=True, verbose=False, preprocess_tmp=True):
-        self.verbose = True
+        self.verbose = False
         self.preprocess = preprocess
         self.path_to_cnf = input_cnf
 

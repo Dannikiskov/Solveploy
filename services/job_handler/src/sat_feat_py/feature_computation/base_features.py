@@ -104,7 +104,7 @@ def compute_base_features(preprocess, clauses, c, v, num_active_vars, num_active
 
 def write_entropy(l, name, features_dict, c, number_of_outcomes):
     entropy = array_stats.entropy_int_array(l, number_of_outcomes + 1)
-    print("saten", entropy)
+    # print("saten", entropy)
     features_dict[name + "_entropy"] = entropy
 
 
@@ -112,5 +112,5 @@ def write_entropy_float(l, name, features_dict, num, buckets=100, maxval=1):
     # scipy has an implementation for shannon entropy (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html),
     # could be something to look into changing to
     entropy = array_stats.entropy_float_array(l, num, buckets, maxval)
-    print("saten", entropy)
+    # print("saten", entropy)
     features_dict[name + "_entropy"] = entropy

@@ -57,8 +57,6 @@ def handle_new_mzn_job(data):
                 "result": k8s_result["result"], 
                 "instructions": "HandleMznInstance",
                 "queueName": "kbHandler"}
-        print("LOOOCK HERERERER:", flush=True)
-        print(dict["optVal"], flush=True)
         mq.send_to_queue(dict, "kbHandler")
 
     mq.send_to_queue(k8s_result, f'{data["queueName"]}-{identifier}')

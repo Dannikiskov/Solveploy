@@ -99,7 +99,7 @@ class DPLLProbing:
 
                 if self.sat_instance.num_active_vars == 0:
                     if self.sat_instance.num_active_clauses == 0 and halt_on_assignment:
-                        print("finished")
+                        # print("finished")
                         return
                     else:
                         break
@@ -239,9 +239,9 @@ class DPLLProbing:
                             if con and self.sat_instance.num_active_vars <= 0:
 
                                 if haltOnAssignment:
-                                    print("solved")
-                                    print(self.sat_instance.num_active_clauses)
-                                    print(self.sat_instance.num_active_vars)
+                                    # print("solved")
+                                    # print(self.sat_instance.num_active_clauses)
+                                    # print(self.sat_instance.num_active_vars)
                                     # output_assignment()
                                     # DONE is just some number... still to be seen what this does in the satzilla code
                                     return
@@ -268,8 +268,8 @@ class DPLLProbing:
                     # print("no more active variables, solved")
                     if (haltOnAssignment):
                         # print("assignment solved")
-                        print(self.sat_instance.num_active_clauses)
-                        print(self.sat_instance.num_active_vars)
+                        # print(self.sat_instance.num_active_clauses)
+                        # print(self.sat_instance.num_active_vars)
                         # outputAssignment()
                         return
 
