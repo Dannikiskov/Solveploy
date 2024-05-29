@@ -1,4 +1,4 @@
-name: Base image CI
+name: Base image CI/CD
 
 on:
   push:

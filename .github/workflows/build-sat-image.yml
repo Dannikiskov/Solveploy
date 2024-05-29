@@ -1,4 +1,4 @@
-name: SAT pod CI
+name: SAT pod CI/CD
 
 on:
   push:

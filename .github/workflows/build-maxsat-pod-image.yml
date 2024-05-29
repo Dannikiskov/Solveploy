@@ -1,4 +1,4 @@
-name: Maxsat pod CI
+name: Maxsat pod CI/CD
 
 on:
   push:

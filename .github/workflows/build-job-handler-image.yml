@@ -1,4 +1,4 @@
-name: Job Handler CI
+name: Job Handler CI/CD
 
 on:
   push:

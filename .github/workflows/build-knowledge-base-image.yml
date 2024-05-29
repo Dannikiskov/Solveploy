@@ -1,4 +1,4 @@
-name: Knowledge Base CI
+name: Knowledge Base CI/CD
 
 on:
   push:

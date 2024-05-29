@@ -1,4 +1,4 @@
-name: Minizinc pod CI
+name: Minizinc pod CI/CD
 
 on:
   push:
