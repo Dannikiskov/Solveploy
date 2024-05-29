@@ -65,8 +65,8 @@ function Info() {
                       {(dataItems as DataItem[]).map((dataItem: DataItem, itemIndex) => (
                         <ul key={itemIndex}>
                           Status: {dataItem.status} <br />
-                          Opt Goal: {dataItem.opt_goal} <br />
-                          Opt Value: {dataItem.opt_value} <br />
+                          Goal: {dataItem.opt_goal} <br />
+                          Objective: {dataItem.opt_value} <br />
                           Execution Time: {dataItem.execution_time} milliseconds
                           <hr style={{margin: '2px'}} />
                       </ul>

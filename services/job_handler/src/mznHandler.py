@@ -19,8 +19,8 @@ def handle_new_mzn_job(data):
     
     print(f"Solver {solver_name} started with {data['mznFileName']} and data file: {data['dataFileName']}", flush=True)
     k8s_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-    print(f"Solver {solver_name} finished with {data['mznFileName']}: {data['dataFileName']}", flush=True)
-    
+    print(f"Solver {solver_name} with {data['mznFileName']}: {data['dataFileName']}", flush=True)
+
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file_mzn.write(data['mznFileContent'].encode())
     temp_file_mzn.close()
@@ -46,7 +46,7 @@ def handle_new_mzn_job(data):
     feature_vector = [str(float(i)) if 'e' in i else i for i in feature_vector]
     feature_vector = ','.join(feature_vector)
 
-    print(f"{solver_name}: {k8s_result['status']}: {data['satFileName']}", flush=True)
+    print(f"{solver_name}: {k8s_result['status']}: {data['mznFileName']}", flush=True)
     
     if k8s_result["status"] not in ["ERROR", "FAILED"]:
         dict = {"dataFileName": data["dataFileName"],
