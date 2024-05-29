@@ -166,7 +166,7 @@ def send_wait_receive(data):
 def send_to_queue(data, queue_name):
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=queue_name)
+    channel.queue_declare(queue=queue_name, auto_delete=True)
     
     data = json.dumps(data)
 

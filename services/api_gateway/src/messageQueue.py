@@ -60,7 +60,7 @@ def send(data):
 def consume_one(queue_name):
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=queue_name)
+    channel.queue_declare(queue=queue_name, auto_delete=True)
 
     result = None
 

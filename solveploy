@@ -47,7 +47,8 @@ else:
 
 if "--dev" in sys.argv:
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_dev.yml -i ansible/inventory/localhosts -K"
-    print("EXECUTING COMMAND: ", command)
+    if "-v" in sys.argv:
+        print("EXECUTING COMMAND: ", command)
     subprocess.run(command, shell=True)
     exit()
 
@@ -77,18 +78,21 @@ if "--port-forward" in sys.argv:
         file.write(f"\n      shell: ssh -L {port}:localhost:8080 {user}@{host}")
         file.close()
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/port_forward_frontend.yaml -i ansible/inventory/hosts"
-    print("EXECUTING COMMAND: ", command)
+    if "-v" in sys.argv:
+        print("EXECUTING COMMAND: ", command)
     subprocess.run(command, shell=True)
     exit()
 
 
 if not download_db:
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_prod.yml -i ansible/inventory/hosts"
-    print("EXECUTING COMMAND: ", command)
+    if "-v" in sys.argv:
+        print("EXECUTING COMMAND: ", command)
     subprocess.run(command, shell=True)
     if upload_db:
         command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/upload_db.yml -i ansible/inventory/hosts"
-        print("EXECUTING COMMAND: ", command)
+        if "-v" in sys.argv:
+            print("EXECUTING COMMAND: ", command)
         subprocess.run(command, shell=True)
 
 if download_db:
