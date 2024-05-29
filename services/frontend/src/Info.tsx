@@ -11,7 +11,7 @@ interface DataItem {
 
 function Info() {
   const [mznData, setMznData] = useState([]);
-  const [satData, setSatData] = useState([]);
+  const [satData, setSatData] = useState<any[]>([]);
   const [maxsatData, setMaxsatData] = useState([]);
 
   const satGet = async () => {
@@ -69,11 +69,11 @@ function Info() {
                           Opt Value: {dataItem.opt_value} <br />
                           Execution Time: {dataItem.execution_time} milliseconds
                           <hr style={{margin: '2px'}} />
-                        </ul>
+                      </ul>
                         
                       ))}
                       
-                    </ul>
+          </ul>
                   </div>
                 ))}
               </div>
@@ -87,10 +87,21 @@ function Info() {
       <h2>SAT</h2>
       <p>
         <button onClick={satGet}> Refresh SAT data</button>
-        <ul>
-          {satData}
-        </ul>
       </p>
+      <div>
+      {satData.map(([solverName, files]) => (
+      <div key={solverName}>
+        <h2>{solverName}</h2>
+        {files.map((file: { sat_file_name: string, status: string, execution_time: number }) => (
+        <div key={file.sat_file_name}>
+          <p>SAT File Name: {file.sat_file_name}</p>
+          <p>Status: {file.status}</p>
+          <p>Execution Time: {file.execution_time}</p>
+        </div>
+      ))}
+      </div>
+    ))}
+      </div>
       <br />
       <h2>MAXSAT</h2>
       <p>
