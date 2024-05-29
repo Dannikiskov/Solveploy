@@ -222,16 +222,16 @@ class Results(Resource):
                 for res in resultsList:
                     if lowest["status"] == "SATISFIED" and res["status"] == "OPTIMAL_SOLUTION":
                         lowest = res
-                    elif res["optValue"] < lowest["optValue"]:
+                    elif res["optVal"] < lowest["optVal"]:
                         lowest = res
-                    elif res["optValue"] == lowest["optValue"] and res["executionTime"] < lowest["executionTime"]:
+                    elif res["optVal"] == lowest["optVal"] and res["executionTime"] < lowest["executionTime"]:
                         lowest = res
                 if data["item"] != None:
                     if data["item"]["status"] == "SATISFIED" and lowest["status"] == "OPTIMAL_SOLUTION":
                         return lowest
-                    elif lowest["optValue"] < data["item"]["optValue"]:
+                    elif lowest["optVal"] < data["item"]["optVal"]:
                         return lowest
-                    elif lowest["optValue"] == data["item"]["optValue"] and lowest["executionTime"] < data["item"]["executionTime"]:
+                    elif lowest["optVal"] == data["item"]["optVal"] and lowest["executionTime"] < data["item"]["executionTime"]:
                         return lowest
                     else:
                         return None
@@ -243,16 +243,16 @@ class Results(Resource):
                 for res in resultsList:
                     if highest["status"] == "SATISFIED" and res["status"] == "OPTIMAL_SOLUTION":
                         highest = res
-                    elif res["optValue"] > highest["optValue"]:
+                    elif res["optVal"] > highest["optVal"]:
                         highest = res
-                    elif res["optValue"] == highest["optValue"] and res["executionTime"] < highest["executionTime"]:
+                    elif res["optVal"] == highest["optVal"] and res["executionTime"] < highest["executionTime"]:
                         highest = res
                 if data["item"] != None:
                     if data["item"]["status"] == "SATISFIED" and highest["status"] == "OPTIMAL_SOLUTION":
                         return highest
-                    elif highest["optValue"] > data["item"]["optValue"]:
+                    elif highest["optVal"] > data["item"]["optVal"]:
                         return highest
-                    elif highest["optValue"] == data["item"]["optValue"] and highest["executionTime"] < data["item"]["executionTime"]:
+                    elif highest["optVal"] == data["item"]["optVal"] and highest["executionTime"] < data["item"]["executionTime"]:
                         return highest
                     else:
                         return None
