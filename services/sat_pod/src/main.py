@@ -26,8 +26,8 @@ if __name__ == '__main__':
     channel = connection.channel()
     in_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}"
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
-    channel.queue_declare(queue=in_queue_name)
-    channel.queue_declare(queue=out_queue_name)
+    channel.queue_declare(queue=in_queue_name, auto_delete=True)
+    channel.queue_declare(queue=out_queue_name, auto_delete=True)
     
     outer_body = None
 
