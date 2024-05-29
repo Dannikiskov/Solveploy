@@ -57,7 +57,7 @@ if __name__ == '__main__':
     data_string = message_data["dataFileContent"] if message_data["dataFileContent"] != "" else None
     data_type = message_data["dataFileType"] if message_data["dataFileType"] != "" else None
     opt_goal = message_data["optGoal"] if message_data["optGoal"] != "" else None
-
+    print(f"Solver {solver_name} finished with {message_data['mznFileName']}: {message_data['dataFileName']}", flush=True)
     try:
         result = minizincSolve.run_minizinc_model(mzn_string, solver_name.lower(), data_string, data_type, params)
         

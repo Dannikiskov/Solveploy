@@ -17,9 +17,10 @@ def handle_new_mzn_job(data):
     
     k8sHandler.start_solver_job(solver_name, identifier, "mzn", cpu, memory)
     
-
+    print(f"Solver {solver_name} started with {data['mznFileName']} and data file: {data['dataFileName']}", flush=True)
     k8s_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
-
+    print(f"Solver {solver_name} finished with {data['mznFileName']}: {data['dataFileName']}", flush=True)
+    
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file_mzn.write(data['mznFileContent'].encode())
     temp_file_mzn.close()
