@@ -16,7 +16,7 @@ def handle_new_sat_job(data):
 
 
     # Get feature vector
-    try:
+    if k8s_result["status"] not in ["ERROR", "FAILED"]:
         feature_vector = gf.generate_features(data["satFileContent"])
         print(f"Feature vector: {feature_vector}", flush=True)
         dict = {"satFileName": data["satFileName"],
@@ -27,8 +27,7 @@ def handle_new_sat_job(data):
                 "instructions": "HandleSatInstance", 
                  "queueName": "kbHandler"}
         mq.send_to_queue(dict, "kbHandler")
-    except Exception as e:
-        print(f"Exception occurred: {str(e)}", flush=True)
+
 
     mq.send_to_queue(k8s_result, f'{data["queueName"]}-{identifier}')
 

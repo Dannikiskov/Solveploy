@@ -18,7 +18,7 @@ def handle_new_mzn_job(data):
     k8sHandler.start_solver_job(solver_name, identifier, "mzn", cpu, memory)
     
 
-    k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
+    k8s_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
     temp_file_mzn = tempfile.NamedTemporaryFile(suffix=".mzn", delete=False)
     temp_file_mzn.write(data['mznFileContent'].encode())
@@ -46,22 +46,22 @@ def handle_new_mzn_job(data):
     feature_vector = ','.join(feature_vector)
     # print("\n\n\nFeature vector: ", feature_vector, "\n\n\n", flush=True)
     
-    if k8_result["status"] not in ["ERROR", "FAILED"]:
+    if k8s_result["status"] not in ["ERROR", "FAILED"]:
         dict = {"dataFileName": data["dataFileName"],
                 "mznFileName": data["mznFileName"],
                 "optGoal": data["optGoal"], 
-                "optVal": k8_result["optVal"], 
+                "optVal": k8s_result["optVal"], 
                 "featureVector": feature_vector, "solverName": solver_name,
-                "executionTime": k8_result["executionTime"], 
-                "status": k8_result["status"], 
-                "result": k8_result["result"], 
+                "executionTime": k8s_result["executionTime"], 
+                "status": k8s_result["status"], 
+                "result": k8s_result["result"], 
                 "instructions": "HandleMznInstance",
                 "queueName": "kbHandler"}
         print("LOOOCK HERERERER:", flush=True)
         print(dict["optVal"], flush=True)
         mq.send_to_queue(dict, "kbHandler")
 
-    mq.send_to_queue(k8_result, f'{data["queueName"]}-{identifier}')
+    mq.send_to_queue(k8s_result, f'{data["queueName"]}-{identifier}')
 
 
 def get_available_mzn_solvers(data):
