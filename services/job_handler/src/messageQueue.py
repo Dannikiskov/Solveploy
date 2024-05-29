@@ -104,8 +104,8 @@ def send_wait_receive_k8(data, queue_name):
 
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=out_queue_name, auto_delete=True)
-    channel.queue_declare(queue=in_queue_name, auto_delete=True)
+    channel.queue_declare(queue=out_queue_name)
+    channel.queue_declare(queue=in_queue_name)
 
     json_data = json.dumps(data)
 
@@ -166,7 +166,7 @@ def send_wait_receive(data):
 def send_to_queue(data, queue_name):
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=queue_name, auto_delete=True)
+    channel.queue_declare(queue=queue_name)
     
     data = json.dumps(data)
 

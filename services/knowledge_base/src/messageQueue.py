@@ -124,7 +124,7 @@ def consume():
 def send_to_queue(data, queue_name):
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=queue_name, auto_delete=True)
+    channel.queue_declare(queue=queue_name)
     channel.basic_publish(exchange='', routing_key=queue_name, body=data)
     connection.close()
 
