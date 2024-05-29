@@ -203,7 +203,14 @@ function Mzn() {
           optGoal: optGoal
         }),
       });
-
+      if (!response.ok) {
+        console.error(response.statusText);
+        // Remove the item from runningMznSolvers list
+        setRunningMznJobs((prevItems: Array<MznSolverData>) =>
+        prevItems.filter((i) => i.name !== item.name)
+        );
+        return;
+      }
       const data = await response.json() as any;
       
       // Remove the item from runningMznSolvers list
@@ -579,18 +586,20 @@ ${bestResult.result}
       )}
     </div>
       <br />
-      <div >
-        <h2>Running Solvers</h2>
-        <div className="grid">
-          {runningMznJobs.map((item, index) => (
-            <div key={index} className="solver-item">
-              <div>Name: {item.name}</div>
-              <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button>
-        </div>
-          ))}
-        
-        </div>
-        </div>
+      
+      {oneProb && 
+      <div>
+          <h2>Running Solvers</h2>
+          <div className="grid">
+            {runningMznJobs.map((item, index) => (
+              <div key={index} className="solver-item">
+                <div>Name: {item.name}</div>
+                <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button>
+              </div>
+            ))}
+          </div>
+      </div>
+      }     
         <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button>
         <div>
         <br />

@@ -83,7 +83,6 @@ function Info() {
         ))}
         <hr style={{margin: '2px'}} />
       </ul>
-      <hr style={{margin: '2px'}} />
       <br />
       <h2>SAT</h2>
       <p>

@@ -73,28 +73,28 @@ function Sat() {
     if (satFileInput.current) (satFileInput.current as HTMLInputElement).value = "";
   };
 
-  // const fetchStopJob = async (item: SatSolverData) => {
-  //   setRunningSatJobs((prevItems: Array<SatSolverData>) =>
-  //     prevItems.filter((i) => i.name !== item.name)
-  //   );
+  const fetchStopJob = async (item: SatSolverData) => {
+    setRunningSatJobs((prevItems: Array<SatSolverData>) =>
+      prevItems.filter((i) => i.name !== item.name)
+    );
 
-  //   const solverId = item.jobIdentifier;
-  //   console.log("Solver ID: ", solverId)
-  //   try {
-  //     const response = await fetch(`/api/jobs/sat/${solverId}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
+    const solverId = item.jobIdentifier;
+    console.log("Solver ID: ", solverId)
+    try {
+      const response = await fetch(`/api/jobs/sat/${solverId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-  //     if (!response.ok) {
-  //       throw new Error(`Error stopping solvers: ${response.statusText}`);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error stopping solvers:", error);
-  //   }
-  // };
+      if (!response.ok) {
+        throw new Error(`Error stopping solvers: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error stopping solvers:", error);
+    }
+  };
 
   const fetchDataGet = async () => {
     try {
@@ -244,6 +244,9 @@ function Sat() {
       }),
     }).catch(error => {
       console.error("Error starting solvers:", error);
+      setRunningSatJobs((prevItems: Array<SatSolverData>) =>
+        prevItems.filter((i) => i.name !== item.name)
+        );
     });
   }
 
@@ -549,19 +552,20 @@ ${bestResult.result}
       )}
     </div>
       <br />
-      <div >
-        <h2>Running Solvers</h2>
-        <div className="grid">
-          {runningSatJobs.map((item, index) => (
-            <div key={index} className="solver-item">
-              <div>Name: {item.name}</div>
-              {/* <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button> */}
-        </div>
-          ))}
-        
-        </div>
-        </div>
-        {/* <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button> */}
+      {oneProb && 
+      <div>
+          <h2>Running Solvers</h2>
+          <div className="grid">
+            {runningSatJobs.map((item, index) => (
+              <div key={index} className="solver-item">
+                <div>Name: {item.name}</div>
+                <button className="small-button" onClick={() => fetchStopJob(item)}>Stop Solver</button>
+              </div>
+            ))}
+          </div>
+      </div>
+      }     
+        <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button>
         <div>
         <br />
         <h2>Result</h2>

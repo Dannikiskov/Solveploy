@@ -20,6 +20,9 @@ def rmq_init():
     channel = connection.channel()
     channel.queue_declare(queue="jobHandler")
     channel.queue_declare(queue="kbHandler")
+    channel.queue_declare(queue="mzn-result-queue")
+    channel.queue_declare(queue="sat-result-queue")
+    channel.queue_declare(queue="maxsat-result-queue")
     channel.close()
     connection.close()
 
@@ -101,10 +104,8 @@ def send_wait_receive_k8(data, queue_name):
 
     connection = _rmq_connect()
     channel = connection.channel()
-    # print("declaring queue: ", out_queue_name, flush=True)
-    channel.queue_declare(queue=out_queue_name)
-    # print("declaring queue: ", in_queue_name, flush=True)
-    channel.queue_declare(queue=in_queue_name)
+    channel.queue_declare(queue=out_queue_name, auto_delete=True)
+    channel.queue_declare(queue=in_queue_name, auto_delete=True)
 
     json_data = json.dumps(data)
 

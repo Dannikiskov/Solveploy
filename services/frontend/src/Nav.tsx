@@ -17,7 +17,7 @@ const Nav: React.FC = () => {
         <button>MAXSAT</button>
       </Link>
       <Link to="/info">
-        <button style={{ marginLeft: '5px' }}>INFO</button>
+        <button style={{ marginLeft: '5px' }}>KB</button>
       </Link>
     </div>
   );

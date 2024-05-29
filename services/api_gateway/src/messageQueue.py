@@ -22,7 +22,7 @@ def send_wait_receive(data):
 
     connection = _rmq_connect()
     channel = connection.channel()
-    channel.queue_declare(queue=in_queue_name)
+    channel.queue_declare(queue=in_queue_name, auto_delete=True)
 
     json_data = json.dumps(data)
     channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
