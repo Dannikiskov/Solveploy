@@ -36,7 +36,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     # Adjust backup solver time
     if tot_time < T:
-        schedule[bkup_solver] += T - tot_time
+        schedule[bkup_solver['name']] += T - tot_time
 
     # Return sorted schedule
     result = sorted(schedule.items(), key=lambda x: x[1]).reverse()
