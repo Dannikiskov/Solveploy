@@ -17,6 +17,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     # Get features vector for the given instance
     feat_vect = get_features(inst, solver_type, data_file, data_type)
     print("feat_vect", feat_vect, flush=True)
+
     # Find k-nearest neighbors
     similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
     print("len similar_insts", len(similar_insts), flush=True)
@@ -109,15 +110,12 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
 
 
 def get_sub_portfolio(similar_insts, solvers, T, solver_type):
-    print("solvers", solvers, flush=True)
-    # Generate all possible subsets of solvers
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
 
     distinct_numbers = len(set(item[1] for item in data))
 
-    # Create a dictionary where each key is a solver and the value is a list of the times it took to solve the problems
     solver_to_times = {}
     problems = set()
     for solver, problem, time in data:
@@ -126,13 +124,9 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if solver not in solver_to_times:
                 solver_to_times[solver] = []
             solver_to_times[solver].append(float(time))
-    
 
-    # Create all subsets of solvers
     subsets = list(chain.from_iterable(combinations(solvers, r) for r in range(1, len(solvers))))
 
-
-    # Create a dictionary where each key is a solver and the value is a list of the instances it solved
     solver_to_instances = {}
     for solver, instance, time in data:
         if time != "T":
@@ -140,8 +134,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 solver_to_instances[solver] = {}
             solver_to_instances[solver][instance] = (float(time))
 
-
-    # For each subset, calculate the total solve time, the average solve time, and find the subset with total time <= 1800 and the maximum number of unique solved instances
     max_solved_instances = 0
     best_subsets = {}
     
@@ -159,6 +151,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 for problem in problems:
                     if problem in solver_to_instances[solver] and (problem not in fastest_solved or solver_to_instances[solver][problem] < fastest_solved[problem]):
                         fastest_solved[problem] = solver_to_instances[solver][problem]
+
         sorted_times = sorted(list(fastest_solved.values()))
         for time in sorted_times:
             if total_time + time <= T:
@@ -166,7 +159,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 count += 1
 
         average_time = total_subset_time / (distinct_numbers*len(subset))
-        print("\nsubset", subset, "count", count, "average_time", average_time, "max_solved_instances", max_solved_instances, flush=True)
+
         if count > max_solved_instances:
             best_subsets.clear()
             best_subsets[subset] = (count, average_time)
@@ -176,21 +169,17 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     
     result = None
     lowest_avg = None  
-
-    # Find the minimum key length
     min_key_length = min(len(k) for k in best_subsets.keys())
-
-    # Select the entries with the keys that have the same lowest length
     selected_entries = {k: v for k, v in best_subsets.items() if len(k) == min_key_length}
     best_subsets = selected_entries
-    print("best subsets", best_subsets, flush=True)
 
     if len (best_subsets) > 1:
         for best_subset in best_subsets:
-            print(best_subsets[best_subset])
             if result == None or best_subsets[best_subset][1] < lowest_avg:
                 result = best_subsets[best_subset]
                 lowest_avg = best_subsets[best_subset][1]
+    else:
+        result = next(iter(best_subsets.values()))
 
 
     return (list(next(iter(best_subsets))), data)
