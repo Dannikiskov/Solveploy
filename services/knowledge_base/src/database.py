@@ -661,7 +661,7 @@ def mzn_matrix(solvers, insts, T):
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
         CASE 
-            WHEN NOT t.execution_time < %s OR t.status != 'OPTIMAL_SOLUTION' THEN 'T'  
+            WHEN NOT t.execution_time < %s THEN 'T'  
             ELSE CAST(t.execution_time AS VARCHAR) 
         END AS execution_time
     FROM 
@@ -679,7 +679,7 @@ def mzn_matrix(solvers, insts, T):
     ORDER BY 
         s.name, f.id;
     """).format(
-        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
+        sql.SQL(',').join(sql.Literal(solver['name']) for solver in solvers),  # Use sql.Literal for string values
         insts_subquery  # Use the subquery for insts
     )
     params = (T,)
