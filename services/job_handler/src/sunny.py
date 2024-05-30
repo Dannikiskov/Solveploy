@@ -12,6 +12,7 @@ from collections import defaultdict
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=None, data_type=None):
     solvers = [solver['name'] for solver in solvers]
+    print("solvers", solvers, flush=True)
 
     # Get features vector for the given instance
     feat_vect = get_features(inst, solver_type, data_file, data_type)
