@@ -156,6 +156,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
         count = len(solved_instances)
         average_time = total_subset_time / (distinct_numbers*len(subset))
         if total_time <= T and count >= max_solved_instances:
+            print("\nsubset", subset, "count", count, "total_time", total_time, "min_time", min_time, "average_time", average_time, "max_solved_instances", max_solved_instances, "min_time", min_time, flush=True)
             if count > max_solved_instances or (count == max_solved_instances and total_time < min_time):
                 best_subsets.clear()
                 best_subsets[subset] = (count, average_time)
