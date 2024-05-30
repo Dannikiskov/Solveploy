@@ -178,11 +178,10 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if result == None or best_subsets[best_subset][1] < lowest_avg:
                 result = best_subsets[best_subset]
                 lowest_avg = best_subsets[best_subset][1]
-    else:
-        result = next(iter(best_subsets.values()))
+    else: 
+        result = best_subsets
 
-
-    return (list(next(iter(best_subsets))), data)
+    return (list(next(iter(result))), data)
 
 
 def get_max_solved(solvers, matrix, T):
