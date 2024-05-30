@@ -171,7 +171,26 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
         elif count == max_solved_instances:
             best_subsets[subset] = (count, average_time)
     
-    return (list(next(iter(best_subsets))), data)
+    result = None
+    lowest_avg = None  
+
+    # Find the minimum key length
+    min_key_length = min(len(k) for k in best_subsets.keys())
+
+    # Select the entries with the keys that have the same lowest length
+    selected_entries = {k: v for k, v in best_subsets.items() if len(k) == min_key_length}
+    best_subsets = selected_entries
+    print("best subsets", best_subsets, flush=True)
+
+    if len (best_subsets) > 1:
+        for best_subset in best_subsets:
+            print(best_subsets[best_subset])
+            if result == None or best_subsets[best_subset][1] < lowest_avg:
+                result = best_subsets[best_subset]
+                lowest_avg = best_subsets[best_subset][1]
+
+
+    return (list(next(iter(best_subsets))))
 
 
 def get_max_solved(solvers, matrix, T):
