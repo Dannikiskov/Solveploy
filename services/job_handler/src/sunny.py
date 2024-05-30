@@ -111,11 +111,13 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
 
 
 def get_sub_portfolio(similar_insts, solvers, T, solver_type):
-
+    print("solvers", solvers, flush=True)
     # Generate all possible subsets of solvers
     subsets = []
     for r in range(1, len(solvers)):
         subsets.extend(combinations(solvers, r))
+    
+    print("\nsubsets\n", subsets, flush=True)
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
@@ -129,9 +131,13 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if solver not in solver_to_times:
                 solver_to_times[solver] = []
             solver_to_times[solver].append(float(time))
+    
+    print("\nsolver_to_timesn\n", solver_to_times, flush=True)
 
     # Create all subsets of solvers
     subsets = list(chain.from_iterable(combinations(solvers, r) for r in range(1, len(solvers))))
+
+    print("second subsets", subsets, flush=True)
 
     # Create a dictionary where each key is a solver and the value is a list of the instances it solved
     solver_to_instances = {}
@@ -140,6 +146,8 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if solver not in solver_to_instances:
                 solver_to_instances[solver] = []
             solver_to_instances[solver].append(instance)
+
+    print("\nsolver_to_times second\n", solver_to_times, flush=True)
 
     # For each subset, calculate the total solve time, the average solve time, and find the subset with total time <= 1800 and the maximum number of unique solved instances
     max_solved_instances = 0
