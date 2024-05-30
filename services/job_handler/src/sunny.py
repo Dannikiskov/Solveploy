@@ -113,11 +113,6 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
 def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     print("solvers", solvers, flush=True)
     # Generate all possible subsets of solvers
-    subsets = []
-    for r in range(1, len(solvers)):
-        subsets.extend(combinations(solvers, r))
-    
-    print("\nsubsets\n", subsets, flush=True)
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
@@ -151,7 +146,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
 
     # For each subset, calculate the total solve time, the average solve time, and find the subset with total time <= 1800 and the maximum number of unique solved instances
     max_solved_instances = 0
-    min_time = float('inf')
     best_subsets = {}
     for subset in subsets:
         total_time = 0
@@ -164,14 +158,13 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver])) 
         count = len(solved_instances)
         average_time = total_subset_time / (distinct_numbers*len(subset))
+        print("\nsubset", subset, "count", count, "total_time", total_time, "average_time", average_time, "max_solved_instances", max_solved_instances, flush=True)
         if total_time <= T and count >= max_solved_instances:
-            print("\nsubset", subset, "count", count, "total_time", total_time, "min_time", min_time, "average_time", average_time, "max_solved_instances", max_solved_instances, "min_time", min_time, flush=True)
-            if count > max_solved_instances or (count == max_solved_instances and total_time < min_time):
+            if count > max_solved_instances:
                 best_subsets.clear()
                 best_subsets[subset] = (count, average_time)
                 max_solved_instances = count
-                min_time = total_time
-            elif count == max_solved_instances and total_time == min_time:
+            elif count == max_solved_instances:
                 best_subsets[subset] = (count, average_time)
     
     return (list(next(iter(best_subsets))), data)
