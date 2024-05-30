@@ -19,11 +19,12 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     print("feat_vect", feat_vect, flush=True)
     # Find k-nearest neighbors
     similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
-    print("similar_insts", similar_insts, flush=True)
+    print("len similar_insts", len(similar_insts), flush=True)
 
     # Get sub-portfolio
     sub_portfolio, matrix = get_sub_portfolio(similar_insts, solvers, T, solver_type)
     print("sub_portfolio", sub_portfolio, flush=True)
+    print(";ATRIC\n", matrix, flush=True)
 
     # Initialize variables
     slots = sum([get_max_solved(solver, matrix, T) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix, T))
@@ -46,7 +47,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     schedule = {k: v for k, v in schedule.items() if v != 0}
 
-    sorted_schedule = dict(sorted(schedule.items(), key=lambda x: x[1]))
+    sorted_schedule = dict(sorted(schedule.items(), key=lambda x: x[1])).reverse()
 
     mq.send_to_queue({"result": sorted_schedule}, f"jobHandler-{identifier}")
 
