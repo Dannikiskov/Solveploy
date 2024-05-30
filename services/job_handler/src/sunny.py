@@ -46,6 +46,9 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     # Return sorted schedule
     if len(schedule) > 1:
         result = sorted(schedule.items(), key=lambda x: x[1]).reverse()
+    else:
+        result = schedule
+        
     print("result", result, flush=True)
     result = dict(result)
 
