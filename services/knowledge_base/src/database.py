@@ -684,6 +684,8 @@ def mzn_matrix(solvers, insts, T):
     )
     params = (T,)
     result = query_database(query, params)
+    print("Result: ", flush=True)
+    print(result, flush=True)
     return result
 
 
