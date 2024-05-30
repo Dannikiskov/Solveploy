@@ -121,51 +121,60 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
 
     # Create a dictionary where each key is a solver and the value is a list of the times it took to solve the problems
     solver_to_times = {}
+    problems = set()
     for solver, problem, time in data:
+        problems.add(problem)
         if time != "T":
             if solver not in solver_to_times:
                 solver_to_times[solver] = []
             solver_to_times[solver].append(float(time))
     
-    print("\nsolver_to_timesn\n", solver_to_times, flush=True)
 
     # Create all subsets of solvers
     subsets = list(chain.from_iterable(combinations(solvers, r) for r in range(1, len(solvers))))
 
-    print("second subsets", subsets, flush=True)
 
     # Create a dictionary where each key is a solver and the value is a list of the instances it solved
     solver_to_instances = {}
     for solver, instance, time in data:
         if time != "T":
             if solver not in solver_to_instances:
-                solver_to_instances[solver] = []
-            solver_to_instances[solver].append(instance)
+                solver_to_instances[solver] = {}
+            solver_to_instances[solver][instance] = (float(time))
 
-    print("\nsolver_to_times second\n", solver_to_times, flush=True)
 
     # For each subset, calculate the total solve time, the average solve time, and find the subset with total time <= 1800 and the maximum number of unique solved instances
     max_solved_instances = 0
     best_subsets = {}
+    
     for subset in subsets:
+        fastest_solved = {}
         total_time = 0
         solved_instances = set()
         total_subset_time = 0
+        count = 0
         for solver in subset:
+            solver_to_times[solver].sort()
             if solver in solver_to_instances:
-                total_time += sum(solver_to_times[solver])
                 solved_instances.update(solver_to_instances[solver])
-                total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver])) 
-        count = len(solved_instances)
+                total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver]))
+                for problem in problems:
+                    if problem in solver_to_instances[solver] and (problem not in fastest_solved or solver_to_instances[solver][problem] < fastest_solved[problem]):
+                        fastest_solved[problem] = solver_to_instances[solver][problem]
+        sorted_times = sorted(list(fastest_solved.values()))
+        for time in sorted_times:
+            if total_time + time <= T:
+                total_time += time
+                count += 1
+
         average_time = total_subset_time / (distinct_numbers*len(subset))
-        print("\nsubset", subset, "count", count, "total_time", total_time, "average_time", average_time, "max_solved_instances", max_solved_instances, flush=True)
-        if total_time <= T and count >= max_solved_instances:
-            if count > max_solved_instances:
-                best_subsets.clear()
-                best_subsets[subset] = (count, average_time)
-                max_solved_instances = count
-            elif count == max_solved_instances:
-                best_subsets[subset] = (count, average_time)
+        print("\nsubset", subset, "count", count, "average_time", average_time, "max_solved_instances", max_solved_instances, flush=True)
+        if count > max_solved_instances:
+            best_subsets.clear()
+            best_subsets[subset] = (count, average_time)
+            max_solved_instances = count
+        elif count == max_solved_instances:
+            best_subsets[subset] = (count, average_time)
     
     return (list(next(iter(best_subsets))), data)
 
