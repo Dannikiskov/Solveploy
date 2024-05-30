@@ -48,11 +48,9 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     schedule = {k: v for k, v in schedule.items() if v != 0}
 
-    sorted_schedule = dict(sorted(schedule.items(), key=lambda x: x[1]))
+    result = sort_by_average_solving_time(schedule, matrix, T)
 
-    reversed_schedule = dict(reversed(list(sorted_schedule.items())))
-
-    mq.send_to_queue({"result": reversed_schedule}, f"jobHandler-{identifier}")
+    mq.send_to_queue({"result": result}, f"jobHandler-{identifier}")
 
 
 def get_features(inst, solver_type, data_file, data_type):
@@ -144,7 +142,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
         total_subset_time = 0
         count = 0
         for solver in subset:
-            solver_to_times[solver].sort()
             if solver in solver_to_instances:
                 solved_instances.update(solver_to_instances[solver])
                 total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver]))
@@ -213,7 +210,6 @@ def get_max_solved(solvers, data, T):
     total_subset_time = 0
     count = 0
     for solver in solvers:
-        solver_to_times[solver].sort()
         if solver in solver_to_instances:
             solved_instances.update(solver_to_instances[solver])
             total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver]))
@@ -228,6 +224,39 @@ def get_max_solved(solvers, data, T):
             count += 1
     
     return count
+
+def sort_by_average_solving_time(schedule, matrix, T):
+    solver_to_times = {}
+    for solver, problem, time in matrix:
+        if time != "T":
+            if solver not in solver_to_times:
+                solver_to_times[solver] = []
+            solver_to_times[solver].append(float(time))
+        else:
+            if solver not in solver_to_times:
+                solver_to_times[solver] = []
+            solver_to_times[solver].append(T)
+
+    solver_to_instances = {}
+    for solver, instance, time in matrix:
+        if time != "T":
+            if solver not in solver_to_instances:
+                solver_to_instances[solver] = {}
+            solver_to_instances[solver][instance] = float(time)
+        else:
+            if solver not in solver_to_instances:
+                solver_to_instances[solver] = {}
+            solver_to_instances[solver][instance] = T
+    average_times = {}
+    for solver in schedule:
+        total_time = sum(solver_to_times[solver])
+        total_time += (len(solver_to_instances[solver]) - len(solver_to_times[solver])) * schedule[solver]
+        average_times[solver] = total_time / len(solver_to_instances[solver])
+    print(average_times)
+    sorted_solvers = sorted(average_times, key=average_times.get)
+    sorted_schedule = {solver: schedule[solver] for solver in sorted_solvers}
+
+    return sorted_schedule
 
 def euclidean_distance(vector1, vector2):
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
