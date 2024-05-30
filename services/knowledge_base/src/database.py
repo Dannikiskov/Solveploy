@@ -679,7 +679,7 @@ def mzn_matrix(solvers, insts, T):
     ORDER BY 
         s.name, f.id;
     """).format(
-        sql.SQL(',').join(sql.Literal(solver['name']) for solver in solvers),  # Use sql.Literal for string values
+        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
         insts_subquery  # Use the subquery for insts
     )
     params = (T,)
