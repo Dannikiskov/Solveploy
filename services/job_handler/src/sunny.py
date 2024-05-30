@@ -184,15 +184,50 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     return (list(next(iter(result))), data)
 
 
-def get_max_solved(solvers, matrix, T):
+def get_max_solved(solvers, data, T):
     if not (isinstance(solvers, list)):
         solvers = [solvers]
         
+    distinct_numbers = len(set(item[1] for item in data))
+
+    solver_to_times = {}
+    problems = set()
+    for solver, problem, time in data:
+        problems.add(problem)
+        if time != "T":
+            if solver not in solver_to_times:
+                solver_to_times[solver] = []
+            solver_to_times[solver].append(float(time))
+
+
+    solver_to_instances = {}
+    for solver, instance, time in data:
+        if time != "T":
+            if solver not in solver_to_instances:
+                solver_to_instances[solver] = {}
+            solver_to_instances[solver][instance] = (float(time))
+
+    fastest_solved = {}
+    total_time = 0
     solved_instances = set()
-    for solver, instance, time in matrix:
-        if solver in solvers and time != "T" and float(time) <= T:
-            solved_instances.add(instance)
-    return len(solved_instances)
+    total_subset_time = 0
+    count = 0
+    for solver in solvers:
+        solver_to_times[solver].sort()
+        if solver in solver_to_instances:
+            solved_instances.update(solver_to_instances[solver])
+            total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver]))
+            for problem in problems:
+                if problem in solver_to_instances[solver] and (problem not in fastest_solved or solver_to_instances[solver][problem] < fastest_solved[problem]):
+                    fastest_solved[problem] = solver_to_instances[solver][problem]
+
+    sorted_times = sorted(list(fastest_solved.values()))
+    for time in sorted_times:
+        if total_time + time <= T:
+            total_time += time
+            count += 1
+    
+    return count
 
 def euclidean_distance(vector1, vector2):
     return np.linalg.norm(np.array(vector1) - np.array(vector2))
