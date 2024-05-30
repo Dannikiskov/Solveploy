@@ -113,7 +113,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     distinct_numbers = set()
     for item in data:
         for subitem in item:
-            if isinstance(subitem, int):
+            if isinstance(subitem, float):
                 distinct_numbers.add(subitem)
     distinct_numbers = len(distinct_numbers)
 
@@ -169,7 +169,7 @@ def get_max_solved(solvers, matrix, T):
         
     solved_instances = set()
     for solver, instance, time in matrix:
-        if solver in solvers and time != "T" and int(time) <= T:
+        if solver in solvers and time != "T" and float(time) <= T:
             solved_instances.add(instance)
     return len(solved_instances)
 
