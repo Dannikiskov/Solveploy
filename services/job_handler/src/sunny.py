@@ -109,13 +109,9 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
+    print("\n", data, "\n", flush=True)
 
-    distinct_numbers = set()
-    for item in data:
-        for subitem in item:
-            if isinstance(subitem, float):
-                distinct_numbers.add(subitem)
-    distinct_numbers = len(distinct_numbers)
+    distinct_numbers = len(set([item[1] for item in data[0]]))
 
     # Create a dictionary where each key is a solver and the value is a list of the times it took to solve the problems
     solver_to_times = {}
