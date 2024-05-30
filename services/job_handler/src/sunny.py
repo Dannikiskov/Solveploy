@@ -190,7 +190,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 lowest_avg = best_subsets[best_subset][1]
 
 
-    return (list(next(iter(best_subsets))))
+    return (list(next(iter(best_subsets))), data)
 
 
 def get_max_solved(solvers, matrix, T):
