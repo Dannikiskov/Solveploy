@@ -47,9 +47,11 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
 
     schedule = {k: v for k, v in schedule.items() if v != 0}
 
-    sorted_schedule = dict(sorted(schedule.items(), key=lambda x: x[1]).reverse())
+    sorted_schedule = dict(sorted(schedule.items(), key=lambda x: x[1]))
 
-    mq.send_to_queue({"result": sorted_schedule}, f"jobHandler-{identifier}")
+    reversed_schedule = dict(reversed(list(sorted_schedule.items())))
+
+    mq.send_to_queue({"result": reversed_schedule}, f"jobHandler-{identifier}")
 
 
 def get_features(inst, solver_type, data_file, data_type):
