@@ -123,7 +123,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
         if time != "T":
             if solver not in solver_to_times:
                 solver_to_times[solver] = []
-            solver_to_times[solver].append(int(time))
+            solver_to_times[solver].append(float(time))
 
     # Create all subsets of solvers
     subsets = list(chain.from_iterable(combinations(solvers, r) for r in range(1, len(solvers))))
