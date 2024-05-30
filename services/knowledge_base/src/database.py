@@ -661,7 +661,7 @@ def mzn_matrix(solvers, insts, T):
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
         CASE 
-            WHEN NOT t.execution_time < %s THEN 'T'  
+            WHEN NOT t.execution_time < %s THEN t.status  
             ELSE CAST(t.execution_time AS VARCHAR) 
         END AS execution_time
     FROM 
