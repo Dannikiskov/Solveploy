@@ -276,7 +276,7 @@ class TestGetAllMznFeatureVectors(unittest.TestCase):
     @patch('database.query_database')
     def test_get_all_mzn_feature_vectors(self, mock_query_database):
         expected_result = ['feature1', 'feature2', 'feature3']
-        mock_query_database.return_value = [(feature,) for feature in expected_result]
+        mock_query_database.return_value = [feature for feature in expected_result]
 
         result = database.get_all_mzn_feature_vectors()
 
