@@ -48,7 +48,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
         result = sorted(schedule.items(), key=lambda x: x[1]).reverse()
     else:
         result = schedule
-        
+
     print("result", result, flush=True)
     result = dict(result)
 
@@ -118,7 +118,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
-    print("\n", data, "\n", flush=True)
 
     distinct_numbers = len(set(item[1] for item in data))
 
@@ -155,11 +154,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 solved_instances.update(solver_to_instances[solver])
                 total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver])) 
         count = len(solved_instances)
-        print("\n", flush=True)
-        print("subset: ", subset, flush=True)
-        print("len(subset): ", len(subset), flush=True)
-        print("distinct_numbers: ", distinct_numbers, flush=True)
-        print("\n", flush=True)
         average_time = total_subset_time / (distinct_numbers*len(subset))
         if total_time <= T and count >= max_solved_instances:
             if count > max_solved_instances or (count == max_solved_instances and total_time < min_time):
