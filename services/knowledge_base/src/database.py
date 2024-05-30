@@ -469,8 +469,7 @@ def get_all_mzn_feature_vectors():
     result = query_database(query)
     if len == 0:
         return None
-    extracted_result = [t[0] for t in result]
-    return extracted_result
+    return result
 
 def handle_mzn_instance(data):
 
