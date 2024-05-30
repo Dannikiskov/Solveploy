@@ -44,16 +44,11 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     if tot_time < T:
         schedule[bkup_solver['name']] += T - tot_time
 
-    # Return sorted schedule
-    if len(schedule) > 1:
-        result = sorted(schedule.items(), key=lambda x: x[1]).reverse()
-    else:
-        result = schedule
+    schedule = {k: v for k, v in schedule.items() if v != 0}
 
-    print("result", result, flush=True)
-    result = dict(result)
+    sorted_schedule = dict(sorted(schedule.items(), key=lambda x: x[1]))
 
-    mq.send_to_queue({"result": result}, f"jobHandler-{identifier}")
+    mq.send_to_queue({"result": sorted_schedule}, f"jobHandler-{identifier}")
 
 
 def get_features(inst, solver_type, data_file, data_type):
