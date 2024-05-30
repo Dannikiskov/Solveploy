@@ -100,8 +100,7 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
 
 
 def get_sub_portfolio(similar_insts, solvers, T, solver_type):
-    print(solvers, flush=True)
-    print(type(solvers), flush=True)
+    solvers = [solver['name'] for solver in solvers]
 
     # Generate all possible subsets of solvers
     subsets = []
