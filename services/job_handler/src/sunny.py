@@ -11,13 +11,13 @@ from collections import defaultdict
 
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=None, data_type=None):
-    # Get features vector for the given instance
+    solvers = [solver['name'] for solver in solvers]
 
+    # Get features vector for the given instance
     feat_vect = get_features(inst, solver_type, data_file, data_type)
 
     # Find k-nearest neighbors
     similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
-
 
     # Get sub-portfolio
     sub_portfolio, matrix = get_sub_portfolio(similar_insts, solvers, T, solver_type)
@@ -26,7 +26,7 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     slots = sum([get_max_solved(solver, matrix, T) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix, T))
     time_slot = T / slots
     tot_time = 0
-    schedule = {bkup_solver: 0}
+    schedule = {bkup_solver['name']: 0}
 
     # Populate the schedule
     for solver in sub_portfolio:
@@ -100,7 +100,6 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
 
 
 def get_sub_portfolio(similar_insts, solvers, T, solver_type):
-    solvers = [solver['name'] for solver in solvers]
 
     # Generate all possible subsets of solvers
     subsets = []
