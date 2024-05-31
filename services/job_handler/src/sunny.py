@@ -180,20 +180,15 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     selected_entries = {k: v for k, v in best_subsets.items() if len(k) == min_key_length}
     best_subsets = selected_entries
 
-    if len (best_subsets) > 1:
-        print("len(best_subsets)", len(best_subsets), flush=True)
-        for best_subset in best_subsets:
-            print("best_subset", best_subset, flush=True)
-            if result == None or best_subsets[best_subset][1] < lowest_avg:
-                print("best_subsets[best_subset][1]", best_subsets[best_subset][1], flush=True)
-                print("lowest_avg", lowest_avg, flush=True)
-                result = best_subset
-                lowest_avg = best_subsets[best_subset][1]
-    else: 
-        result = best_subsets
+    min_x = float('inf')
+    min_keys = None
+    for k, v in best_subsets.items():
+        if v[1] < min_x:
+            min_x = v[1]
+            min_keys = k
 
-    print("RESULT\n", result, flush=True)
-    return (list(next(iter(result))), data)
+    print("RESULT\n", min_keys, flush=True)
+    return (list(min_keys), data)
 
 
 def get_max_solved(solvers, data, T):
