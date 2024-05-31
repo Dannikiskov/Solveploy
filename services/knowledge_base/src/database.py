@@ -641,6 +641,9 @@ def get_solved_time_mzn(solver_name, inst):
     return result
 
 def mzn_matrix(solvers, insts, T):
+    print("solvers: ", solvers, flush=True)
+    print("insts: \n", insts, flush=True)
+    print()
 
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
@@ -671,7 +674,10 @@ def mzn_matrix(solvers, insts, T):
         mzn_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features = ANY ({})
+        EXISTS (
+            SELECT 1 FROM unnest(f.features) feature
+            WHERE feature = ANY ({})
+        )
     ORDER BY 
         s.name, f.id;
     """).format(
