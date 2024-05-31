@@ -113,7 +113,8 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
-
+    print("DATA\n", data, flush=True)
+    print(data, flush=True)
     distinct_numbers = len(set(item[1] for item in data))
 
     solver_to_times = {}
