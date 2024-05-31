@@ -668,8 +668,8 @@ def mzn_matrix(solvers, insts, T):
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
         CASE 
-            WHEN t.status != 'OPTIMAL_SOLUTION' AND t.status != 'UNSATIFIABLE' THEN 'T'
-            ELSE CAST(t.execution_time AS VARCHAR) 
+            WHEN t.status == 'OPTIMAL_SOLUTION' OR t.status == 'UNSATIFIABLE' THEN CAST(t.execution_time AS VARCHAR) 
+            ELSE 'T'
         END AS execution_time
     FROM 
         mzn_solvers s
