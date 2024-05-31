@@ -12,28 +12,23 @@ from collections import defaultdict
 
 def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=None, data_type=None):
     solvers = [solver['name'] for solver in solvers]
-    print("solvers", solvers, flush=True)
 
     # Get features vector for the given instance
     feat_vect = get_features(inst, solver_type, data_file, data_type)
-    print("feat_vect", feat_vect, flush=True)
 
     # Find k-nearest neighbors
     similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
-    print("len similar_insts", len(similar_insts), flush=True)
+
 
     # Get sub-portfolio
     sub_portfolio, matrix = get_sub_portfolio(similar_insts, solvers, T, solver_type)
-    print("sub_portfolio", sub_portfolio, flush=True)
-    print(";ATRIC\n", matrix, flush=True)
+
 
     # Initialize variables
     slots = sum([get_max_solved(solver, matrix, T) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix, T))
     time_slot = T / slots
     tot_time = 0
     schedule = {bkup_solver['name']: 0}
-    print("slots", slots, flush=True)
-    print("time_slot", time_slot, flush=True)
 
     # Populate the schedule
     for solver in sub_portfolio:

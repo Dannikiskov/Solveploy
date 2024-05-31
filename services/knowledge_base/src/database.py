@@ -414,27 +414,33 @@ def get_sat_solvers():
 
 
 def sat_matrix(solvers, insts, T):
+    print("solvers: ", solvers, flush=True)
+    print("insts: \n", insts, flush=True)
+    print()
 
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
 
     # Convert each inner list to an array literal
-    insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
+    insts_array_literals = [sql.SQL("ARRAY[{}]::float8[]").format(
         sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
     ) for inner_list in insts]
 
-    # Create a subquery that returns the arrays
-    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])").format(
+    # Combine the array literals into a single array
+    combined_insts = sql.SQL("ARRAY[{}]::float8[]").format(
         sql.SQL(',').join(insts_array_literals)
     )
 
     query = sql.SQL("""
+    WITH insts AS (
+        SELECT unnest({}) AS features
+    )
     SELECT 
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
         CASE 
-            WHEN t.execution_time > %s THEN 'T' 
-            ELSE CAST(t.execution_time AS VARCHAR) 
+            WHEN t.status = 'OPTIMAL_SOLUTION' OR t.status = 'UNSATISFIABLE' THEN CAST(t.execution_time AS VARCHAR) 
+            ELSE 'T'
         END AS execution_time
     FROM 
         sat_solvers s
@@ -446,17 +452,40 @@ def sat_matrix(solvers, insts, T):
         s.name IN ({}) AND 
         EXISTS (
             SELECT 1 FROM unnest(f.features) feature
-            WHERE feature = ANY ({})
+            WHERE feature = ANY (SELECT features FROM insts)
         )
     ORDER BY 
         s.name, f.id;
     """).format(
-        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
-        insts_subquery  # Use the subquery for insts
+        combined_insts,
+        sql.SQL(',').join(sql.Literal(solver) for solver in solvers)  # Use sql.Literal for string values
     )
-    params = (T,)
-    result = query_database(query, params)
+    
+    result = query_database(query)
+    ids = sat_get_feature_ids(insts)
+    print("ids", ids, flush=True)
+    result = [item for item in result if item[1] in ids]
+    print("Result: ", flush=True)
+    print(result, flush=True)
     return result
+
+def sat_get_feature_ids(features):
+    ids = []
+    for feature in features:
+        feature = str(feature).replace(' ', '')
+        feature = feature.replace('[', '')
+        feature = feature.replace(']', '')
+        feature = "{" + feature + "}"
+        query = "SELECT id FROM sat_feature_vectors WHERE features = %s"
+        params = (feature,)
+        result = query_database(query, params)
+        if result:
+            ids.append(result[0])
+
+    if len(result) == 0:
+        return None
+    
+    return ids
 
 
 # MZN
@@ -691,14 +720,14 @@ def mzn_matrix(solvers, insts, T):
     )
     
     result = query_database(query)
-    ids = get_feature_ids(insts)
+    ids = mzn_get_feature_ids(insts)
     print("ids", ids, flush=True)
     result = [item for item in result if item[1] in ids]
     print("Result: ", flush=True)
     print(result, flush=True)
     return result
 
-def get_feature_ids(features):
+def mzn_get_feature_ids(features):
     ids = []
     for feature in features:
         feature = str(feature).replace(' ', '')

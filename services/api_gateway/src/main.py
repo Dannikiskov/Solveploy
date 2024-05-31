@@ -18,13 +18,11 @@ class Jobs(Resource):
         
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
-        print(f"{data['item']['name']} : {data['mznFileName']} : {data['dataFileName']} SENT", flush=True)    
         if "noresult" in data and data["noresult"] == True:
             print("noresult", flush=True)
             async_execute_no_response(data)
         else:
             result = async_execute(data)
-            print(f"{data['item']['name']} : {data['mznFileName']} : {data['dataFileName']} FINISHED", flush=True) 
             print("RESULT: ", result, flush=True)
             try:
                 result_json = json.loads(result)
