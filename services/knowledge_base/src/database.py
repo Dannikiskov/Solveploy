@@ -679,7 +679,10 @@ def mzn_matrix(solvers, insts, T):
         mzn_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features = ANY (SELECT features FROM insts)
+        EXISTS (
+            SELECT 1 FROM unnest(f.features) feature
+            WHERE feature = ANY (SELECT features FROM insts)
+        )
     ORDER BY 
         s.name, f.id;
     """).format(
