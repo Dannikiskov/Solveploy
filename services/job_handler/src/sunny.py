@@ -187,7 +187,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             if result == None or best_subsets[best_subset][1] < lowest_avg:
                 print("best_subsets[best_subset][1]", best_subsets[best_subset][1], flush=True)
                 print("lowest_avg", lowest_avg, flush=True)
-                result = best_subsets[best_subset]
+                result = best_subset
                 lowest_avg = best_subsets[best_subset][1]
     else: 
         result = best_subsets
