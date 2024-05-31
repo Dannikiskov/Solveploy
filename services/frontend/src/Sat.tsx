@@ -173,22 +173,7 @@ function Sat() {
     console.log(item.memory);
   }
 
-  const updateItemParams = (event: React.ChangeEvent<HTMLInputElement>, item: SatSolverData) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const fileContent = reader.result as string;
-          setSatSolverList((prevList) =>
-            prevList.map((prevItem) =>
-              prevItem.name === item.name ? { ...prevItem, params: fileContent } : prevItem
-            )
-          );
-        };
-        reader.readAsText(file);
-      }
-      console.log(item.params);
-  }
+ 
 
   const fetchStartSolvers = async (item: SatSolverData) => {
     console.log("satFileName ", satFileName)
@@ -273,7 +258,7 @@ Name: ${bestResult.name}
 Version: ${bestResult.version}
 Output
 Status: ${bestResult.status}
-Execution Time: ${bestResult.executionTime} milliseconds
+Execution Time: ${bestResult.executionTime} seconds
 Result: 
 ${bestResult.result}
     `;
@@ -495,7 +480,6 @@ ${bestResult.result}
             }`}
           >
             <div>Name: {item.name}</div>
-            <div>Version: {item.version}</div>
             <div>
               <input
                 type="number"
@@ -525,8 +509,6 @@ ${bestResult.result}
             )}
             
             <br style={{marginBottom: '5px'}} />
-            <input onChange={(e) => {updateItemParams(e, item)}} type="file" />
-            <br />
             <button className="small-button" onClick={() => handleItemClick(item)} disabled={!item.memory || !item.cpu}>Select</button>
             </div>
             </div>
@@ -577,7 +559,7 @@ ${bestResult.result}
               <div>Version: {bestResult.version}</div>
               <h4>Output</h4>
               <div>Status: {bestResult.status}</div>
-              <div>Execution Time: {bestResult.executionTime} milliseconds</div>
+              <div>Execution Time: {bestResult.executionTime} seconds</div>
               <div>Result: {bestResult.result}</div>
               <br />
               <button onClick={downloadResult}>Download Result</button>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { saveAs } from 'file-saver';
 
 import "./App.css";
 
@@ -8,31 +9,68 @@ interface MaxsatSolverData {
   name: string;
   maxsatIdentifier: string;
   jobIdentifier: string;
+  cpu?: number;
+  memory?: number;
 }
-
 interface MaxsatJobResult extends MaxsatSolverData {
   result: string;
-  executionTime: number;
+  executionTime?: number;
+  status: string;
+  optValue: number;
 }
 
 function Maxsat() {
   const [maxsatSolverList, setMaxsatSolverList] = useState<MaxsatSolverData[]>(
     []
   );
+  const [bestResult, setBestResult] = useState<MaxsatJobResult | null>(null);
   const [selectedMaxsatSolvers, setSelectedMaxsatSolvers] = useState<
     MaxsatSolverData[]
   >([]);
-  const [cnfFileContent, setCnfFileContent] = useState<string>("");
+  const [maxsatFileContent, setMaxsatFileContent] = useState<string>("");
+  const [maxsatFileName, setMaxsatFileName] = useState<string>("");
   const [runningMaxsatJobs, setRunningMaxsatJobs] = useState<
     MaxsatSolverData[]
-  >([]);
-  const [maxsatJobResultList, setMaxsatJobResultList] = useState<
-    MaxsatJobResult[]
   >([]);
 
   useEffect(() => {
     fetchDataGet();
   }, []);
+
+  const updateItemMemory = (item: MaxsatSolverData, memory: number) => {
+    setMaxsatSolverList((prevList) =>
+      prevList.map((prevItem) =>
+        prevItem.name === item.name ? { ...prevItem, memory } : prevItem
+      )
+    );
+    console.log(item.memory);
+  }
+
+  const updateItemCpu = (item: MaxsatSolverData, cpu: number) => {
+    setMaxsatSolverList((prevList) =>
+      prevList.map((prevItem) =>
+        prevItem.name === item.name ? { ...prevItem, cpu } : prevItem
+      )
+    );
+    console.log(item.cpu)
+  }
+
+  const downloadResult = () => {
+    if (!bestResult) return;
+  
+    const content = `Solver Information
+Name: ${bestResult.name}
+Output
+Status: ${bestResult.status}
+Execution Time: ${bestResult.executionTime} seconds
+Result: 
+${bestResult.result}
+    `;
+  
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, 'result.txt');
+  };
+
 
   const fetchStopJob = async (item: MaxsatSolverData) => {
     setRunningMaxsatJobs((prevItems: Array<MaxsatSolverData>) =>
@@ -55,6 +93,35 @@ function Maxsat() {
       console.error("Error stopping solvers:", error);
     }
   };
+
+  async function handleRefresh(): Promise<void> {
+    try {
+      const response = await fetch("/api/results", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          item: bestResult,
+          type: "maxsat",
+          optGoal: "satisfy",
+        }),
+      });
+      if (!response.ok) {
+        console.error("Error fetching results:", response.statusText);
+        return; // Exit early if response is not OK
+      }
+      const data = await response.json() as MaxsatJobResult;
+      console.log("DATA", data);
+      if (data != null){
+        setBestResult(data);
+      }
+      
+      
+    } catch (error) {
+      console.error("Error fetching results:", error);
+    }
+  }
 
   const fetchDataGet = async () => {
     try {
@@ -91,7 +158,7 @@ function Maxsat() {
 
   const handlestartsolvers = () => {
     setRunningMaxsatJobs(selectedMaxsatSolvers);
-    selectedMaxsatSolvers.forEach(fetchstartsolvers);
+    selectedMaxsatSolvers.forEach(fetchStartSolvers);
     setSelectedMaxsatSolvers([]);
     setMaxsatSolverList((prevList) =>
       prevList.map((item) => ({
@@ -101,7 +168,9 @@ function Maxsat() {
     );
   };
 
-  const fetchstartsolvers = async (item: MaxsatSolverData) => {
+  
+
+  const fetchStartSolvers = async (item: MaxsatSolverData) => {
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
@@ -110,56 +179,32 @@ function Maxsat() {
         },
         body: JSON.stringify({
           item,
-          cnfFileContent,
-          instructions: "StartMaxsatJob",
+          maxsatFileContent,
+          maxsatFileName,
+          instructions: "StartSatJob",
+          optGoal: "satisfy",
         }),
       });
 
-      let updateditem = await response.json();
-      if (!response.ok) {
-        updateditem = {
-          ...item,
-          jobIdentifier: uuidv4().slice(0, 8),
-          result: "Error starting solver",
-          executionTime: 0,
-          stopped: true,
-        };
-        throw new Error(`Error starting solvers: ${response.statusText}`);
-      }
-      if (updateditem !== "Solver stopped") {
-        setMaxsatJobResultList((prevItems: MaxsatJobResult[]) => [
-          ...prevItems,
-          {
-            name: item.name,
-            jobIdentifier: uuidv4().slice(0, 8),
-            result: updateditem.result,
-            executionTime: updateditem.executionTime,
-            maxsatIdentifier: item.maxsatIdentifier,
-          },
-        ]);
-      }
 
-      // Update state here
+      console.log(response);
+      // Remove the item from runningSatSolvers list
       setRunningMaxsatJobs((prevItems: Array<MaxsatSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
       );
+
     } catch (error) {
       console.error("Error starting solvers:", error);
-      return {
-        ...item,
-        result: "Error starting solver",
-        executionTime: 0,
-        stopped: true,
-      };
     }
-  };
+  }
 
   const handlefilechange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setMaxsatFileName(file.name);
       const reader = new FileReader();
       reader.onload = () => {
-        setCnfFileContent(reader.result as string);
+        setMaxsatFileContent(reader.result as string);
         console.log(reader.result);
       };
       reader.readAsText(file);
@@ -183,8 +228,18 @@ function Maxsat() {
             onClick={() => handleitemclick(item)}
           >
             <div>Name: {item.name}</div>
-            <div>MAXSAT ID: {item.maxsatIdentifier}</div>
-            <div>Job ID: {item.jobIdentifier}</div>
+            <input
+                type="number"
+                placeholder="CPU"
+                onChange={(e) => {updateItemCpu(item, Number(e.target.value))}}
+              />
+              <br />
+              <input
+                type="number"
+                placeholder="Memory"
+                onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
+              />
+              <br />
           </div>
         ))}
       </div>
@@ -202,14 +257,24 @@ function Maxsat() {
               <button onClick={() => fetchStopJob(item)}>Stop Solver</button>
             </div>
           ))}
-          {maxsatJobResultList.map((item, index) => (
-            <div key={index} className="solver-item">
-              <div>Name: {item.name}</div>
-              <div>Job ID: {item.jobIdentifier}</div>
-              <div>Result: {item.result}</div>
-              <div>Execution Time: {item.executionTime}</div>
+      <h2>Result</h2>
+        <div>    
+          {bestResult && (
+            <div className="result-container">
+              <h4>Solver Information</h4>
+              <div>Name: {bestResult.name}</div>
+              <h4>Output</h4>
+              <div>Status: {bestResult.status}</div>
+              <div>Execution Time: {bestResult.executionTime} seconds</div>
+              <div>Result: {bestResult.result}</div>
+              <br />
+              <button onClick={downloadResult}>Download Result</button>
             </div>
-          ))}
+          )}
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <button onClick={handleRefresh}>Refresh Result</button>
+        </div>
         </div>
       </div>
     </>

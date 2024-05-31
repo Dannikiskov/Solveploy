@@ -65,7 +65,7 @@ function Info() {
                       {(dataItems as DataItem[]).map((dataItem: DataItem, itemIndex) => (
                         <ul key={itemIndex}>
                           Status: {dataItem.status} <br />
-                          Goal: {dataItem.opt_goal} <br />
+                          Goal: {dataItem.opt_goal} <br />kgp
                           Objective: {dataItem.opt_value} <br />
                           Execution Time: {dataItem.execution_time} milliseconds
                           <hr style={{margin: '2px'}} />
@@ -96,7 +96,7 @@ function Info() {
         <div key={file.sat_file_name}>
           <p>SAT File Name: {file.sat_file_name}</p>
           <p>Status: {file.status}</p>
-          <p>Execution Time: {file.execution_time}</p>
+          <p>Execution Time: {file.execution_time} seconds</p>
           <hr style={{margin: '2px'}} />
         </div>
         
