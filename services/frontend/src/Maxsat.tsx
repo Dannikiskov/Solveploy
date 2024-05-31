@@ -241,6 +241,14 @@ ${bestResult.result}
       <button onClick={handlestartsolvers}>Start Solvers</button>
       <br />
       <div>
+      <h2>Running Solvers</h2>
+          <div className="grid">
+            {runningMaxsatJobs.map((item, index) => (
+              <div key={index} className="solver-item">
+                <div>Name: {item.name}</div>
+              </div>
+            ))}
+          </div>
       <br />
       <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button>
       <br />
