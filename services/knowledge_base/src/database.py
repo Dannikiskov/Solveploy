@@ -202,6 +202,7 @@ def get_solved_time_maxsat(solver_name, inst):
     result = query_database(query, params)[0]
 
     return result
+
 def maxsat_matrix(solvers, insts, T):
 
     if not (isinstance(insts[0], list)):
@@ -653,14 +654,14 @@ def mzn_matrix(solvers, insts, T):
         sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
     ) for inner_list in insts]
 
-    # Create a subquery that returns the arrays
-    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])::float8[]").format(
+    # Combine the array literals into a single array
+    combined_insts = sql.SQL('ARRAY[{}]').format(
         sql.SQL(',').join(insts_array_literals)
     )
 
     query = sql.SQL("""
     WITH insts AS (
-        SELECT unnest(ARRAY[{}])::float8[] AS features
+        SELECT unnest({})::float8[] AS features
     )
     SELECT 
         s.name AS solver_name, 
@@ -681,7 +682,7 @@ def mzn_matrix(solvers, insts, T):
     ORDER BY 
         s.name, f.id;
     """).format(
-        insts_subquery,
+        combined_insts,
         sql.SQL(',').join(sql.Literal(solver) for solver in solvers)  # Use sql.Literal for string values
     )
     
