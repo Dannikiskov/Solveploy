@@ -659,6 +659,9 @@ def mzn_matrix(solvers, insts, T):
     )
 
     query = sql.SQL("""
+    WITH insts AS (
+        SELECT unnest(ARRAY[{}]) AS features
+    )
     SELECT 
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
@@ -674,10 +677,7 @@ def mzn_matrix(solvers, insts, T):
         mzn_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        EXISTS (
-            SELECT 1 FROM unnest(f.features) feature
-            WHERE feature = ANY ({})
-        )
+        f.features = ANY (ARRAY(SELECT features FROM insts))
     ORDER BY 
         s.name, f.id;
     """).format(
