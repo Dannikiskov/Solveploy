@@ -98,7 +98,6 @@ def get_nearest_neighbors(feat_vect, k, solver_type):
         return feat_vect
     
     kb_features = ast.literal_eval(kb_features)
-    print("kb_features", kb_features, flush=True)
     if len(kb_features) >= k:
         distances = [euclidean_distance(feat_vect, kb_feature) for kb_feature in kb_features]
     else:  
