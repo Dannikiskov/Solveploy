@@ -55,7 +55,7 @@ if __name__ == '__main__':
     print(f" [.] solver_name: {solver_name}", flush=True)
     params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
     print(f" [.] params: {params}", flush=True)
-    cnf_string = message_data["satFileContent"]
+    cnf_string = message_data["cnfFileContent"]
     if "cores" in message_data["item"]:
         cores = message_data["item"]["cores"]
     else:
@@ -68,10 +68,10 @@ if __name__ == '__main__':
         result = maxsatSolve.run_maxsat_model(solver_name.lower(), cnf_string,  cores, params)
         print(result, flush=True)
     except Exception as e:
-        result = {"result": f"Sat Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
+        result = {"result": f"Maxsat Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
 
     result["name"] = solver_name
-    result["satIdentifier"] = message_data["item"]["satIdentifier"]
+    result["maxsatIdentifier"] = message_data["item"]["maxsatIdentifier"]
 
     out_queue_name = f"solverk8job-{os.getenv('IDENTIFIER')}-result"
     json_result = json.dumps(result)
