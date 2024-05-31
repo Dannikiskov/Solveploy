@@ -214,6 +214,7 @@ ${bestResult.result}
   return (
     <>
       <div>
+      <h3>Upload CNF file</h3>
         <input onChange={handlefilechange} type="file" />
       </div>
       <br />

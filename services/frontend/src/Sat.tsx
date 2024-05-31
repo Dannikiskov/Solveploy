@@ -406,7 +406,7 @@ ${bestResult.result}
       {oneProb ? (
         <div>
           <div>
-            <h3>Upload SAT file</h3>
+            <h3>Upload CNF file</h3>
             <input ref={satFileInput} onChange={handleSatFileChange} type="file" />
           </div>
           <br></br>
