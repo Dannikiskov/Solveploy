@@ -168,6 +168,19 @@ ${bestResult.result}
     );
   };
 
+  const handleItemClick = (item: MaxsatSolverData) => {
+    if (selectedMaxsatSolvers.find((i: any) => i.name === item.name)) {
+      setSelectedMaxsatSolvers((prevItems: Array<MaxsatSolverData>) =>
+        prevItems.filter((i) => i.name !== item.name)
+      );
+    } else {
+      setSelectedMaxsatSolvers((prevItems: Array<MaxsatSolverData>) => [
+        ...prevItems,
+        item,
+      ]);
+    }
+    //console.log(selectedSatSolvers);
+  };
   
 
   const fetchStartSolvers = async (item: MaxsatSolverData) => {
@@ -226,7 +239,6 @@ ${bestResult.result}
             className={`solver-item ${
               selectedMaxsatSolvers.includes(item) ? "selected" : ""
             }`}
-            onClick={() => handleitemclick(item)}
           >
             <div>Name: {item.name}</div>
             <input
@@ -241,6 +253,7 @@ ${bestResult.result}
                 onChange={(e) => {updateItemMemory(item, Number(e.target.value))}}
               />
               <br />
+              <button className="small-button" onClick={() => handleItemClick(item)} disabled={!item.memory || !item.cpu}>Select</button>
           </div>
         ))}
       </div>
