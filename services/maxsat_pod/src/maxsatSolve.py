@@ -30,7 +30,7 @@ def run_maxsat_model(solver_name, cnf_string):
                     w_formula.append(weightless_clause, weight=weight)
                 else:
                     clause = [int(x) for x in line.split(" ")[:-1]]
-                    print("CLAUSE: ", clause, "WEIGHT: ", weight, "WEIGHTLESS_CLAUSE: ", weightless_clause, flush=True)
+                    print("CLAUSE: ", clause, "WEIGHTLESS_CLAUSE: ", weightless_clause, flush=True)
                     formula.append(weightless_clause)
     except Exception as e:
         print("Error: ", e, flush=True)
