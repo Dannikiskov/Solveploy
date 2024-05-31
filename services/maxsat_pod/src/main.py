@@ -53,19 +53,12 @@ if __name__ == '__main__':
     print(f" [.] message consumed!", flush=True)
     solver_name = message_data["item"]["name"]
     print(f" [.] solver_name: {solver_name}", flush=True)
-    params = json.loads(message_data["item"]["params"]) if "params" in message_data["item"] else None
-    print(f" [.] params: {params}", flush=True)
-    cnf_string = message_data["cnfFileContent"]
-    if "cores" in message_data["item"]:
-        cores = message_data["item"]["cores"]
-    else:
-        cores = None
+    cnf_string = message_data["maxsatFileContent"]
 
-    print("cores: ", cores, flush=True)
 
     try:
         print(f" [.] Running SAT Solver: {solver_name}", flush=True)
-        result = maxsatSolve.run_maxsat_model(solver_name.lower(), cnf_string,  cores, params)
+        result = maxsatSolve.run_maxsat_model(solver_name.lower(), cnf_string)
         print(result, flush=True)
     except Exception as e:
         result = {"result": f"Maxsat Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
