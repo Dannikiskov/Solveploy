@@ -143,19 +143,6 @@ ${bestResult.result}
     }
   };
 
-  const handleitemclick = (item: MaxsatSolverData) => {
-    if (selectedMaxsatSolvers.find((i: any) => i.name === item.name)) {
-      setSelectedMaxsatSolvers((prevItems: Array<MaxsatSolverData>) =>
-        prevItems.filter((i) => i.name !== item.name)
-      );
-    } else {
-      setSelectedMaxsatSolvers((prevItems: Array<MaxsatSolverData>) => [
-        ...prevItems,
-        item,
-      ]);
-    }
-  };
-
   const handlestartsolvers = () => {
     setRunningMaxsatJobs(selectedMaxsatSolvers);
     selectedMaxsatSolvers.forEach(fetchStartSolvers);
