@@ -40,9 +40,14 @@ def run_maxsat_model(solver_name, cnf_string):
     t2 = None
 
     if solver_name == 'RC2':
-        t1 = time.time()
-        model = RC2(w_formula).compute()
-        t2 = time.time()
+        if not weighted_cnf:
+            t1 = time.time()
+            model = RC2(formula).compute()
+            t2 = time.time()
+        else:
+            t1 = time.time()
+            model = RC2(w_formula).compute()
+            t2 = time.time()
 
     print("MAXSAT finished.. with model; ", model, flush=True)
     return {"result": model, "executionTime": t2 - t1}
