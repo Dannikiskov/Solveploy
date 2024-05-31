@@ -139,33 +139,40 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     best_subsets = {}
     
     for subset in subsets:
+        print("subset", subset, flush=True)
         fastest_solved = {}
         total_time = 0
         solved_instances = set()
         total_subset_time = 0
         count = 0
         for solver in subset:
+            print("solver", solver, flush=True)
             if solver in solver_to_instances:
                 solved_instances.update(solver_to_instances[solver])
                 total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver]))
                 for problem in problems:
+                    print("problem", problem, flush=True)
                     if problem in solver_to_instances[solver] and (problem not in fastest_solved or solver_to_instances[solver][problem] < fastest_solved[problem]):
                         fastest_solved[problem] = solver_to_instances[solver][problem]
+                        print("fastest_solved", fastest_solved, flush=True)
 
         sorted_times = sorted(list(fastest_solved.values()))
+        sorted_times = [time for time in sorted_times if time != "T"]
         for time in sorted_times:
             if total_time + time <= T:
                 total_time += time
                 count += 1
 
         average_time = total_subset_time / (distinct_numbers*len(subset))
-
+        print("count", count,  "max_solved_instance", max_solved_instances, flush=True)
         if count > max_solved_instances:
             best_subsets.clear()
             best_subsets[subset] = (count, average_time)
+            print("best_subsets", best_subsets, flush=True)
             max_solved_instances = count
         elif count == max_solved_instances:
             best_subsets[subset] = (count, average_time)
+            print("best_subsets", best_subsets, flush=True)
     
     result = None
     lowest_avg = None  
@@ -174,8 +181,12 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     best_subsets = selected_entries
 
     if len (best_subsets) > 1:
+        print("len(best_subsets)", len(best_subsets), flush=True)
         for best_subset in best_subsets:
+            print("best_subset", best_subset, flush=True)
             if result == None or best_subsets[best_subset][1] < lowest_avg:
+                print("best_subsets[best_subset][1]", best_subsets[best_subset][1], flush=True)
+                print("lowest_avg", lowest_avg, flush=True)
                 result = best_subsets[best_subset]
                 lowest_avg = best_subsets[best_subset][1]
     else: 
