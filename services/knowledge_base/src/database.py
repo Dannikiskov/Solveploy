@@ -699,19 +699,22 @@ def mzn_matrix(solvers, insts, T):
     return result
 
 def get_feature_ids(features):
-    features = str(features).replace(' ', '')
-    features = features.replace('[', '')
-    features = features.replace(']', '')
-    features = "{" + str(features) + "}"
-
-    query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
-    params = (features,)
-    result = query_database(query, params)
+    ids = []
+    for feature in features:
+        feature = str(feature).replace(' ', '')
+        feature = feature.replace('[', '')
+        feature = feature.replace(']', '')
+        feature = "{" + feature + "}"
+        query = "SELECT id FROM mzn_feature_vectors WHERE features = %s"
+        params = (feature,)
+        result = query_database(query, params)
+        if result:
+            ids.append(result[0])
 
     if len(result) == 0:
         return None
     
-    return result[0]
+    return ids
 
 def print_stuff():
     query = "SELECT * FROM sat_solver_featvec_time"
