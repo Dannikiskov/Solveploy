@@ -649,18 +649,18 @@ def mzn_matrix(solvers, insts, T):
         insts = [[x] for x in insts]
 
     # Convert each inner list to an array literal
-    insts_array_literals = [sql.SQL("ARRAY[{}]::float[]").format(
+    insts_array_literals = [sql.SQL("ARRAY[{}]::float8[]").format(
         sql.SQL(',').join(sql.Literal(float(inst)) for inst in inner_list)
     ) for inner_list in insts]
 
     # Create a subquery that returns the arrays
-    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])").format(
+    insts_subquery = sql.SQL("SELECT unnest(ARRAY[{}])::float8[]").format(
         sql.SQL(',').join(insts_array_literals)
     )
 
     query = sql.SQL("""
     WITH insts AS (
-        SELECT unnest(ARRAY[{}]) AS features
+        SELECT unnest(ARRAY[{}])::float8[] AS features
     )
     SELECT 
         s.name AS solver_name, 
@@ -677,19 +677,18 @@ def mzn_matrix(solvers, insts, T):
         mzn_feature_vectors f ON t.feature_vec_id = f.id
     WHERE 
         s.name IN ({}) AND 
-        f.features = ANY (ARRAY(SELECT features FROM insts))
+        f.features = ANY (SELECT features FROM insts)
     ORDER BY 
         s.name, f.id;
     """).format(
-        sql.SQL(',').join(sql.Literal(solver) for solver in solvers),  # Use sql.Literal for string values
-        insts_subquery  # Use the subquery for insts
+        insts_subquery,
+        sql.SQL(',').join(sql.Literal(solver) for solver in solvers)  # Use sql.Literal for string values
     )
-    params = (T,)
-    result = query_database(query, params)
+    
+    result = query_database(query)
     print("Result: ", flush=True)
     print(result, flush=True)
     return result
-
 
 def print_stuff():
     query = "SELECT * FROM sat_solver_featvec_time"
