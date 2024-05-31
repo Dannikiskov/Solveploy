@@ -692,6 +692,7 @@ def mzn_matrix(solvers, insts, T):
     
     result = query_database(query)
     ids = get_feature_ids(insts)
+    print("ids", ids, flush=True)
     result = [item for item in result if item[1] in ids]
     print("Result: ", flush=True)
     print(result, flush=True)
