@@ -181,6 +181,7 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     else: 
         result = best_subsets
 
+    print("RESULT\n", result, flush=True)
     return (list(next(iter(result))), data)
 
 
