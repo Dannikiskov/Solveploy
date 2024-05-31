@@ -41,6 +41,7 @@ def run_maxsat_model(solver_name, cnf_string):
 
     if solver_name == 'RC2':
         if not weighted_cnf:
+            print("computing with formula", formula, flush=True)
             t1 = time.time()
             model = RC2(formula).compute()
             t2 = time.time()
