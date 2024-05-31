@@ -71,26 +71,19 @@ ${bestResult.result}
     saveAs(blob, 'result.txt');
   };
 
-
-  const fetchStopJob = async (item: MaxsatSolverData) => {
-    setRunningMaxsatJobs((prevItems: Array<MaxsatSolverData>) =>
-      prevItems.filter((i) => i.name !== item.name)
-    );
-
+  const stopAllSolvers = async () => {
     try {
-      const response = await fetch("/api/jobs", {
+      const response = await fetch("/api/jobs/sat", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ item }),
       });
-
       if (!response.ok) {
-        throw new Error(`Error stopping solvers: ${response.statusText}`);
+        console.error("Error stopping all solvers:", response.statusText);
       }
     } catch (error) {
-      console.error("Error stopping solvers:", error);
+      console.error("Error stopping all solvers:", error);
     }
   };
 
@@ -181,7 +174,7 @@ ${bestResult.result}
           item,
           maxsatFileContent,
           maxsatFileName,
-          instructions: "StartSatJob",
+          instructions: "StartMaxsatJob",
           optGoal: "satisfy",
         }),
       });
@@ -248,17 +241,11 @@ ${bestResult.result}
       <button onClick={handlestartsolvers}>Start Solvers</button>
       <br />
       <div>
-        <h2>Solver Results</h2>
-        <div className="grid">
-          {runningMaxsatJobs.map((item, index) => (
-            <div key={index} className="solver-item">
-              <div>Name: {item.name}</div>
-              <div>Job ID: {item.jobIdentifier}</div>
-              <div>Waiting for result</div>
-              <button onClick={() => fetchStopJob(item)}>Stop Solver</button>
-            </div>
-          ))}
+      <br />
+      <button className="small-button" onClick={stopAllSolvers}>Stop All Solvers</button>
+      <br />
       <h2>Result</h2>
+        <br />
         <div>    
           {bestResult && (
             <div className="result-container">
@@ -277,7 +264,6 @@ ${bestResult.result}
           <button onClick={handleRefresh}>Refresh Result</button>
         </div>
         </div>
-      </div>
     </>
   );
 }

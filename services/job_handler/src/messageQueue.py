@@ -36,7 +36,7 @@ def consume():
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
-            Process(target=mznHandler.handle_new_mzn_job, args=(data,)).start()
+            threading.Thread(target=mznHandler.handle_new_mzn_job, args=(data,)).start()
 
         elif instructions == "StartSatJob":
             threading.Thread(target=satHandler.handle_new_sat_job, args=(data,)).start()
