@@ -641,6 +641,7 @@ def get_solved_time_mzn(solver_name, inst):
 
     return result
 
+
 def mzn_matrix(solvers, insts, T):
     print("solvers: ", solvers, flush=True)
     print("insts: \n", insts, flush=True)
@@ -655,13 +656,13 @@ def mzn_matrix(solvers, insts, T):
     ) for inner_list in insts]
 
     # Combine the array literals into a single array
-    combined_insts = sql.SQL('ARRAY[{}]').format(
+    combined_insts = sql.SQL("ARRAY[{}]::float8[]").format(
         sql.SQL(',').join(insts_array_literals)
     )
 
     query = sql.SQL("""
     WITH insts AS (
-        SELECT unnest({})::float8[] AS features
+        SELECT unnest({}) AS features
     )
     SELECT 
         s.name AS solver_name, 
