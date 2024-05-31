@@ -7,8 +7,10 @@ def handle_new_maxsat_job(data):
 
     identifier = data["item"]["jobIdentifier"]
     solver_name = data["item"]["name"]
+    cpu = data["item"]["cpu"]
+    memory = data["item"]["memory"]
 
-    k8sHandler.start_solver_job(solver_name, identifier, "maxsat")
+    k8sHandler.start_solver_job(solver_name, identifier, "maxsat", cpu, memory)
     k8_result = mq.send_wait_receive_k8(data, f'solverk8job-{identifier}')
 
     
@@ -26,7 +28,6 @@ def handle_new_maxsat_job(data):
 def stop_maxsat_job_by_id(data):
 
     identifier = data["item"]["jobIdentifier"]
-
     k8sHandler.stop_solver_job_by_namespace(identifier)
     mq.send_to_queue("Solver stopped", f'{data["queueName"]}-{identifier}')
 
