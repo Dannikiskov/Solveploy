@@ -174,8 +174,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             best_subsets[subset] = (count, average_time)
             print("best_subsets", best_subsets, flush=True)
     
-    result = None
-    lowest_avg = None  
     min_key_length = min(len(k) for k in best_subsets.keys())
     selected_entries = {k: v for k, v in best_subsets.items() if len(k) == min_key_length}
     best_subsets = selected_entries
