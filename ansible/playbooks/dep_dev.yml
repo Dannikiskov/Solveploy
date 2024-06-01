@@ -4,7 +4,8 @@
   hosts: kubernetes_hosts
   connection: local
   vars:
-    kubeconfig_path: "/home/hmbl/.kube/config"
+    ansible_user: "{{ lookup('env', 'USER') }}"
+    kubeconfig_path: "/home/{{ ansible_user }}/.kube/config"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
@@ -12,7 +13,7 @@
     - name: Add user to docker group
       become: yes
       user:
-        name: "hmbl"
+        name: "{{ ansible_user }}"
         groups: docker
         append: yes
       tags: 
