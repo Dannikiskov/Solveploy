@@ -53,16 +53,10 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
             print(temp_model_path)
             command = ["glucose-syrup", "-model", f"-maxnbthreads={cores}", f"{temp_model_path}"]
             print("COMMAND: ", command, flush=True)
-
+            t1 = time.time()
             cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
-
+            real_time = time.time() - t1
             print(cmd_result, flush=True)
-
-            # Extract the number after "c real time : "
-            match = re.search(r'c real time : (\d+\.\d+)', cmd_result)
-            real_time = None
-            if match:
-                real_time = match.group(1)
 
             if cmd_result.strip().split('\n')[-2] == "s SATISFIABLE":       
                 last_line = cmd_result.strip().split('\n')[-1]
@@ -71,7 +65,7 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
                     print({"result": last_line, "status": "SATISFIED", "executionTime": real_time}, flush=True)
                 return {"result": last_line, "status": "SATISFIED", "executionTime": real_time}            
             else:
-                return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": real_time}
+                return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": float(real_time)}
         
         elif solver_name == "gimsatul":
             print("gimsatul")
@@ -89,10 +83,8 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
             print(cmd_result, flush=True)
 
             if "s SATISFIABLE" in cmd_result.strip().split('\n'):
-                # Extract the lines starting with "v"
                 solution_lines = [line for line in cmd_result.strip().split('\n') if line.startswith('v')]
 
-                # Remove the leading "v" and whitespace from each line
                 solutions = [line[1:].strip() for line in solution_lines]
 
                 return {"result": solutions, "status": "SATISFIED", "executionTime": real_time}
