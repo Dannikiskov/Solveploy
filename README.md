@@ -18,7 +18,7 @@ Easy cloud deployment of Minizinc, SAT and MAXSAT solvers
 * Execute command `chmod 600 PATH_TO_PRIVATE_KEY`
 * To deploy on debian virtual machine, execute command `./solveploy VIRTUAL_MACHINE_IP --target-username USERNAME`
   
-     username is 'ucloud' unless specified by flag.
+     username is 'ucloud' by default unless else is specified by flag.
 
 When deployment has concluded, Solveploy is accesible on the specified ngork domain.
 
