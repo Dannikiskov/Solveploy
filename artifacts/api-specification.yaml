@@ -2,8 +2,6 @@ openapi: 3.0.0
 info:
   title: Solveploy API
   version: 1.0.0
-servers:
-  - url: http://localhost:5000
 paths:
   /api/jobs:
     post:
@@ -23,20 +21,23 @@ paths:
                 $ref: '#/components/schemas/JobResponse'
     delete:
       summary: Delete a job
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobRequest'
+      parameters:
+        - name: solver_type
+          in: path
+          description: The type of solver
+          required: true
+          schema:
+            type: string
+        - name: identifier
+          in: path
+          description: The identifier of the job
+          required: true
+          schema:
+            type: string
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobResponse'
-  /api/jobs/sunny:
+          description: Job stop message sent
+  /api/sunny:
     post:
       summary: Create a sunny job
       requestBody:
