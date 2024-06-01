@@ -413,7 +413,7 @@ ${bestResult.result}
                 <div>
                   {Object.entries(schedule.result).map(([solver, time], index) => (
                     <div key={index}>
-                      {solver}: {time} milliseconds
+                      {solver}: {time} seconds
                     </div>
                   ))}
                 </div>
