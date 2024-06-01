@@ -19,10 +19,8 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     # Find k-nearest neighbors
     similar_insts = get_nearest_neighbors(feat_vect, k, solver_type)
 
-
     # Get sub-portfolio
     sub_portfolio, matrix = get_sub_portfolio(similar_insts, solvers, T, solver_type)
-
 
     # Initialize variables
     slots = sum([get_max_solved(solver, matrix, T) for solver in sub_portfolio]) + (k - get_max_solved(sub_portfolio, matrix, T))
