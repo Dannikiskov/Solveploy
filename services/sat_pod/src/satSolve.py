@@ -51,13 +51,11 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
                 temp_model_path = temp_model_file.name
                 temp_model_file.close()
             print(temp_model_path)
-            command = ["glucose-syrup", "-model", f"-cpu-lim={cores}", f"{temp_model_path}"]
+            command = ["glucose-syrup", "-model", f"-maxnbthreads={cores}", f"{temp_model_path}"]
             print("COMMAND: ", command, flush=True)
-            try:
-                cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
-            except subprocess.CalledProcessError as e:
-                print(e, flush=True)
-                
+
+            cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
+
             print(cmd_result, flush=True)
 
             # Extract the number after "c real time : "
