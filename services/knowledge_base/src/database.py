@@ -345,8 +345,7 @@ def get_all_sat_feature_vectors():
     result = query_database(query)
     if len == 0:
         return None
-    extracted_result = [t[0] for t in result]
-    return extracted_result
+    return result
 
 def get_all_solved_sat():
     query = f"SELECT * FROM sat_solver_featvec_time"
