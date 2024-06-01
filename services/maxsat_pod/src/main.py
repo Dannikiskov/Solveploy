@@ -16,7 +16,6 @@ if __name__ == '__main__':
                         os.getenv("RABBITMQ_USERNAME"), os.getenv("RABBITMQ_PASSWORD"))
                 )
             )
-            print("Connection established successfully.", flush=True)
             connection = established
             
         except pika.exceptions.AMQPConnectionError:
@@ -36,7 +35,6 @@ if __name__ == '__main__':
         outer_body = body
         ch.stop_consuming()
     
-    print(f"Starting Consume from dynamic queue ({in_queue_name})..", flush=True)
     channel.basic_consume(queue=in_queue_name, on_message_callback=on_request, auto_ack=True)
     channel.start_consuming()
     
@@ -50,16 +48,12 @@ if __name__ == '__main__':
     decoded_body = outer_body.decode("utf-8")
     message_data = json.loads(decoded_body)
 
-    print(f" [.] message consumed!", flush=True)
     solver_name = message_data["item"]["name"]
-    print(f" [.] solver_name: {solver_name}", flush=True)
     cnf_string = message_data["maxsatFileContent"]
 
 
     try:
-        print(f" [.] Running SAT Solver: {solver_name}", flush=True)
         result = maxsatSolve.run_maxsat_model(solver_name.lower(), cnf_string)
-        print(result, flush=True)
     except Exception as e:
         result = {"result": f"Maxsat Solver failed: {str(e)}", "executionTime": "N/A", "status": "ERROR"}
 

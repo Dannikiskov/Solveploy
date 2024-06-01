@@ -28,9 +28,6 @@ def send_wait_receive(data):
     channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
 
     result = None
-
-    # print(" [x] Sent")
-    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
         decoded_body = body.decode("utf-8")

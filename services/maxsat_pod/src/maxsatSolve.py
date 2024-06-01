@@ -12,7 +12,6 @@ def run_maxsat_model(solver_name, cnf_string):
     formula = CNF()
     weighted_cnf = False
     # Add clauses to the solver
-    print("Adding clauses...\n", flush=True)
     try:
         for line in cnf_lines:
             if line.startswith('c'):
@@ -39,7 +38,6 @@ def run_maxsat_model(solver_name, cnf_string):
     t2 = None
 
     if not weighted_cnf:
-        print("computing with formula", formula, flush=True)
         t1 = time.time()
         model = RC2(formula).compute()
         t2 = time.time()
@@ -48,7 +46,6 @@ def run_maxsat_model(solver_name, cnf_string):
         model = RC2(w_formula).compute()
         t2 = time.time()
 
-    print("MAXSAT finished.. with model; ", model, flush=True)
     if model is None:
         return {"result": "unsatisfiable", "executionTime": t2 - t1, "status": "UNSATISFIABLE"}
     else:

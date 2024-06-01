@@ -33,15 +33,11 @@ def sunny(inst, solvers, bkup_solver, k, T, identifier, solver_type, data_file=N
     # Populate the schedule
     for solver in sub_portfolio:
         solver_slots = get_max_solved(solver, matrix, T)
-        print("Solver: ", solver, "Slots: ", solver_slots, flush=True)
         schedule[solver] = solver_slots * time_slot
         tot_time += solver_slots * time_slot
 
-    print("schedule", schedule, flush=True) 
     # Adjust backup solver time
     if tot_time < T:
-        print("tot_time", tot_time, flush=True)
-        print("T", T, flush=True)
         schedule[bkup_solver['name']] += T - tot_time
 
     schedule = {k: v for k, v in schedule.items() if v != 0}
@@ -108,8 +104,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     
     data_str = kb.matrix(solvers, similar_insts, T, solver_type)
     data = ast.literal_eval(data_str)
-    print("DATA\n", data, flush=True)
-    print(data, flush=True)
     distinct_numbers = len(set(item[1] for item in data))
 
     solver_to_times = {}
@@ -134,22 +128,18 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
     best_subsets = {}
     
     for subset in subsets:
-        print("subset", subset, flush=True)
         fastest_solved = {}
         total_time = 0
         solved_instances = set()
         total_subset_time = 0
         count = 0
         for solver in subset:
-            print("solver", solver, flush=True)
             if solver in solver_to_instances:
                 solved_instances.update(solver_to_instances[solver])
                 total_subset_time += sum(solver_to_times[solver]) + T*(distinct_numbers-len(solver_to_instances[solver]))
                 for problem in problems:
-                    print("problem", problem, flush=True)
                     if problem in solver_to_instances[solver] and (problem not in fastest_solved or solver_to_instances[solver][problem] < fastest_solved[problem]):
                         fastest_solved[problem] = solver_to_instances[solver][problem]
-                        print("fastest_solved", fastest_solved, flush=True)
 
         sorted_times = sorted(list(fastest_solved.values()))
         sorted_times = [time for time in sorted_times if time != "T"]
@@ -159,15 +149,12 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
                 count += 1
 
         average_time = total_subset_time / (distinct_numbers*len(subset))
-        print("count", count,  "max_solved_instance", max_solved_instances, flush=True)
         if count > max_solved_instances:
             best_subsets.clear()
             best_subsets[subset] = (count, average_time)
-            print("best_subsets", best_subsets, flush=True)
             max_solved_instances = count
         elif count == max_solved_instances:
             best_subsets[subset] = (count, average_time)
-            print("best_subsets", best_subsets, flush=True)
     
     min_key_length = min(len(k) for k in best_subsets.keys())
     selected_entries = {k: v for k, v in best_subsets.items() if len(k) == min_key_length}
@@ -180,7 +167,6 @@ def get_sub_portfolio(similar_insts, solvers, T, solver_type):
             min_x = v[1]
             min_keys = k
 
-    print("RESULT\n", min_keys, flush=True)
     return (list(min_keys), data)
 
 
@@ -255,7 +241,6 @@ def sort_by_average_solving_time(schedule, matrix, T):
         total_time = sum(solver_to_times[solver])
         total_time += (len(solver_to_instances[solver]) - len(solver_to_times[solver])) * schedule[solver]
         average_times[solver] = total_time / len(solver_to_instances[solver])
-    print(average_times)
     sorted_solvers = sorted(average_times, key=average_times.get)
     sorted_schedule = {solver: schedule[solver] for solver in sorted_solvers}
 

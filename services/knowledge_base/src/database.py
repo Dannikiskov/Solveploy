@@ -82,7 +82,6 @@ def handle_maxsat_instance(data):
 
     query_database(query, params)
 
-    print_stuff()
 
 
 def is_instance_solved_maxsat(instance, solver):
@@ -300,8 +299,6 @@ def handle_sat_instance(data):
 
     query_database(query, params)
 
-    print_stuff()
-
 def is_instance_solved_sat(instance, solver):
     query = "SELECT id FROM sat_solvers WHERE name = %s"
     params = (solver,)
@@ -414,9 +411,6 @@ def get_sat_solvers():
 
 
 def sat_matrix(solvers, insts, T):
-    print("solvers: ", solvers, flush=True)
-    print("insts: \n", insts, flush=True)
-    print()
 
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
@@ -463,10 +457,7 @@ def sat_matrix(solvers, insts, T):
     
     result = query_database(query)
     ids = sat_get_feature_ids(insts)
-    print("ids", ids, flush=True)
     result = [item for item in result if item[1] in ids]
-    print("Result: ", flush=True)
-    print(result, flush=True)
     return result
 
 def sat_get_feature_ids(features):
@@ -517,7 +508,6 @@ def handle_mzn_instance(data):
     status = data["status"]
     mznFileName = data["mznFileName"]
     dataFileName = data["dataFileName"]
-    print(f"handling mzn instance {solver_name} : {mznFileName} : {dataFileName}. ", flush=True)
 
     params = None
     query = "SELECT id FROM mzn_solvers WHERE name = %s"
@@ -672,9 +662,6 @@ def get_solved_time_mzn(solver_name, inst):
 
 
 def mzn_matrix(solvers, insts, T):
-    print("solvers: ", solvers, flush=True)
-    print("insts: \n", insts, flush=True)
-    print()
 
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
@@ -721,10 +708,7 @@ def mzn_matrix(solvers, insts, T):
     
     result = query_database(query)
     ids = mzn_get_feature_ids(insts)
-    print("ids", ids, flush=True)
     result = [item for item in result if item[1] in ids]
-    print("Result: ", flush=True)
-    print(result, flush=True)
     return result
 
 def mzn_get_feature_ids(features):
@@ -744,24 +728,6 @@ def mzn_get_feature_ids(features):
         return None
     
     return ids
-
-def print_stuff():
-    query = "SELECT * FROM sat_solver_featvec_time"
-    result = query_database(query)
-    print(result, flush=True)
-
-# General
-def print_all_tables():
-    query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-    tables = query_database(query)
-    print(f"Tables: {tables}", flush=True)
-    if tables is not None:
-        for table in tables:
-            print(table[0], ": ", flush=True)
-            query = f"SELECT * FROM {table[0]}"
-            print(query_database(query)[0], flush=True)
-            print("\n\n-----------------------------------\n\n-----------------------------------\n", flush=True)
-
 
 def get_mzn_data():
     query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mzn_solvers')"

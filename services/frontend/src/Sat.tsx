@@ -55,18 +55,6 @@ function Sat() {
     fetchDataGet();
   }, []);
 
-  useEffect(() => {
-    console.log("Selected solvers:", selectedSatSolvers);
-  }, [selectedSatSolvers]);
-
-  useEffect(() => {
-    console.log(folderMapping)
-  }, [folderMapping])
-
-  useEffect(() => {
-    console.log("Running solvers:", runningSatJobs);
-  }, [runningSatJobs]);
-
   const clearFiles = () => {
     setSatFileContent("");
     if (dataFileInput.current) (dataFileInput.current as HTMLInputElement).value = "";
@@ -79,7 +67,6 @@ function Sat() {
     );
 
     const solverId = item.jobIdentifier;
-    console.log("Solver ID: ", solverId)
     try {
       const response = await fetch(`/api/jobs/sat/${solverId}`, {
         method: "DELETE",
@@ -130,7 +117,6 @@ function Sat() {
         item,
       ]);
     }
-    //console.log(selectedSatSolvers);
   };
 
   const handleStartSolvers = () => {
@@ -152,7 +138,6 @@ function Sat() {
         prevItem.name === item.name ? { ...prevItem, cpu } : prevItem
       )
     );
-    console.log(item.cpu)
   }
 
   const updateItemMemory = (item: SatSolverData, memory: number) => {
@@ -161,7 +146,6 @@ function Sat() {
         prevItem.name === item.name ? { ...prevItem, memory } : prevItem
       )
     );
-    console.log(item.memory);
   }
 
   const updateItemCores = (item: SatSolverData, cores: number) => {
@@ -170,13 +154,11 @@ function Sat() {
         prevItem.name === item.name ? { ...prevItem, cores } : prevItem
       )
     );
-    console.log(item.memory);
   }
 
  
 
   const fetchStartSolvers = async (item: SatSolverData) => {
-    console.log("satFileName ", satFileName)
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
@@ -208,8 +190,6 @@ function Sat() {
   }
 
   const fetchStartSolverWithContent = (item: SatSolverData, satString: string, fileName: string) => {
-    console.log("ITEM: ", item)
-    console.log("SAT: ", satString)
     const updatedItem = {
       ...item,
       jobIdentifier: uuidv4().slice(0, 8),
@@ -287,10 +267,7 @@ ${bestResult.result}
 
 
   async function startSunny(): Promise<any> {
-    console.log("Starting SUNNY");
-    console.log("k: ", k);
-    console.log("T: ", t);
-    console.log("solvers:", selectedSatSolvers);
+
     const response = await fetch("/api/sunny", {
       method: "POST",
       headers: {
@@ -308,10 +285,8 @@ ${bestResult.result}
     if (!response.ok) {
       console.error("Error starting SUNNY:", response.statusText);
     }
-    console.log("SUNNY started");
     setSelectedSatSolvers([]);
     let responeAsJson = await response.json();
-    console.log(responeAsJson);
     setSchedule(responeAsJson);
   }
 
@@ -342,7 +317,6 @@ ${bestResult.result}
         }
       }
   
-      // console.log(fileMapping);
       setFolderMapping(fileMapping);
     }
   };
@@ -350,7 +324,6 @@ ${bestResult.result}
   const startSolverWithAllFiles = async () => {
     for (const solver of selectedSatSolvers) {
       for (const folder in folderMapping) {
-        console.log(folder)
         const { sat } = folderMapping[folder];
         if (sat) {
           for (const file of sat) {
@@ -379,7 +352,6 @@ ${bestResult.result}
         return; // Exit early if response is not OK
       }
       const data = await response.json() as SatJobResult;
-      console.log("DATA", data);
       if (data != null){
         setBestResult(data);
       }

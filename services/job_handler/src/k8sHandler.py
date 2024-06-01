@@ -12,7 +12,6 @@ def start_solver_job(solver_name, identifier, image_prefix, cpu, memory):
 
     # Create a unique job name
     job_name = f"{solver_name.lower().replace(' ', '-')}-{identifier}"
-    # print("Job name: ", job_name, flush=True)
 
     config.load_incluster_config()
 
@@ -90,7 +89,6 @@ def stop_namespaced_jobs(namespace):
 
     # Iterate over the pods and delete the one with the specified job name
     for job in jobs.items:
-        # print("Deleting: ", job.metadata.name, flush=True)
         batch_api.delete_namespaced_job(name=job.metadata.name, namespace=namespace)
     
     # Get all pods in the default namespace
@@ -98,14 +96,12 @@ def stop_namespaced_jobs(namespace):
 
     # Iterate over the pods and delete the one with the specified job name
     for pod in pods.items:
-        # print("Deleting: ", pod.metadata.name, flush=True)
         core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
     
 def stop_specific_job(namespace, identifier):
     # Load Kubernetes configuration
     config.load_incluster_config()
-    # print("Namespace: ", namespace, flush=True)
-    # print("Identifier: ", identifier, flush=True)
+
     # Create Kubernetes API client
     batch_api = client.BatchV1Api()
     core_api = client.CoreV1Api()
@@ -115,9 +111,7 @@ def stop_specific_job(namespace, identifier):
 
     # Iterate over the pods and delete the one with the specified job name
     for job in jobs.items:
-        # print("Looking at: ", job.metadata.name, flush=True)
         if identifier in job.metadata.name:
-            # print("Deleting: ", job.metadata.name, flush=True)
             batch_api.delete_namespaced_job(name=job.metadata.name, namespace=namespace)
             break
     
@@ -126,9 +120,7 @@ def stop_specific_job(namespace, identifier):
 
     # Iterate over the pods and delete the one with the specified job name
     for pod in pods.items:
-        # print("Looking at: ", pod.metadata.name, flush=True)
         if identifier in pod.metadata.name:
-            # print("Deleting: ", pod.metadata.name, flush=True)
             core_api.delete_namespaced_pod(name=pod.metadata.name, namespace=namespace)
             break
 

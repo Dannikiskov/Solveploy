@@ -32,7 +32,6 @@ def consume():
     def callback(ch, method, properties, body):
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
-        # print(" [x] Received ", data, flush=True)
         instructions = data["instructions"]
 
         if instructions == "StartMznJob":
@@ -82,7 +81,7 @@ def consume():
 
 
     channel.basic_consume(queue='jobHandler', on_message_callback=callback, auto_ack=True)
-    # print("Starting Consume..", flush=True)
+
     channel.start_consuming()
 
 def delete_k8_queues():
@@ -112,13 +111,9 @@ def send_wait_receive_k8(data, queue_name):
     channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
 
     result = None
-
-    # print(" [x] Sent")
-    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
         
-        # print(" [*] Message received.")
         decoded_body = body.decode("utf-8")
         ch.queue_delete(queue=in_queue_name)
         nonlocal result
@@ -145,12 +140,8 @@ def send_wait_receive(data):
     channel.basic_publish(exchange='', routing_key=out_queue_name, body=json_data)
 
     result = None
-
-    # print(" [x] Sent")
-    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
-        # print(" [*] Message received.")
         ch.stop_consuming()
         ch.queue_delete(queue=in_queue_name)
         decoded_body = body.decode("utf-8")
@@ -179,12 +170,8 @@ def consume_k8(queue_name):
     channel.queue_declare(queue=queue_name)
 
     result = None
-
-    # print(" [x] Sent")
-    # print(" [*] Waiting for messages.")
     
     def callback(ch, method, properties, body):
-        # print(" [*] Message received.")
         ch.stop_consuming()
         ch.queue_delete(queue=queue_name)
         decoded_body = body.decode("utf-8")
@@ -192,7 +179,6 @@ def consume_k8(queue_name):
         result = decoded_body
 
     channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-    # print("Starting Consume..", flush=True)
     channel.start_consuming()
     return result
 

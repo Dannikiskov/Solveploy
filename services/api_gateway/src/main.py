@@ -19,15 +19,12 @@ class Jobs(Resource):
         data["identifier"] = data["item"]["jobIdentifier"]
         data["queueName"] = "jobHandler"
         if "noresult" in data and data["noresult"] == True:
-            print("noresult", flush=True)
             async_execute_no_response(data)
         else:
             result = async_execute(data)
-            print("RESULT: ", result, flush=True)
             try:
                 result_json = json.loads(result)
             except Exception as e:
-                print("Error: ", e, flush=True)
                 return "JSON ERROR"
             return result_json
     
@@ -36,7 +33,6 @@ class Jobs(Resource):
         data = None
         if solver_type == "mzn":
             if identifier is not None:
-                print("Stopping specific job", flush=True)
                 data = {"identifier": identifier, "instructions": "StopMznJob", "queueName": "jobHandler"}  
             else:
                 data = {"instructions": "StopMznJobs", "queueName": "jobHandler"}
@@ -57,8 +53,6 @@ class Jobs(Resource):
 class Sunny(Resource):
 
     def post(self):
-        print("POSTING SUNNY", flush=True)
-        print("REQUEST: ", request.json, flush=True)
         data = request.json
         data["identifier"] = str(uuid.uuid4())
         data["instructions"] = "Sunny"
@@ -72,7 +66,6 @@ class Sunny(Resource):
 class SolversMzn(Resource):
 
     def get(self):
-        print("GETTING SOLVERS", flush=True)
         data = {"instructions": "GetAvailableMznSolvers", "queueName": "jobHandler", "identifier": str(uuid.uuid4())}
         result = async_execute(data)
         result_json = json.loads(result)
@@ -206,8 +199,6 @@ class Results(Resource):
     def post(self):
         data = request.json
         result = mq.consume_one(f"{data['type']}-result-queue")
-        print("RESULT: ", result, flush=True)
-        print("DATA: ", data, flush=True)
         
         
         if result is None:
@@ -218,7 +209,6 @@ class Results(Resource):
             resultsList.append(json.loads(result))
             result = mq.consume_one(f"{data['type']}-result-queue")
 
-        print("optgoal: ", data["optGoal"], flush=True)
         try:
             if data["optGoal"] == "minimize":
                 lowest = resultsList[0]
@@ -273,7 +263,6 @@ class Results(Resource):
                 return fastest
                 
         except Exception as e:
-            print("Error: ", e, flush=True)
             return None
         
         return None

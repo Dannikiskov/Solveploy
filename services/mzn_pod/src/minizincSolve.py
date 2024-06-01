@@ -7,7 +7,6 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
     if solver_name == "or tools cp-sat":
         solver_name = "sat"
     
-    print("Running Minizinc model", flush=True)
     with tempfile.NamedTemporaryFile(mode='w', suffix='.mzn', delete=False) as temp_model_file:
         temp_model_file.write(model_string)
         temp_model_path = temp_model_file.name
@@ -26,7 +25,6 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
             instance.add_file(temp_data_file.name)
 
     try:
-        print("Solving...", flush=True)
         if params_dict is not None:
             t1 = time.time()
             result = instance.solve(**params_dict)
@@ -38,7 +36,6 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
     except Exception as e:
         print("Error while solving: ", e, flush=True)
 
-    print("result: ", result, "\n", flush=True)
         
     os.remove(temp_model_path)
 
@@ -64,6 +61,4 @@ def run_minizinc_model(model_string, solver_name, data_string=None, data_type=No
     else:
         execution_time = "N/A"
 
-        
-    print({"result": output, "executionTime": execution_time, "status": str(result.status), "optVal": opt_val}, flush=True)
     return {"result": output, "executionTime": execution_time, "status": str(result.status), "optVal": opt_val, "optGoal": objective_list}

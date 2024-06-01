@@ -8,9 +8,7 @@ import pysat.solvers
 def run_sat_model(solver_name, cnf_string, cores=None, params=None):
     if cores == None or cores <= 1 and solver_name != "gimsatul":
         # Create solver instance
-        print("Looking up solver", flush=True)
         solver = None
-        print("SOLVERS:", pysat.solvers, "\n\n", flush=True)
         for attr in dir(pysat.solvers.SolverNames):
             if not attr.startswith('__'):
                 for val in getattr(pysat.solvers.SolverNames, attr):
@@ -34,11 +32,10 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
 
 
         # Solve the SAT problem
-        print("\nSolving the SAT problem...", flush=True)
         t1 = time.time()
         result = solver.solve()
         t2 = time.time() - t1
-        print(result, flush=True)
+
         if result:
             return {"result": str(solver.get_model()), "status": "SATISFIED", "executionTime": t2}
         else: 
@@ -50,37 +47,36 @@ def run_sat_model(solver_name, cnf_string, cores=None, params=None):
                 temp_model_file.write(cnf_string)
                 temp_model_path = temp_model_file.name
                 temp_model_file.close()
-            print(temp_model_path)
+
             command = ["glucose-syrup", "-model", f"-maxnbthreads={cores}", f"{temp_model_path}"]
-            print("COMMAND: ", command, flush=True)
+
             t1 = time.time()
             cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
             real_time = time.time() - t1
-            print(cmd_result, flush=True)
+
 
             if cmd_result.strip().split('\n')[-2] == "s SATISFIABLE":       
                 last_line = cmd_result.strip().split('\n')[-1]
                 if last_line.startswith('v'):
                     last_line = last_line[1:].strip()
-                    print({"result": last_line, "status": "SATISFIED", "executionTime": real_time}, flush=True)
+
                 return {"result": last_line, "status": "SATISFIED", "executionTime": real_time}            
             else:
                 return {"result": "UNSATISFIED", "status": "UNSATISFIABLE", "executionTime": float(real_time)}
         
         elif solver_name == "gimsatul":
-            print("gimsatul")
+
             with tempfile.NamedTemporaryFile(mode='w', suffix='.cnf', delete=False) as temp_model_file:
-                print("\n", cnf_string, "\n", flush=True)
+
                 temp_model_file.write(cnf_string)
                 temp_model_path = temp_model_file.name
                 temp_model_file.close()
-            print(temp_model_path)
+
             command = ["gimsatul", f"{temp_model_path}", f"--threads={cores}"]
-            print("COMMAND: ", command, flush=True)
+ 
             t1 = time.time()
             cmd_result = str(subprocess.run(command, capture_output=True, text=True).stdout)
             real_time = time.time() - t1
-            print(cmd_result, flush=True)
 
             if "s SATISFIABLE" in cmd_result.strip().split('\n'):
                 solution_lines = [line for line in cmd_result.strip().split('\n') if line.startswith('v')]

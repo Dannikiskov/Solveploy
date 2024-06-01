@@ -59,14 +59,6 @@ function Mzn() {
     fetchDataGet();
   }, []);
 
-  useEffect(() => {
-    console.log("Selected solvers:", selectedMznSolvers);
-  }, [selectedMznSolvers]);
-
-  useEffect(() => {
-    console.log("Running solvers:", runningMznJobs);
-  }, [runningMznJobs]);
-
   const clearFiles = () => {
     setDataFileContent("");
     setMznFileContent("");
@@ -80,7 +72,6 @@ function Mzn() {
     );
 
     const solverId = item.jobIdentifier;
-    console.log("Solver ID: ", solverId)
     try {
       const response = await fetch(`/api/jobs/mzn/${solverId}`, {
         method: "DELETE",
@@ -154,7 +145,6 @@ function Mzn() {
         prevItem.name === item.name ? { ...prevItem, cpu } : prevItem
       )
     );
-    console.log(item.cpu)
   }
 
   const updateItemMemory = (item: MznSolverData, memory: number) => {
@@ -163,7 +153,6 @@ function Mzn() {
         prevItem.name === item.name ? { ...prevItem, memory } : prevItem
       )
     );
-    console.log(item.memory);
   }
 
   const updateItemParams = (event: React.ChangeEvent<HTMLInputElement>, item: MznSolverData) => {
@@ -180,11 +169,10 @@ function Mzn() {
         };
         reader.readAsText(file);
       }
-      console.log(item.params);
   }
 
   const fetchStartSolvers = async (item: MznSolverData) => {
-    console.log("ITEM: ", item)
+
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
@@ -227,10 +215,7 @@ function Mzn() {
   }
 
   const fetchStartSolverWithContent = (item: MznSolverData, mznString: string, dataString: string, suffix: string, mznName: string, dataName: string) => {
-    console.log("ITEM: ", item)
-    console.log("MZN: ", mznString)
-    console.log("DATA: ", dataString)
-    console.log("SUFFIX: ", suffix)
+
     const updatedItem = {
       ...item,
       jobIdentifier: uuidv4().slice(0, 8),
@@ -330,10 +315,6 @@ ${bestResult.result}
 
 
   async function startSunny(): Promise<any> {
-    console.log("Starting SUNNY");
-    console.log("k: ", k);
-    console.log("T: ", t);
-    console.log("solvers:", selectedMznSolvers);
     const response = await fetch("/api/sunny", {
       method: "POST",
       headers: {
@@ -353,10 +334,8 @@ ${bestResult.result}
     if (!response.ok) {
       console.error("Error starting SUNNY:", response.statusText);
     }
-    console.log("SUNNY started");
     setSelectedMznSolvers([]);
     let responeAsJson = await response.json();
-    console.log(responeAsJson);
     setSchedule(responeAsJson);
   }
 
@@ -433,7 +412,6 @@ ${bestResult.result}
         return;
       }
       const data = await response.json() as MznJobResult;
-      console.log("DATA", data);
       if (data != null){
         setBestResult(data);
         setOptVal(data.optValue.toString());

@@ -20,12 +20,10 @@ def rmq_init():
 def consume():
     channel = _rmq_connect().channel()
     def callback(ch, method, properties, body):
-        #print(" [x] Received %r" % body, flush=True)
         decoded_body = body.decode("utf-8")
         data = json.loads(decoded_body)
         instructions = data.get("instructions", "FAILED TO RETRIEVE INSTRUCTIONS IN MQ KB")
         instructions = instructions.strip()
-        print("Instructions:", instructions, flush=True)
         content = data.get("content", "FAILED TO RETRIEVE CONTENT IN MQ KB")
         queue_name = data.get("queueName", "FAILED TO RETRIEVE QUEUE NAME IN MQ KB")
         identifier = data.get("identifier", "FAILED TO RETRIEVE IDENTIFIER IN MQ KB")
@@ -120,7 +118,6 @@ def consume():
 
 
     channel.basic_consume(queue='kbHandler', on_message_callback=callback, auto_ack=True)
-    print("Starting Consume..", flush=True)
     channel.start_consuming()
 
 
@@ -144,9 +141,6 @@ def _rmq_connect():
 
     # Decode the secret data
     password = base64.b64decode(secret.data['rabbitmq-password']).decode()
-
-
-    print(password, flush=True)
 
     while True:
         try:

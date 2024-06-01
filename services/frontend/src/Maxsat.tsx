@@ -43,7 +43,6 @@ function Maxsat() {
         prevItem.name === item.name ? { ...prevItem, memory } : prevItem
       )
     );
-    console.log(item.memory);
   }
 
   const updateItemCpu = (item: MaxsatSolverData, cpu: number) => {
@@ -52,7 +51,6 @@ function Maxsat() {
         prevItem.name === item.name ? { ...prevItem, cpu } : prevItem
       )
     );
-    console.log(item.cpu)
   }
 
   const downloadResult = () => {
@@ -105,7 +103,6 @@ ${bestResult.result}
         return; // Exit early if response is not OK
       }
       const data = await response.json() as MaxsatJobResult;
-      console.log("DATA", data);
       if (data != null){
         setBestResult(data);
       }
@@ -159,13 +156,12 @@ ${bestResult.result}
         item,
       ]);
     }
-    //console.log(selectedSatSolvers);
   };
   
 
   const fetchStartSolvers = async (item: MaxsatSolverData) => {
     try {
-      const response = await fetch("/api/jobs", {
+      await fetch("/api/jobs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -180,7 +176,6 @@ ${bestResult.result}
       });
 
 
-      console.log(response);
       // Remove the item from runningSatSolvers list
       setRunningMaxsatJobs((prevItems: Array<MaxsatSolverData>) =>
         prevItems.filter((i) => i.name !== item.name)
@@ -198,7 +193,6 @@ ${bestResult.result}
       const reader = new FileReader();
       reader.onload = () => {
         setMaxsatFileContent(reader.result as string);
-        console.log(reader.result);
       };
       reader.readAsText(file);
     }

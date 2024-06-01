@@ -17,7 +17,6 @@ function Info() {
     const response = await fetch("/api/data/sat")
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         return data;
       });
       setSatData(response);
@@ -27,7 +26,6 @@ function Info() {
     const response = await fetch("/api/data/mzn")
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         return data;
       });
       setMznData(response);
