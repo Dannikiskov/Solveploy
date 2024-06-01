@@ -434,7 +434,7 @@ def sat_matrix(solvers, insts, T):
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
         CASE 
-            WHEN t.execution_time > {} THEN 'T' 
+            WHEN t.execution_time > %s THEN 'T' 
             ELSE CAST(t.execution_time AS VARCHAR) 
         END AS execution_time
     FROM 
@@ -453,11 +453,10 @@ def sat_matrix(solvers, insts, T):
         s.name, f.id;
     """).format(
         combined_insts,
-        T,
         sql.SQL(',').join(sql.Literal(solver) for solver in solvers)  # Use sql.Literal for string values
     )
-    
-    result = query_database(query)
+    params = (T,)
+    result = query_database(query, params)
     ids = sat_get_feature_ids(insts)
     result = [item for item in result if item[1] in ids]
     print(result, flush=True)
