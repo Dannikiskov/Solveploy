@@ -49,4 +49,7 @@ def run_maxsat_model(solver_name, cnf_string):
         t2 = time.time()
 
     print("MAXSAT finished.. with model; ", model, flush=True)
-    return {"result": model, "executionTime": t2 - t1}
+    if model is None:
+        return {"result": "unsatisfiable", "executionTime": t2 - t1, "status": "UNSATISFIABLE"}
+    else:
+        return {"result": model, "executionTime": t2 - t1, "status": "SATISFIED"}
