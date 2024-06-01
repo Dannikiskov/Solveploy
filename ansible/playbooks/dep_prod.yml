@@ -142,12 +142,16 @@
         release_namespace: rabbitmq-system
         values:
           existingSecret: rabbitmq-credentials
-          replicaCount: 3
+          replicaCount: 1
           persistence:
             enabled: true
           resources:
             limits:
               memory: 16Gi
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
     
     - name: Get secret from rabbitmq-system namespace
       kubernetes.core.k8s_info:

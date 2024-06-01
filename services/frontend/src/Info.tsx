@@ -12,8 +12,7 @@ interface DataItem {
 function Info() {
   const [mznData, setMznData] = useState([]);
   const [satData, setSatData] = useState<any[]>([]);
-  const [maxsatData, setMaxsatData] = useState([]);
-
+  
   const satGet = async () => {
     const response = await fetch("/api/data/sat")
       .then((response) => response.json())
@@ -22,16 +21,6 @@ function Info() {
         return data;
       });
       setSatData(response);
-  }
-
-  const maxsatGet = async () => {
-    const response = await fetch("/api/data/maxsat")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        return data;
-      });
-      setMaxsatData(response);
   }
 
   const mznGet = async () => {

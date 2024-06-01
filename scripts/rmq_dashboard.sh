@@ -1,6 +1,4 @@
-username="$(kubectl get secret message-broker-default-user -o jsonpath='{.data.username}' | base64 --decode)"
-echo "username: $username"
-password="$(kubectl get secret message-broker-default-user -o jsonpath='{.data.password}' | base64 --decode)"
+password="$(kubectl get secret rabbitmq -o jsonpath='{.data.rabbitmq-password}' | base64 --decode)"
 echo "password: $password"
 
-kubectl port-forward "service/message-broker" 15672
+kubectl port-forward svc/rabbitmq -n  8080:4369
