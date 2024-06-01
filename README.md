@@ -5,7 +5,7 @@ Easy cloud deployment of Minizinc, SAT and MAXSAT solvers
 
 * Ansible installed and added to PATH with role darkwizard242.helm installed and collection kubernetes.core installed.
 * Python3 install with packages openshift, pyyaml, and kubernetes installed.
-* To deploy locally, docker must be installed.
+* To deploy locally, docker and minikube must be installed.
 * SSH access to target (debian) virtual machine.
 * ngrok free account claimed domain, authtoken and api-key.
 
