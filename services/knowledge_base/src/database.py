@@ -244,7 +244,6 @@ def maxsat_matrix(solvers, insts, T):
     )
     params = (T,)
     result = query_database(query, params)
-    print(result, flush=True)
     return result
 
 # SAT
@@ -410,9 +409,6 @@ def get_sat_solvers():
 
 
 def sat_matrix(solvers, insts, T):
-    print("solvers", solvers, flush=True)
-    print("insts", insts, flush=True)
-    print("T", T, flush=True)
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
 
@@ -459,7 +455,6 @@ def sat_matrix(solvers, insts, T):
     result = query_database(query, params)
     ids = sat_get_feature_ids(insts)
     result = [item for item in result if item[1] in ids]
-    print(result, flush=True)
     return result
 
 def sat_get_feature_ids(features):
