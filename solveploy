@@ -31,7 +31,7 @@ if  "--help" in sys.argv or "-h" in sys.argv or len(sys.argv) < 2:
           "\t--upload-database: Upload the database from the a .sql file to the target machine. File must be named 'db.sql' and must be located in root folder of project. Default is False\n"
           "\t--download-database: Download the database from the target machine. Downloaded file is located in root folder of project named 'downloaded_db.sql'\n"
           "\t--dev: Deploys the project locally in development mode in Minikube.\n"
-          "\t--port-forward: Creates a port forward to the frontend service in the target machine. Requires the target machine IP and the port on host machine.\n")
+          "\t-v: Verbose mode. Prints the command that is being executed.\n")
     exit()
 
 if "--upload-database" in sys.argv:
@@ -63,26 +63,6 @@ target_vm ansible_host={host} ansible_user={user}
 with open(file_path, "w") as file:
     file.write(content)
     file.close()
-
-if "--port-forward" in sys.argv:
-    with open("./ansible/playbooks/port_forward_frontend.yaml", "r+") as file:
-        file.seek(0, os.SEEK_END)
-        pos = file.tell() - 1
-        while pos > 0 and file.read(1) != "\n":
-            pos -= 1
-            file.seek(pos, os.SEEK_SET)
-        if pos > 0:
-            file.seek(pos, os.SEEK_SET)
-            file.truncate()
-            port = sys.argv[sys.argv.index("--port-forward") + 1]
-        file.write(f"\n      shell: ssh -L {port}:localhost:8080 {user}@{host}")
-        file.close()
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/port_forward_frontend.yaml -i ansible/inventory/hosts"
-    if "-v" in sys.argv:
-        print("EXECUTING COMMAND: ", command)
-    subprocess.run(command, shell=True)
-    exit()
-
 
 if not download_db:
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/playbooks/dep_prod.yml -i ansible/inventory/hosts"
