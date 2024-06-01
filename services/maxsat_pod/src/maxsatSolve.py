@@ -26,12 +26,11 @@ def run_maxsat_model(solver_name, cnf_string):
                     clause = [int(x) for x in line.split(" ")[:-1]]
                     weight = int(clause[0])
                     weightless_clause = clause[1:]
-                    print("CLAUSE: ", clause, "WEIGHT: ", weight, "WEIGHTLESS_CLAUSE: ", weightless_clause, flush=True)
                     w_formula.append(weightless_clause, weight=weight)
                 else:
                     clause = [int(x) for x in line.split(" ")[:-1]]
-                    print("CLAUSE: ", clause, flush=True)
                     formula.append(clause)
+
     except Exception as e:
         print("Error: ", e, flush=True)
 
@@ -39,16 +38,15 @@ def run_maxsat_model(solver_name, cnf_string):
     t1 = None
     t2 = None
 
-    if solver_name == 'RC2':
-        if not weighted_cnf:
-            print("computing with formula", formula, flush=True)
-            t1 = time.time()
-            model = RC2(formula).compute()
-            t2 = time.time()
-        else:
-            t1 = time.time()
-            model = RC2(w_formula).compute()
-            t2 = time.time()
+    if not weighted_cnf:
+        print("computing with formula", formula, flush=True)
+        t1 = time.time()
+        model = RC2(formula).compute()
+        t2 = time.time()
+    else:
+        t1 = time.time()
+        model = RC2(w_formula).compute()
+        t2 = time.time()
 
     print("MAXSAT finished.. with model; ", model, flush=True)
     return {"result": model, "executionTime": t2 - t1}
