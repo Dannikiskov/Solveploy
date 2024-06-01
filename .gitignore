@@ -26,6 +26,7 @@ note.txt
 .environmentals.json
 db.sql
 downloaded_db.sql
+
 # Ansible
 ansible/playbooks/roles/*
 ansible/collections/*
