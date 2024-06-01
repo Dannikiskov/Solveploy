@@ -106,14 +106,6 @@ function Info() {
     ))}
     <hr style={{margin: '2px'}} />
       </div>
-      <br />
-      <h2>MAXSAT</h2>
-      <p>
-        <button onClick={maxsatGet}> Refresh MAXSAT data</button>
-      </p>
-      <ul>
-        {maxsatData}
-      </ul>
     </>
   );
 }

@@ -529,7 +529,7 @@ ${bestResult.result}
         </div>
       ) : (
         <div>
-          <button onClick={startSolverWithAllFiles} >Start Solvers + </button>
+          <button onClick={startSolverWithAllFiles} >Start Solvers </button>
         </div>
       )}
     </div>
