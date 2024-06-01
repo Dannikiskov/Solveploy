@@ -410,7 +410,9 @@ def get_sat_solvers():
 
 
 def sat_matrix(solvers, insts, T):
-
+    print("solvers", solvers, flush=True)
+    print("insts", insts, flush=True)
+    print("T", T, flush=True)
     if not (isinstance(insts[0], list)):
         insts = [[x] for x in insts]
 
@@ -457,6 +459,7 @@ def sat_matrix(solvers, insts, T):
     result = query_database(query)
     ids = sat_get_feature_ids(insts)
     result = [item for item in result if item[1] in ids]
+    print(result, flush=True)
     return result
 
 def sat_get_feature_ids(features):
