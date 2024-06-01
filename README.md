@@ -28,3 +28,6 @@ When deployment has concluded, Solveploy is accesible on the specified ngork dom
 * Execute command `./solveploy --dev` and enter password when prompted.
 
 When deployment has concluded, Solveploy is accesible via execution command `minikube service frontend-service -n default` and following the link provided.
+
+### Monitoring and Chaos Mesh dashboard
+To access various dashboards, view artifacts/dashboards.md
