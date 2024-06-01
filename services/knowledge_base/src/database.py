@@ -244,7 +244,7 @@ def maxsat_matrix(solvers, insts, T):
     )
     params = (T,)
     result = query_database(query, params)
-    print(result)
+    print(result, flush=True)
     return result
 
 # SAT
