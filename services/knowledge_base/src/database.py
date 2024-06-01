@@ -434,8 +434,8 @@ def sat_matrix(solvers, insts, T):
         s.name AS solver_name, 
         f.id AS feature_vector_id, 
         CASE 
-            WHEN t.status = 'OPTIMAL_SOLUTION' OR t.status = 'UNSATISFIABLE' THEN CAST(t.execution_time AS VARCHAR) 
-            ELSE 'T'
+            WHEN t.execution_time > %s THEN 'T' 
+            ELSE CAST(t.execution_time AS VARCHAR) 
         END AS execution_time
     FROM 
         sat_solvers s
